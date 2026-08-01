@@ -821,6 +821,52 @@
             box-sizing: border-box;
         }
         
+        /* 📸 Face Silhouette Guide overlay inside camera preview */
+        .camera-face-guide-container {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -55%); /* offset slightly upwards for natural chin placement */
+            width: 240px;
+            height: 320px;
+            z-index: 3;
+            pointer-events: none;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-face-guide-oval {
+            width: 100%;
+            height: 100%;
+            border: 4px dashed rgba(255, 255, 255, 0.7);
+            border-radius: 50% / 50%;
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.55); /* Dim dark transparent backdrop outside */
+            position: relative;
+        }
+
+        .camera-face-guide-text {
+            position: absolute;
+            bottom: -55px;
+            white-space: nowrap;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 600;
+            background: rgba(0, 0, 0, 0.65);
+            padding: 6px 16px;
+            border-radius: 16px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+            animation: pulse-opacity 1.8s infinite alternate;
+        }
+
+        @keyframes pulse-opacity {
+            0% { opacity: 0.65; }
+            100% { opacity: 1; }
+        }
+        
         .camera-video-container {
             position: absolute;
             top: 0;
@@ -954,6 +1000,11 @@
             <div class="camera-video-container">
                 <video id="camera-video" autoplay playsinline></video>
                 <img id="camera-preview" style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2;">
+                <!-- Face Silhouette Guide -->
+                <div id="camera-face-guide" class="camera-face-guide-container">
+                    <div class="camera-face-guide-oval"></div>
+                    <div class="camera-face-guide-text" data-i18n="cam-guide-text">이 영역 안에 얼굴을 맞춰주세요</div>
+                </div>
                 <canvas id="camera-canvas" style="display: none;"></canvas>
             </div>
             
@@ -1254,7 +1305,8 @@
                     "cam-retake": "다시찍기",
                     "cam-save": "저장",
                     "cam-facing-label": "화면전환",
-                    "cam-exit-label": "나가기"
+                    "cam-exit-label": "나가기",
+                    "cam-guide-text": "이 영역 안에 얼굴을 맞춰주세요"
                 },
                 en: {
                     "btn-gamestart": "Game Start",
@@ -1335,7 +1387,8 @@
                     "cam-retake": "Retake",
                     "cam-save": "Save",
                     "cam-facing-label": "Switch Camera",
-                    "cam-exit-label": "Exit"
+                    "cam-exit-label": "Exit",
+                    "cam-guide-text": "Align your face inside this area"
                 },
                 ja: {
                     "btn-gamestart": "ゲーム開始",
@@ -1412,7 +1465,8 @@
                     "cam-retake": "撮り直し",
                     "cam-save": "保存",
                     "cam-facing-label": "カメラ切替",
-                    "cam-exit-label": "終了"
+                    "cam-exit-label": "終了",
+                    "cam-guide-text": "この枠内に顔を合わせてください"
                 },
                 zh: {
                     "btn-gamestart": "开始游戏",
@@ -1489,7 +1543,8 @@
                     "cam-retake": "重拍",
                     "cam-save": "保存",
                     "cam-facing-label": "切换相机",
-                    "cam-exit-label": "退出"
+                    "cam-exit-label": "退出",
+                    "cam-guide-text": "请将脸部对准此区域"
                 }
             },
             t(key) {
@@ -1778,6 +1833,7 @@
             const retakeBtn = document.getElementById('cam-btn-retake');
             const saveBtn = document.getElementById('cam-btn-save');
             const captureBtn = document.getElementById('cam-btn-capture');
+            const guide = document.getElementById('camera-face-guide');
 
             if (!overlay || !video) return;
 
@@ -1787,6 +1843,7 @@
             if (retakeBtn) retakeBtn.style.display = 'none';
             if (saveBtn) saveBtn.style.display = 'none';
             if (captureBtn) captureBtn.style.display = 'inline-block';
+            if (guide) guide.style.display = 'flex';
 
             overlay.style.display = 'flex';
 
@@ -1818,6 +1875,8 @@
             }
             const video = document.getElementById('camera-video');
             if (video) video.srcObject = null;
+            const guide = document.getElementById('camera-face-guide');
+            if (guide) guide.style.display = 'none';
         }
 
         async function toggleCameraFacing() {
@@ -1832,6 +1891,7 @@
             const captureBtn = document.getElementById('cam-btn-capture');
             const retakeBtn = document.getElementById('cam-btn-retake');
             const saveBtn = document.getElementById('cam-btn-save');
+            const guide = document.getElementById('camera-face-guide');
 
             if (!cameraStream || !video) return;
 
@@ -1854,6 +1914,7 @@
                 preview.style.display = 'block';
             }
             video.style.display = 'none';
+            if (guide) guide.style.display = 'none';
 
             // Toggle button states
             if (captureBtn) captureBtn.style.display = 'none';
@@ -1869,12 +1930,14 @@
             const captureBtn = document.getElementById('cam-btn-capture');
             const retakeBtn = document.getElementById('cam-btn-retake');
             const saveBtn = document.getElementById('cam-btn-save');
+            const guide = document.getElementById('camera-face-guide');
 
             if (video) video.style.display = 'block';
             if (preview) preview.style.display = 'none';
             if (captureBtn) captureBtn.style.display = 'inline-block';
             if (retakeBtn) retakeBtn.style.display = 'none';
             if (saveBtn) saveBtn.style.display = 'none';
+            if (guide) guide.style.display = 'flex';
         }
 
         function savePhotoToGrid() {
@@ -1883,145 +1946,161 @@
 
             const img = new Image();
             img.onload = function() {
-                processImageToJelly(img);
+                processImageToJelly(img, true);
                 closeCustomCamera();
             };
             img.src = preview.src;
         }
 
-        function processImageToJelly(img) {
+        function processImageToJelly(img, isCamera = false) {
             const size = 512;
             
-            // Canvas A: Original Image centered with margin
+            // Canvas A: Original Image centered with margin or face cropped
             const imgCanvas = document.createElement('canvas');
             imgCanvas.width = size;
             imgCanvas.height = size;
             const imgCtx = imgCanvas.getContext('2d');
             
-            // Scale down to fit with margin for the gel border
-            const margin = 45;
-            const fitSize = size - margin * 2;
-            const scale = Math.min(fitSize / img.naturalWidth, fitSize / img.naturalHeight);
-            const w = img.naturalWidth * scale;
-            const h = img.naturalHeight * scale;
-            const x = (size - w) / 2;
-            const y = (size - h) / 2;
-            imgCtx.drawImage(img, x, y, w, h);
+            if (isCamera) {
+                // Apply a vertical oval clip path for face snapshot
+                imgCtx.save();
+                imgCtx.beginPath();
+                const cx = size / 2;
+                const cy = size / 2;
+                const rx = 135; // Horizontal radius
+                const ry = 180; // Vertical radius
+                imgCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                imgCtx.clip();
 
-            // Highly reliable flood-fill background keyer with gap-closing morphological outline dilation
-            // (prevents keying out internal white body spaces even if outlines have gaps)
-            const imgData = imgCtx.getImageData(0, 0, size, size);
-            const pixels = imgData.data;
+                // Scale and draw the image inside the clipped oval (fill the 512x512 canvas area)
+                const scale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
+                const w = img.naturalWidth * scale;
+                const h = img.naturalHeight * scale;
+                const x = (size - w) / 2;
+                const y = (size - h) / 2;
+                imgCtx.drawImage(img, x, y, w, h);
+                imgCtx.restore();
+            } else {
+                // Scale down to fit with margin for the gel border
+                const margin = 45;
+                const fitSize = size - margin * 2;
+                const scale = Math.min(fitSize / img.naturalWidth, fitSize / img.naturalHeight);
+                const w = img.naturalWidth * scale;
+                const h = img.naturalHeight * scale;
+                const x = (size - w) / 2;
+                const y = (size - h) / 2;
+                imgCtx.drawImage(img, x, y, w, h);
 
-            // 1. Mark non-white/colored pixels as outline boundaries
-            const solidOutline = new Uint8Array(size * size);
-            for (let i = 0; i < pixels.length; i += 4) {
-                const r = pixels[i];
-                const g = pixels[i+1];
-                const b = pixels[i+2];
-                const a = pixels[i+3];
-                // Non-transparent and not near white/light grey
-                if (a > 50 && (r < 220 || g < 220 || b < 220)) {
-                    solidOutline[i / 4] = 1;
+                // Run background keyer
+                const imgData = imgCtx.getImageData(0, 0, size, size);
+                const pixels = imgData.data;
+
+                // 1. Mark non-white/colored pixels as outline boundaries
+                const solidOutline = new Uint8Array(size * size);
+                for (let i = 0; i < pixels.length; i += 4) {
+                    const r = pixels[i];
+                    const g = pixels[i+1];
+                    const b = pixels[i+2];
+                    const a = pixels[i+3];
+                    if (a > 50 && (r < 220 || g < 220 || b < 220)) {
+                        solidOutline[i / 4] = 1;
+                    }
                 }
-            }
 
-            // 2. Perform morphological dilation on outline to seal any tiny line gaps (radius = 3)
-            const closedOutline = new Uint8Array(size * size);
-            const r_dilate = 3;
-            for (let y = 0; y < size; y++) {
-                for (let x = 0; x < size; x++) {
-                    if (solidOutline[y * size + x]) {
-                        for (let dy = -r_dilate; dy <= r_dilate; dy++) {
-                            const ny = y + dy;
-                            if (ny >= 0 && ny < size) {
-                                for (let dx = -r_dilate; dx <= r_dilate; dx++) {
-                                    const nx = x + dx;
-                                    if (nx >= 0 && nx < size) {
-                                        closedOutline[ny * size + nx] = 1;
+                // 2. Perform morphological dilation on outline to seal any tiny line gaps (radius = 3)
+                const closedOutline = new Uint8Array(size * size);
+                const r_dilate = 3;
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        if (solidOutline[y * size + x]) {
+                            for (let dy = -r_dilate; dy <= r_dilate; dy++) {
+                                const ny = y + dy;
+                                if (ny >= 0 && ny < size) {
+                                    for (let dx = -r_dilate; dx <= r_dilate; dx++) {
+                                        const nx = x + dx;
+                                        if (nx >= 0 && nx < size) {
+                                            closedOutline[ny * size + nx] = 1;
+                                        }
                                     }
                                 }
                             }
                         }
                     }
                 }
-            }
 
-            // 3. Setup flood-fill traversal from outer canvas borders
-            const visited = new Uint8Array(size * size);
-            const queue = [];
+                // 3. Setup flood-fill traversal from outer canvas borders
+                const visited = new Uint8Array(size * size);
+                const queue = [];
 
-            function isBackgroundCandidate(x, y) {
-                const idx = y * size + x;
-                if (closedOutline[idx]) return false; // Blocked by closed outline wall
+                function isBackgroundCandidate(x, y) {
+                    const idx = y * size + x;
+                    if (closedOutline[idx]) return false;
 
-                const pIdx = idx * 4;
-                const r = pixels[pIdx];
-                const g = pixels[pIdx+1];
-                const b = pixels[pIdx+2];
-                const a = pixels[pIdx+3];
-                return a < 45 || (r > 220 && g > 220 && b > 220);
-            }
-
-            // Seed queue along borders
-            for (let x = 0; x < size; x++) {
-                if (!visited[x] && isBackgroundCandidate(x, 0)) {
-                    visited[x] = 1;
-                    queue.push(x);
+                    const pIdx = idx * 4;
+                    const r = pixels[pIdx];
+                    const g = pixels[pIdx+1];
+                    const b = pixels[pIdx+2];
+                    const a = pixels[pIdx+3];
+                    return a < 45 || (r > 220 && g > 220 && b > 220);
                 }
-                const yBottom = size - 1;
-                const idxBottom = yBottom * size + x;
-                if (!visited[idxBottom] && isBackgroundCandidate(x, yBottom)) {
-                    visited[idxBottom] = 1;
-                    queue.push(idxBottom);
+
+                for (let x = 0; x < size; x++) {
+                    if (!visited[x] && isBackgroundCandidate(x, 0)) {
+                        visited[x] = 1;
+                        queue.push(x);
+                    }
+                    const yBottom = size - 1;
+                    const idxBottom = yBottom * size + x;
+                    if (!visited[idxBottom] && isBackgroundCandidate(x, yBottom)) {
+                        visited[idxBottom] = 1;
+                        queue.push(idxBottom);
+                    }
                 }
-            }
-            for (let y = 0; y < size; y++) {
-                const idxLeft = y * size;
-                if (!visited[idxLeft] && isBackgroundCandidate(0, y)) {
-                    visited[idxLeft] = 1;
-                    queue.push(idxLeft);
+                for (let y = 0; y < size; y++) {
+                    const idxLeft = y * size;
+                    if (!visited[idxLeft] && isBackgroundCandidate(0, y)) {
+                        visited[idxLeft] = 1;
+                        queue.push(idxLeft);
+                    }
+                    const xRight = size - 1;
+                    const idxRight = y * size + xRight;
+                    if (!visited[idxRight] && isBackgroundCandidate(xRight, y)) {
+                        visited[idxRight] = 1;
+                        queue.push(idxRight);
+                    }
                 }
-                const xRight = size - 1;
-                const idxRight = y * size + xRight;
-                if (!visited[idxRight] && isBackgroundCandidate(xRight, y)) {
-                    visited[idxRight] = 1;
-                    queue.push(idxRight);
-                }
-            }
 
-            // 4. BFS traversal
-            let head = 0;
-            while (head < queue.length) {
-                const curr = queue[head++];
-                const cx = curr % size;
-                const cy = Math.floor(curr / size);
+                // 4. BFS traversal
+                let head = 0;
+                while (head < queue.length) {
+                    const curr = queue[head++];
+                    const cx = curr % size;
+                    const cy = Math.floor(curr / size);
 
-                // Make background pixel transparent
-                const idx = curr * 4;
-                pixels[idx + 3] = 0;
+                    const idx = curr * 4;
+                    pixels[idx + 3] = 0;
 
-                const neighbors = [
-                    {x: cx + 1, y: cy},
-                    {x: cx - 1, y: cy},
-                    {x: cx, y: cy + 1},
-                    {x: cx, y: cy - 1}
-                ];
+                    const neighbors = [
+                        {x: cx + 1, y: cy},
+                        {x: cx - 1, y: cy},
+                        {x: cx, y: cy + 1},
+                        {x: cx, y: cy - 1}
+                    ];
 
-                for (let i = 0; i < neighbors.length; i++) {
-                    const nx = neighbors[i].x;
-                    const ny = neighbors[i].y;
-                    if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-                        const nIdx = ny * size + nx;
-                        if (!visited[nIdx] && isBackgroundCandidate(nx, ny)) {
-                            visited[nIdx] = 1;
-                            queue.push(nIdx);
+                    for (let i = 0; i < neighbors.length; i++) {
+                        const nx = neighbors[i].x;
+                        const ny = neighbors[i].y;
+                        if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
+                            const nIdx = ny * size + nx;
+                            if (!visited[nIdx] && isBackgroundCandidate(nx, ny)) {
+                                visited[nIdx] = 1;
+                                queue.push(nIdx);
+                            }
                         }
                     }
                 }
+                imgCtx.putImageData(imgData, 0, 0);
             }
-
-            imgCtx.putImageData(imgData, 0, 0);
 
             // Canvas B: Silhouette (Solid White)
             const silCanvas = document.createElement('canvas');
