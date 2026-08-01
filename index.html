@@ -4099,8 +4099,30 @@
             requestAnimationFrame(draw);
         }
 
+        function isPlaygroundActive() {
+            const splash = document.getElementById('start-splash-screen');
+            const lobby = document.getElementById('lobby-screen');
+            const camera = document.getElementById('custom-camera-overlay');
+            const resultModal = document.getElementById('result-modal');
+            
+            if (splash && !splash.classList.contains('fade-out')) {
+                return false;
+            }
+            if (lobby && lobby.style.display !== 'none') {
+                return false;
+            }
+            if (camera && camera.style.display === 'flex') {
+                return false;
+            }
+            if (resultModal && resultModal.style.display === 'flex') {
+                return false;
+            }
+            return true;
+        }
+
         // Register mouse deforms with dynamic coordinate scaling and point grab lock
         canvas.addEventListener('mousedown', (e) => {
+            if (!isPlaygroundActive()) return;
             stopAutopilot();
             let rect = canvas.getBoundingClientRect();
             let scaleX = canvas.width / rect.width;
@@ -4133,6 +4155,7 @@
         });
 
         canvas.addEventListener('mousemove', (e) => {
+            if (!isPlaygroundActive()) return;
             let rect = canvas.getBoundingClientRect();
             let scaleX = canvas.width / rect.width;
             let scaleY = canvas.height / rect.height;
@@ -4238,6 +4261,7 @@
         };
 
         canvas.addEventListener('touchstart', (e) => {
+            if (!isPlaygroundActive()) return;
             stopAutopilot();
             e.preventDefault();
             let pos = getTouchPos(e);
@@ -4264,6 +4288,7 @@
         }, { passive: false });
 
         canvas.addEventListener('touchmove', (e) => {
+            if (!isPlaygroundActive()) return;
             e.preventDefault();
             let pos = getTouchPos(e);
             if (!pos) return;
