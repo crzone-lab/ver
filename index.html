@@ -865,6 +865,10 @@
                     <span data-i18n="label-damping">Damping</span>
                     <input type="range" id="dampening" min="1" max="25" value="8" oninput="updateSliders()">
                 </div>
+                <div class="advanced-row">
+                    <span data-i18n="label-bgm">BGM Volume</span>
+                    <input type="range" id="bgm-volume" min="0" max="100" value="50" oninput="updateBGMVolume()">
+                </div>
                 <div class="advanced-row" style="margin-top: 8px; justify-content: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
                     <div class="action-circle-btn" onclick="resetSettings()" title="Reset Settings" data-i18n-title="btn-reset-settings" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
                         <img src="reset.png" alt="Reset" style="width: 18px; height: 18px; object-fit: contain;">
@@ -978,6 +982,7 @@
                     "btn-reset-settings": "설정 초기화",
                     "label-stiffness": "Spring Stiffness",
                     "label-damping": "Damping",
+                    "label-bgm": "BGM 볼륨",
                     "pop-result-title": "🎬 비디오 녹화 미리보기",
                     "btn-home": "홈/메인",
                     "notif-slime": "💧 촉감 프리셋: 슬라임 모드 전환!",
@@ -1050,6 +1055,7 @@
                     "btn-reset-settings": "Reset Settings",
                     "label-stiffness": "Spring Stiffness",
                     "label-damping": "Damping",
+                    "label-bgm": "BGM Volume",
                     "pop-result-title": "🎬 Video Recording Preview",
                     "btn-home": "Home",
                     "notif-slime": "💧 Feel Preset: Slime mode active!",
@@ -1120,8 +1126,9 @@
                     "btn-recreate": "作り直す",
                     "btn-save-gallery": "ギャラリー保存",
                     "btn-reset-settings": "設定初期化",
-                    "label-stiffness": "ばねの剛性",
+                    "label-stiffness": "ばねの剛성",
                     "label-damping": "ダンピング",
+                    "label-bgm": "BGMの音量",
                     "pop-result-title": "🎬 録画プレビュー",
                     "btn-home": "ホーム/メイン",
                     "notif-slime": "💧 触感プリセット: スライムモード起動!",
@@ -1194,6 +1201,7 @@
                     "btn-reset-settings": "重置设置",
                     "label-stiffness": "弹簧刚度",
                     "label-damping": "阻尼",
+                    "label-bgm": "背景音乐音量",
                     "pop-result-title": "🎬 视频录制预览",
                     "btn-home": "返回主页",
                     "notif-slime": "💧 触感预设: 史莱姆模式已激活!",
@@ -1430,6 +1438,7 @@
 
         // Toggle advanced configurations
         function toggleAdvancedSettings() {
+            stopAutopilot();
             const el = document.getElementById('advanced-drawer');
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         }
@@ -1452,6 +1461,7 @@
         }
 
         function selectBaseCard(baseId, emoji, cardId) {
+            stopAutopilot();
             activeBase = baseId;
             activeEmoji = emoji;
             showNotification(`${emoji} ` + i18n.t('notif-char-loaded-base'));
@@ -3034,6 +3044,7 @@
         let countdownInterval = null;
 
         function handleRecordToggle() {
+            stopAutopilot();
             if (isRecording) {
                 stopVideoRecording();
             } else {
@@ -3275,6 +3286,7 @@
 
         // Register mouse deforms with dynamic coordinate scaling and point grab lock
         canvas.addEventListener('mousedown', (e) => {
+            stopAutopilot();
             let rect = canvas.getBoundingClientRect();
             let scaleX = canvas.width / rect.width;
             let scaleY = canvas.height / rect.height;
@@ -3389,6 +3401,7 @@
         };
 
         canvas.addEventListener('touchstart', (e) => {
+            stopAutopilot();
             e.preventDefault();
             let pos = getTouchPos(e);
             if (!pos) return;
@@ -3470,6 +3483,16 @@
                 btn.style.borderColor = "";
                 btn.style.background = "";
                 btn.style.boxShadow = "";
+            }
+        }
+
+        function stopAutopilot() {
+            if (isAutopilotActive) {
+                isAutopilotActive = false;
+                applyAutopilotUIState(false);
+                if (autopilotTimer) clearTimeout(autopilotTimer);
+                releaseGrab();
+                showNotification(i18n.t('notif-auto-stop'));
             }
         }
 
@@ -3578,6 +3601,7 @@
         }
 
         function selectLobbyCharacter(index, element) {
+            stopAutopilot();
             activeLobbyIndex = index;
             const char = lobbyCharacters[index];
             
@@ -3609,6 +3633,7 @@
         }
 
         function selectFeelPill(feel) {
+            stopAutopilot();
             activeFeel = feel;
             
             // Select active pill styling
@@ -3661,15 +3686,198 @@
         }
 
         function goBackToLobby() {
+            stopAutopilot();
             setScreenMode('lobby');
             renderLobbyGrid(); // Refresh lobby
         }
 
         function exitGame() {
+            stopAutopilot();
             showNotification(i18n.t('notif-exit'));
             setTimeout(() => {
                 window.location.reload();
             }, 800);
+        }
+
+        const bgmPlayer = {
+            isPlaying: false,
+            currentTrackIndex: 0,
+            volume: 0.04, // default volume level
+            gainNode: null,
+            filterNode: null,
+            timerId: null,
+            melodyTimerId: null,
+            chordStep: 0,
+            
+            tracks: [
+                {
+                    name: "Strawberry Dream",
+                    chords: [
+                        [174.61, 220.00, 261.63, 329.63], // Fmaj7
+                        [196.00, 246.94, 293.66, 329.63], // G6
+                        [164.81, 196.00, 246.94, 293.66], // Em7
+                        [220.00, 261.63, 329.63, 392.00]  // Am7
+                    ],
+                    melodyNotes: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
+                    tempo: 6000
+                },
+                {
+                    name: "Peach Sunset",
+                    chords: [
+                        [146.83, 185.00, 220.00, 277.18, 329.63], // Dmaj9
+                        [138.59, 164.81, 207.65, 246.94],         // C#m7
+                        [123.47, 146.83, 185.00, 220.00],         // Bm7
+                        [220.00, 277.18, 329.63, 415.30]          // Amaj7
+                    ],
+                    melodyNotes: [220.00, 246.94, 277.18, 329.63, 369.99, 440.00, 493.88, 554.37],
+                    tempo: 7000
+                },
+                {
+                    name: "Lemon Cloud",
+                    chords: [
+                        [130.81, 164.81, 196.00, 246.94, 293.66], // Cmaj9
+                        [174.61, 220.00, 261.63, 329.63],         // Fmaj7
+                        [146.83, 174.61, 220.00, 261.63],         // Dm7
+                        [196.00, 261.63, 293.66, 349.23, 440.00]  // G9sus4
+                    ],
+                    melodyNotes: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
+                    tempo: 6500
+                }
+            ],
+            
+            init() {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (!this.gainNode) {
+                    this.gainNode = audioCtx.createGain();
+                    this.filterNode = audioCtx.createBiquadFilter();
+                    
+                    this.filterNode.type = 'lowpass';
+                    this.filterNode.frequency.setValueAtTime(450, audioCtx.currentTime);
+                    
+                    this.gainNode.gain.setValueAtTime(this.volume, audioCtx.currentTime);
+                    
+                    this.filterNode.connect(this.gainNode);
+                    this.gainNode.connect(audioCtx.destination);
+                }
+            },
+            
+            start() {
+                if (this.isPlaying) return;
+                
+                this.init();
+                this.isPlaying = true;
+                this.chordStep = 0;
+                
+                this.currentTrackIndex = Math.floor(Math.random() * this.tracks.length);
+                let track = this.tracks[this.currentTrackIndex];
+                showNotification(`🎵 BGM: ${track.name}`);
+                
+                const playNextMeasure = () => {
+                    if (!this.isPlaying) return;
+                    if (audioCtx.state === 'suspended') {
+                        this.timerId = setTimeout(playNextMeasure, 1000);
+                        return;
+                    }
+                    
+                    let track = this.tracks[this.currentTrackIndex];
+                    let chord = track.chords[this.chordStep % track.chords.length];
+                    
+                    chord.forEach((freq) => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        
+                        osc.connect(gain);
+                        gain.connect(this.filterNode);
+                        
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                        
+                        let now = audioCtx.currentTime;
+                        let duration = track.tempo / 1000;
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(0.08, now + 1.5);
+                        gain.gain.setValueAtTime(0.08, now + duration - 1.8);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                        
+                        osc.start(now);
+                        osc.stop(now + duration);
+                    });
+                    
+                    this.chordStep++;
+                    if (this.chordStep >= 16) {
+                        this.chordStep = 0;
+                        let prevIndex = this.currentTrackIndex;
+                        do {
+                            this.currentTrackIndex = Math.floor(Math.random() * this.tracks.length);
+                        } while (this.currentTrackIndex === prevIndex && this.tracks.length > 1);
+                        
+                        let nextTrack = this.tracks[this.currentTrackIndex];
+                        setTimeout(() => {
+                            showNotification(`🎵 BGM: ${nextTrack.name}`);
+                        }, 500);
+                    }
+                    
+                    this.timerId = setTimeout(playNextMeasure, track.tempo);
+                };
+                
+                const playMelody = () => {
+                    if (!this.isPlaying) return;
+                    if (audioCtx.state === 'suspended') {
+                        this.melodyTimerId = setTimeout(playMelody, 1000);
+                        return;
+                    }
+                    
+                    let track = this.tracks[this.currentTrackIndex];
+                    if (Math.random() < 0.6) {
+                        let noteIndex = Math.floor(Math.random() * track.melodyNotes.length);
+                        let freq = track.melodyNotes[noteIndex];
+                        
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        
+                        osc.connect(gain);
+                        gain.connect(this.filterNode);
+                        
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+                        
+                        let now = audioCtx.currentTime;
+                        let duration = 2.5 + Math.random() * 2.0;
+                        
+                        gain.gain.setValueAtTime(0, now);
+                        gain.gain.linearRampToValueAtTime(0.04, now + 0.2);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                        
+                        osc.start(now);
+                        osc.stop(now + duration);
+                    }
+                    
+                    let nextDelay = 2000 + Math.random() * 2500;
+                    this.melodyTimerId = setTimeout(playMelody, nextDelay);
+                };
+                
+                playNextMeasure();
+                playMelody();
+            },
+            
+            stop() {
+                this.isPlaying = false;
+                if (this.timerId) clearTimeout(this.timerId);
+                if (this.melodyTimerId) clearTimeout(this.melodyTimerId);
+            }
+        };
+
+        function updateBGMVolume() {
+            let val = parseFloat(document.getElementById('bgm-volume').value);
+            let volume = (val / 100) * 0.08;
+            bgmPlayer.volume = volume;
+            bgmPlayer.init();
+            if (bgmPlayer.gainNode) {
+                bgmPlayer.gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
+            }
         }
 
         function startGameSession() {
@@ -3696,6 +3904,8 @@
             }
             triggerHaptic(40);
             
+            bgmPlayer.start();
+            
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
                 splash.classList.add('fade-out');
@@ -3714,11 +3924,14 @@
             damping = 8;
             document.getElementById('spring-stiffness').value = 50;
             document.getElementById('dampening').value = 8;
+            document.getElementById('bgm-volume').value = 50;
+            updateBGMVolume();
             selectFeelPill('jelly');
             showNotification(i18n.t('notif-reset-settings'));
         }
 
         function handlePhotoZoneGlobal() {
+            stopAutopilot();
             const lobby = document.getElementById('lobby-screen');
             if (lobby.style.display !== 'none') {
                 triggerPhotoZone();
