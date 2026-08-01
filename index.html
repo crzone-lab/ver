@@ -4124,8 +4124,10 @@
                     let center = points[centerIndex];
                     
                     ctx.save();
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-                    ctx.filter = 'blur(12px)';
+                    ctx.shadowColor = 'rgba(0, 0, 0, 0.22)';
+                    ctx.shadowBlur = 16;
+                    ctx.shadowOffsetY = 8;
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.08)';
                     ctx.beginPath();
                     ctx.ellipse(center.x, center.y + 120, 180, 45, 0, 0, Math.PI * 2);
                     ctx.fill();
