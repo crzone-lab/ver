@@ -1,7 +1,46 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
+    <script>
+        // Global error boundary to prevent blank white screen crashes
+        window.addEventListener('error', function(e) {
+            console.error("Global JS Error Caught:", e.error || e.message);
+            try {
+                const splash = document.getElementById('start-splash-screen');
+                if (splash && splash.style.display !== 'none') {
+                    splash.style.display = 'flex';
+                }
+            } catch(err) {}
+        });
+    
+        // Helper to maintain continuous fullscreen display
+        function ensureFullscreen() {
+            try {
+                if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } catch(e) {}
+        }
+
+        // Auto-re-enter fullscreen when returning to tab/app
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden) {
+                ensureFullscreen();
+            }
+        });
+        window.addEventListener('focus', () => {
+            ensureFullscreen();
+        });
+        window.addEventListener('pageshow', () => {
+            ensureFullscreen();
+        });
+
+</script>
     <meta charset="UTF-8">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="theme-color" content="#07080a">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FruitRabbit Squishy Mobile Studio</title>
     <!-- Google Font: Outfit & Inter -->
@@ -1778,7 +1817,7 @@
                         splash.style.display = 'none';
                     }
                     processImageToJelly(img, isCamera);
-                    setScreenMode('playground');
+                    setScreenMode('playground'); ensureFullscreen();
                 };
                 img.src = e.target.result;
             };
@@ -1957,6 +1996,7 @@
         function closeCustomCamera() {
             const overlay = document.getElementById('custom-camera-overlay');
             if (overlay) overlay.style.display = 'none';
+            ensureFullscreen();
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
@@ -2192,7 +2232,7 @@
                 const path = (drawCropPoints && drawCropPoints.length > 5) ? drawCropPoints : null;
                 processImageToJelly(img, true, path, guideCenter);
                 closeCustomCamera();
-                setScreenMode('playground');
+                setScreenMode('playground'); ensureFullscreen();
                 showNotification("사진 캐릭터가 성공적으로 등록되었습니다!");
             };
             img.src = imgSrc;
@@ -2463,7 +2503,7 @@
                 initMesh();
                 generateDecoJellies(355);
                 renderLobbyGrid();
-                setScreenMode('playground');
+                setScreenMode('playground'); ensureFullscreen();
                 showNotification(isPhoto ? "사진 캐릭터가 성공적으로 등록되었습니다!" : "이미지 캐릭터가 성공적으로 등록되었습니다!");
             } catch (err) {
                 console.error("processImageToJelly error:", err);
@@ -4752,7 +4792,7 @@
             generateDecoJellies(char.hue);
             
             // Visual transition: Go to playground
-            setScreenMode('playground');
+            setScreenMode('playground'); ensureFullscreen();
             showNotification(getRabbitName(char) + ` ` + i18n.t('notif-char-loaded-play'));
 
             // Highlight selected bubble
