@@ -1844,10 +1844,19 @@
             
             // Set canvas resolution using actual parent container size to ensure 100% alignment
             const container = document.querySelector('.camera-video-container');
-            const w = container ? container.clientWidth : (drawCanvas.clientWidth || window.innerWidth);
-            const h = container ? container.clientHeight : (drawCanvas.clientHeight || window.innerHeight);
-            drawCanvas.width = w || 360;
-            drawCanvas.height = h || 640;
+            let w = container ? container.clientWidth : 0;
+            let h = container ? container.clientHeight : 0;
+            
+            // Apply viewport and min dimension fallbacks to prevent 0-size canvas collapse on Safari/iOS
+            if (w <= 0 || h <= 0) {
+                w = drawCanvas.clientWidth || window.innerWidth || 360;
+                h = drawCanvas.clientHeight || window.innerHeight || 640;
+            }
+            if (w < 100) w = 360;
+            if (h < 100) h = 640;
+            
+            drawCanvas.width = w;
+            drawCanvas.height = h;
             
             const ctx = drawCanvas.getContext('2d');
             ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
@@ -1944,6 +1953,7 @@
 
         async function openCustomCamera() {
             stopAutopilot();
+            bgmPlayer.stop(); // Stop all sound when camera overlay is active
             const overlay = document.getElementById('custom-camera-overlay');
             const video = document.getElementById('camera-video');
             const preview = document.getElementById('camera-preview');
@@ -2003,6 +2013,17 @@
             if (guide) guide.style.display = 'none';
             const drawCanvas = document.getElementById('camera-draw-crop-canvas');
             if (drawCanvas) drawCanvas.style.display = 'none';
+
+            // Restore BGM if returning to playground, keep stopped if returning to lobby
+            const lobby = document.getElementById('lobby-screen');
+            if (lobby && lobby.style.display === 'none') {
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                bgmPlayer.start();
+            } else {
+                bgmPlayer.stop();
+            }
         }
 
         async function toggleCameraFacing() {
@@ -2034,6 +2055,8 @@
                     viewWidth = video.clientWidth || window.innerWidth || 360;
                     viewHeight = video.clientHeight || window.innerHeight || 640;
                 }
+                if (viewWidth < 100) viewWidth = 360;
+                if (viewHeight < 100) viewHeight = 640;
                 const viewAspect = viewWidth / viewHeight;
 
                 // Video aspect calculation
@@ -2443,6 +2466,8 @@
             // Update the active texture
             const finalImgData = finalCanvas.toDataURL('image/png');
             jellyImage.onload = function() {
+                jellyImage.onload = null; // Prevent callback memory leak and infinite loops on subsequent image updates
+                
                 // Register as custom photo character in lobby
                 const newChar = {
                     emoji: '📸',
@@ -4069,113 +4094,126 @@
         }
 
         // Draw loop
+        let lastDrawErrorTime = 0;
+        
         function draw() {
-            ctx.clearRect(0, 0, width, height);
+            try {
+                ctx.clearRect(0, 0, width, height);
 
-            // Dynamic theme-matched background gradient
-            let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-            bgGrad.addColorStop(0, `hsla(${activeHue}, 75%, 90%, 1)`); // soft pastel top
-            bgGrad.addColorStop(1, `hsla(${activeHue}, 65%, 78%, 1)`); // slightly richer bottom
-            ctx.fillStyle = bgGrad;
-            ctx.fillRect(0, 0, width, height);
+                // Dynamic theme-matched background gradient
+                let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
+                bgGrad.addColorStop(0, `hsla(${activeHue}, 75%, 90%, 1)`); // soft pastel top
+                bgGrad.addColorStop(1, `hsla(${activeHue}, 65%, 78%, 1)`); // slightly richer bottom
+                ctx.fillStyle = bgGrad;
+                ctx.fillRect(0, 0, width, height);
 
-            // Draw floating decorative background jellies
-            drawDecoJellies();
+                // Draw floating decorative background jellies
+                drawDecoJellies();
 
-            // 1. Solve springs (8 substeps for instant force propagation across the entire mesh)
-            for (let step = 0; step < 8; step++) {
-                for (let i = 0; i < springs.length; i++) {
-                    springs[i].solve();
+                // 1. Solve springs (8 substeps for instant force propagation across the entire mesh)
+                for (let step = 0; step < 8; step++) {
+                    for (let i = 0; i < springs.length; i++) {
+                        springs[i].solve();
+                    }
                 }
-            }
 
-            // 2. Pin grabbed point and apply continuous touch hold squish forces
-            if (isTouching) {
-                if (grabbedPointIndex !== null) {
-                    points[grabbedPointIndex].x = touchX;
-                    points[grabbedPointIndex].y = touchY;
-                    points[grabbedPointIndex].vx = 0;
-                    points[grabbedPointIndex].vy = 0;
+                // 2. Pin grabbed point and apply continuous touch hold squish forces
+                if (isTouching) {
+                    if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                        points[grabbedPointIndex].x = touchX;
+                        points[grabbedPointIndex].y = touchY;
+                        points[grabbedPointIndex].vx = 0;
+                        points[grabbedPointIndex].vy = 0;
+                    }
+                    
+                    touchTime = Math.min(touchTime + 1, 120);
+                    // Moderate and progressive build up (charged in 45 frames, up to 1.5)
+                    let squishIntensity = Math.min(touchTime / 45, 1.5);
+                    let squishForce = squishIntensity * 5.5; // Slightly boosted multiplier for deeper sink
+                    let maxDist = width * 0.28; // Slightly larger localized radius
+                    
+                    for (let i = 0; i < points.length; i++) {
+                        if (i === grabbedPointIndex) continue;
+                        let p = points[i];
+                        let dx = p.x - touchX;
+                        let dy = p.y - touchY;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < maxDist && dist > 1) {
+                            let weight = 1 - (dist / maxDist);
+                            let angle = Math.atan2(dy, dx);
+                            
+                            // 1. Smooth radial outward push to create touch indentation
+                            let forceX = Math.cos(angle) * squishForce * weight * 45;
+                            let forceY = Math.sin(angle) * squishForce * weight * 40;
+                            
+                            // 2. Gentle horizontal expansion (sides bulge slightly)
+                            forceX += (dx / dist) * squishForce * weight * 15;
+                            
+                            // 3. Gentle vertical compression (flattens slightly)
+                            forceY -= (dy / dist) * squishForce * weight * 10;
+                            
+                            // 4. Stable downward sink (deeper moderate push downward)
+                            forceY += squishForce * weight * 65;
+                            
+                            p.vx += forceX;
+                            p.vy += forceY;
+                        }
+                    }
                 }
-                
-                touchTime = Math.min(touchTime + 1, 120);
-                // Moderate and progressive build up (charged in 45 frames, up to 1.5)
-                let squishIntensity = Math.min(touchTime / 45, 1.5);
-                let squishForce = squishIntensity * 5.5; // Slightly boosted multiplier for deeper sink
-                let maxDist = width * 0.28; // Slightly larger localized radius
-                
+
+                // 3. Update mesh points
                 for (let i = 0; i < points.length; i++) {
-                    if (i === grabbedPointIndex) continue;
-                    let p = points[i];
-                    let dx = p.x - touchX;
-                    let dy = p.y - touchY;
-                    let dist = Math.sqrt(dx * dx + dy * dy);
-                    if (dist < maxDist && dist > 1) {
-                        let weight = 1 - (dist / maxDist);
-                        let angle = Math.atan2(dy, dx);
-                        
-                        // 1. Smooth radial outward push to create touch indentation
-                        let forceX = Math.cos(angle) * squishForce * weight * 45;
-                        let forceY = Math.sin(angle) * squishForce * weight * 40;
-                        
-                        // 2. Gentle horizontal expansion (sides bulge slightly)
-                        forceX += (dx / dist) * squishForce * weight * 15;
-                        
-                        // 3. Gentle vertical compression (flattens slightly)
-                        forceY -= (dy / dist) * squishForce * weight * 10;
-                        
-                        // 4. Stable downward sink (deeper moderate push downward)
-                        forceY += squishForce * weight * 65;
-                        
-                        p.vx += forceX;
-                        p.vy += forceY;
-                    }
+                    points[i].update();
                 }
-            }
 
-            // 3. Update mesh points
-            for (let i = 0; i < points.length; i++) {
-                points[i].update();
-            }
-
-            // Draw a realistic 3D contact ambient occlusion shadow underneath the main character
-            let centerIndex = Math.floor(rows / 2) * cols + Math.floor(cols / 2);
-            let center = points[centerIndex];
-            
-            ctx.save();
-            ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-            ctx.filter = 'blur(12px)';
-            ctx.beginPath();
-            ctx.ellipse(center.x, center.y + 120, 180, 45, 0, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-
-            // Draw jelly mesh body
-            if (jellyImage.complete && jellyImage.naturalWidth > 0 && (activeBase === 'strawberry_rabbit' || activeBase === 'camera_face' || activeBase === 'illust_body' || activeBase.startsWith('custom_photo_'))) {
-                for (let r = 0; r < rows - 1; r++) {
-                    for (let c = 0; c < cols - 1; c++) {
-                        let pTL = points[r * cols + c];
-                        let pTR = points[r * cols + (c + 1)];
-                        let pBL = points[(r + 1) * cols + c];
-                        let pBR = points[(r + 1) * cols + (c + 1)];
-
-                        drawWarpedTriangle(ctx, jellyImage, pTL, pTR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
-                        drawWarpedTriangle(ctx, jellyImage, pTR, pBR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
-                    }
-                }
-            } else {
+                // Draw a realistic 3D contact ambient occlusion shadow underneath the main character
                 let centerIndex = Math.floor(rows / 2) * cols + Math.floor(cols / 2);
-                let center = points[centerIndex];
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(center.x, center.y, 135, 0, Math.PI * 2);
-                ctx.fill();
+                if (points.length > centerIndex && points[centerIndex]) {
+                    let center = points[centerIndex];
+                    
+                    ctx.save();
+                    ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+                    ctx.filter = 'blur(12px)';
+                    ctx.beginPath();
+                    ctx.ellipse(center.x, center.y + 120, 180, 45, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
 
-                ctx.fillStyle = '#000';
-                ctx.font = '5.5rem Inter';
-                ctx.textAlign = 'center';
-                ctx.textBaseline = 'middle';
-                ctx.fillText(activeEmoji, center.x, center.y);
+                    // Draw jelly mesh body
+                    if (jellyImage.complete && jellyImage.naturalWidth > 0 && (activeBase === 'strawberry_rabbit' || activeBase === 'camera_face' || activeBase === 'illust_body' || activeBase.startsWith('custom_photo_'))) {
+                        for (let r = 0; r < rows - 1; r++) {
+                            for (let c = 0; c < cols - 1; c++) {
+                                let pTL = points[r * cols + c];
+                                let pTR = points[r * cols + (c + 1)];
+                                let pBL = points[(r + 1) * cols + c];
+                                let pBR = points[(r + 1) * cols + (c + 1)];
+
+                                if (pTL && pTR && pBL && pBR) {
+                                    drawWarpedTriangle(ctx, jellyImage, pTL, pTR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
+                                    drawWarpedTriangle(ctx, jellyImage, pTR, pBR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
+                                }
+                            }
+                        }
+                    } else {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(center.x, center.y, 135, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        ctx.fillStyle = '#000';
+                        ctx.font = '5.5rem Inter';
+                        ctx.textAlign = 'center';
+                        ctx.textBaseline = 'middle';
+                        ctx.fillText(activeEmoji, center.x, center.y);
+                    }
+                }
+            } catch (err) {
+                console.error("Draw loop error:", err);
+                const nowTime = Date.now();
+                if (nowTime - lastDrawErrorTime > 10000) { // Throttle notifications
+                    showNotification("Draw Error: " + err.message);
+                    lastDrawErrorTime = nowTime;
+                }
             }
 
             requestAnimationFrame(draw);
@@ -4264,6 +4302,7 @@
         let audioCtx = null;
 
         function playSquishSound(isRelease = false) {
+            if (!isPlaygroundActive()) return; // Disable all interaction sound effects outside of playground
             try {
                 if (!audioCtx) {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -4304,6 +4343,7 @@
         }
 
         function triggerHaptic(ms) {
+            if (!isPlaygroundActive()) return; // Disable physical feedback outside of playground
             if (navigator.vibrate) {
                 navigator.vibrate(ms);
             }
