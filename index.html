@@ -1175,8 +1175,9 @@
 
             <!-- 4. Result Preview Modal -->
             <div class="result-modal" id="result-modal">
-                <div class="preview-box" id="preview-box">
-                    <span data-i18n="pop-result-title">🎬 비디오 녹화 미리보기</span>
+                <div class="preview-box" id="preview-box" style="position: relative; overflow: hidden; width: 100%; display: flex; align-items: center; justify-content: center;">
+                    <span data-i18n="pop-result-title" style="position: absolute; top: 16px; left: 50%; transform: translateX(-50%); z-index: 10; color: #fff; background: rgba(0,0,0,0.65); padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; white-space: nowrap; border: 1px solid rgba(255,255,255,0.1); backdrop-filter: blur(5px);">🎬 비디오 녹화 미리보기</span>
+                    <video id="result-video-preview" autoplay loop controls playsinline style="width: 100%; height: 100%; object-fit: cover; border-radius: 20px;"></video>
                 </div>
                 <div class="modal-buttons">
                     <button class="modal-btn secondary" onclick="closeResultModal()" data-i18n="btn-recreate">다시 만들기</button>
@@ -3528,10 +3529,13 @@
             });
         }
 
-        // 📹 녹화 컨트롤 변수
+        // 📹 녹화 컨트롤 및 MediaRecorder 변수
         let isRecording = false;
         let recordingTimerInterval = null;
         let countdownInterval = null;
+        let mediaRecorder = null;
+        let recordedChunks = [];
+        let lastRecordedBlob = null;
 
         function handleRecordToggle() {
             stopAutopilot();
@@ -3578,6 +3582,68 @@
 
             let duration = 0;
             document.getElementById('rec-timer').innerText = '00:00';
+
+            // Start Canvas Stream Recording
+            if (window.MediaRecorder && canvas) {
+                recordedChunks = [];
+                let stream = null;
+                try {
+                    // Capture canvas at 30 FPS
+                    stream = canvas.captureStream(30);
+                } catch (e) {
+                    console.log("captureStream(30) failed, falling back to captureStream() without parameters", e);
+                    stream = canvas.captureStream ? canvas.captureStream() : null;
+                }
+
+                if (stream) {
+                    let options = {};
+                    const codecs = [
+                        'video/mp4',
+                        'video/webm;codecs=vp9',
+                        'video/webm;codecs=vp8',
+                        'video/webm',
+                        'video/quicktime'
+                    ];
+                    for (const codec of codecs) {
+                        if (MediaRecorder.isTypeSupported(codec)) {
+                            options.mimeType = codec;
+                            break;
+                        }
+                    }
+
+                    try {
+                        mediaRecorder = new MediaRecorder(stream, options);
+                    } catch (e2) {
+                        console.log("MediaRecorder initialization with options failed, fallback to default", e2);
+                        try {
+                            mediaRecorder = new MediaRecorder(stream);
+                        } catch (e3) {
+                            console.error("MediaRecorder fallback failed:", e3);
+                            mediaRecorder = null;
+                        }
+                    }
+
+                    if (mediaRecorder) {
+                        mediaRecorder.ondataavailable = function(e) {
+                            if (e.data && e.data.size > 0) {
+                                recordedChunks.push(e.data);
+                            }
+                        };
+                        mediaRecorder.onstop = function() {
+                            if (recordedChunks.length > 0) {
+                                const type = mediaRecorder.mimeType || 'video/webm';
+                                lastRecordedBlob = new Blob(recordedChunks, { type: type });
+                                const videoURL = URL.createObjectURL(lastRecordedBlob);
+                                const previewVideo = document.getElementById('result-video-preview');
+                                if (previewVideo) {
+                                    previewVideo.src = videoURL;
+                                }
+                            }
+                        };
+                        mediaRecorder.start();
+                    }
+                }
+            }
             
             recordingTimerInterval = setInterval(() => {
                 duration++;
@@ -3622,6 +3688,15 @@
                 globalBtn.title = i18n.t('btn-rec'); 
             }
 
+            // Stop Canvas recording
+            if (mediaRecorder && mediaRecorder.state !== 'inactive') {
+                try {
+                    mediaRecorder.stop();
+                } catch (e) {
+                    console.error("Error stopping media recorder:", e);
+                }
+            }
+
             openResultModal();
             showNotification(i18n.t('notif-rec-complete'));
         }
@@ -3632,10 +3707,61 @@
 
         function closeResultModal() {
             document.getElementById('result-modal').style.display = 'none';
+            const previewVideo = document.getElementById('result-video-preview');
+            if (previewVideo) {
+                previewVideo.src = '';
+            }
         }
 
         function saveToGallery() {
+            if (!lastRecordedBlob) {
+                showNotification("No recorded video found.");
+                return;
+            }
             closeResultModal();
+            
+            let ext = 'webm';
+            let mime = 'video/webm';
+            if (lastRecordedBlob.type.includes('mp4')) {
+                ext = 'mp4';
+                mime = 'video/mp4';
+            } else if (lastRecordedBlob.type.includes('quicktime')) {
+                ext = 'mov';
+                mime = 'video/quicktime';
+            }
+
+            const filename = `squishy-rabbit-${Date.now()}.${ext}`;
+            const file = new File([lastRecordedBlob], filename, { type: mime });
+
+            // 📱 Web Share API support check (highly reliable for mobile gallery saving/sharing)
+            if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                navigator.share({
+                    files: [file],
+                    title: 'Fruitrabbit Malrangi Video',
+                    text: 'Check out my squishy rabbit video!'
+                }).then(() => {
+                    showNotification(i18n.t('notif-gallery-saved'));
+                }).catch(err => {
+                    console.log("Web share failed, fallback to download:", err);
+                    triggerDirectDownload(filename);
+                });
+            } else {
+                triggerDirectDownload(filename);
+            }
+        }
+
+        function triggerDirectDownload(filename) {
+            const url = URL.createObjectURL(lastRecordedBlob);
+            const a = document.createElement('a');
+            a.style.display = 'none';
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            setTimeout(() => {
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 150);
             showNotification(i18n.t('notif-gallery-saved'));
         }
 
