@@ -1800,12 +1800,18 @@
 
         function selectBaseCard(baseId, emoji, cardId) {
             stopAutopilot();
-            activeBase = baseId;
-            activeEmoji = emoji;
-            showNotification(`${emoji} ` + i18n.t('notif-char-loaded-base'));
+            const foundIdx = lobbyCharacters.findIndex(c => c.base === baseId);
+            if (foundIdx >= 0) {
+                selectLobbyCharacter(foundIdx, null);
+            } else {
+                activeBase = baseId;
+                activeEmoji = emoji;
+                showNotification(`${emoji} ` + i18n.t('notif-char-loaded-base'));
+            }
 
             document.querySelectorAll('#character-pop .grid-card').forEach(el => el.classList.remove('active'));
-            document.getElementById(cardId).classList.add('active');
+            const cardEl = document.getElementById(cardId);
+            if (cardEl) cardEl.classList.add('active');
             closePop('character-pop');
         }
 
@@ -4151,7 +4157,7 @@
                     ctx.restore();
 
                     // Draw jelly mesh body
-                    if (jellyImage.complete && jellyImage.naturalWidth > 0 && (activeBase === 'strawberry_rabbit' || activeBase === 'camera_face' || activeBase === 'illust_body' || activeBase.startsWith('custom_photo_'))) {
+                    if (jellyImage.complete && jellyImage.naturalWidth > 0) {
                         for (let r = 0; r < rows - 1; r++) {
                             for (let c = 0; c < cols - 1; c++) {
                                 let pTL = points[r * cols + c];
