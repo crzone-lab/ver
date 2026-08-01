@@ -3261,9 +3261,10 @@
                 }
                 
                 touchTime = Math.min(touchTime + 1, 120);
-                let squishIntensity = Math.min(touchTime / 45, 1.8);
-                let squishForce = squishIntensity * 3.5;
-                let maxDist = width * 0.35;
+                // Rapidly build up intensity (fully charged in 30 frames, up to 2.5)
+                let squishIntensity = Math.min(touchTime / 30, 2.5);
+                let squishForce = squishIntensity * 12.0; // Boosted force multiplier
+                let maxDist = width * 0.4; // Slightly wider area of influence for dramatic effect
                 
                 for (let i = 0; i < points.length; i++) {
                     if (i === grabbedPointIndex) continue;
@@ -3274,9 +3275,19 @@
                     if (dist < maxDist && dist > 1) {
                         let weight = 1 - (dist / maxDist);
                         let angle = Math.atan2(dy, dx);
-                        // Outward radial squish expansion velocity force
-                        p.vx += Math.cos(angle) * squishForce * weight * 12;
-                        p.vy += Math.sin(angle) * squishForce * weight * 12;
+                        
+                        // 1. Radial outward push to clear the finger area
+                        let forceX = Math.cos(angle) * squishForce * weight * 150;
+                        let forceY = Math.sin(angle) * squishForce * weight * 150;
+                        
+                        // 2. Extra horizontal expansion to bulge sides
+                        forceX += Math.sign(dx) * squishForce * weight * 100;
+                        
+                        // 3. Extra vertical compression to flatten the center
+                        forceY -= Math.sign(dy) * squishForce * weight * 80;
+                        
+                        p.vx += forceX;
+                        p.vy += forceY;
                     }
                 }
             }
