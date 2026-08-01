@@ -942,13 +942,18 @@
         <div id="custom-camera-overlay" class="camera-overlay">
             <!-- Top Controls -->
             <div class="camera-top-bar">
-                <button class="camera-action-btn" onclick="toggleCameraFacing()" title="Switch Camera">🔄</button>
-                <button class="camera-action-btn" onclick="closeCustomCamera()" title="Exit Camera">✕</button>
+                <button class="camera-glass-pill" onclick="toggleCameraFacing()" title="Switch Camera" data-i18n-title="cam-facing" style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem;">
+                    🔄 <span data-i18n="cam-facing-label">화면전환</span>
+                </button>
+                <button class="camera-glass-pill" onclick="closeCustomCamera()" title="Exit Camera" data-i18n-title="cam-exit" style="display: flex; align-items: center; gap: 6px; font-size: 0.9rem; background: rgba(255, 71, 87, 0.4); border-color: rgba(255, 71, 87, 0.5);">
+                    🚪 <span data-i18n="cam-exit-label">나가기</span>
+                </button>
             </div>
             
             <!-- Video Preview Stream -->
             <div class="camera-video-container">
                 <video id="camera-video" autoplay playsinline></video>
+                <img id="camera-preview" style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; z-index: 2;">
                 <canvas id="camera-canvas" style="display: none;"></canvas>
             </div>
             
@@ -1247,7 +1252,9 @@
                     "notif-fullscreen-entered": "🖥️ 전체화면 모드가 활성화되었습니다!",
                     "notif-fullscreen-exited": "🚪 전체화면 모드가 해제되었습니다.",
                     "cam-retake": "다시찍기",
-                    "cam-save": "저장"
+                    "cam-save": "저장",
+                    "cam-facing-label": "화면전환",
+                    "cam-exit-label": "나가기"
                 },
                 en: {
                     "btn-gamestart": "Game Start",
@@ -1326,7 +1333,9 @@
                     "notif-fullscreen-entered": "🖥️ Fullscreen mode enabled!",
                     "notif-fullscreen-exited": "🚪 Fullscreen mode disabled.",
                     "cam-retake": "Retake",
-                    "cam-save": "Save"
+                    "cam-save": "Save",
+                    "cam-facing-label": "Switch Camera",
+                    "cam-exit-label": "Exit"
                 },
                 ja: {
                     "btn-gamestart": "ゲーム開始",
@@ -1401,7 +1410,9 @@
                     "fruit-tomato_rabbit": "トマト",
                     "fruit-carrot_rabbit": "にんじん",
                     "cam-retake": "撮り直し",
-                    "cam-save": "保存"
+                    "cam-save": "保存",
+                    "cam-facing-label": "カメラ切替",
+                    "cam-exit-label": "終了"
                 },
                 zh: {
                     "btn-gamestart": "开始游戏",
@@ -1476,7 +1487,9 @@
                     "fruit-tomato_rabbit": "番茄",
                     "fruit-carrot_rabbit": "胡萝卜",
                     "cam-retake": "重拍",
-                    "cam-save": "保存"
+                    "cam-save": "保存",
+                    "cam-facing-label": "切换相机",
+                    "cam-exit-label": "退出"
                 }
             },
             t(key) {
@@ -1759,25 +1772,23 @@
 
         async function openCustomCamera() {
             stopAutopilot();
-            const modal = document.getElementById('camera-modal');
+            const overlay = document.getElementById('custom-camera-overlay');
             const video = document.getElementById('camera-video');
-            const placeholder = document.getElementById('camera-placeholder');
             const preview = document.getElementById('camera-preview');
-            const retakeBtn = document.getElementById('camera-retake-btn');
-            const saveBtn = document.getElementById('camera-save-btn');
-            const captureBtn = document.getElementById('camera-capture-btn');
-            const toggleFacingBtn = document.getElementById('camera-facing-btn');
+            const retakeBtn = document.getElementById('cam-btn-retake');
+            const saveBtn = document.getElementById('cam-btn-save');
+            const captureBtn = document.getElementById('cam-btn-capture');
 
-            // Reset modal UI state
-            video.style.display = 'none';
-            placeholder.style.display = 'flex';
-            preview.style.display = 'none';
-            retakeBtn.style.display = 'none';
-            saveBtn.style.display = 'none';
-            captureBtn.style.display = 'inline-block';
-            toggleFacingBtn.style.display = 'inline-block';
+            if (!overlay || !video) return;
 
-            modal.style.display = 'flex';
+            // Reset UI state
+            video.style.display = 'block';
+            if (preview) preview.style.display = 'none';
+            if (retakeBtn) retakeBtn.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'none';
+            if (captureBtn) captureBtn.style.display = 'inline-block';
+
+            overlay.style.display = 'flex';
 
             // Start stream
             try {
@@ -1789,8 +1800,6 @@
                     audio: false
                 });
                 video.srcObject = cameraStream;
-                video.style.display = 'block';
-                placeholder.style.display = 'none';
             } catch (err) {
                 console.log("Camera access error:", err);
                 showNotification(i18n.t('notif-camera-error') || "Camera access failed. Try file upload.");
@@ -1801,14 +1810,14 @@
         }
 
         function closeCustomCamera() {
-            const modal = document.getElementById('camera-modal');
-            modal.style.display = 'none';
+            const overlay = document.getElementById('custom-camera-overlay');
+            if (overlay) overlay.style.display = 'none';
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
                 cameraStream = null;
             }
             const video = document.getElementById('camera-video');
-            video.srcObject = null;
+            if (video) video.srcObject = null;
         }
 
         async function toggleCameraFacing() {
@@ -1817,18 +1826,17 @@
             await openCustomCamera();
         }
 
-        function captureCameraSnapshot() {
+        function capturePhoto() {
             const video = document.getElementById('camera-video');
             const preview = document.getElementById('camera-preview');
-            const captureBtn = document.getElementById('camera-capture-btn');
-            const toggleFacingBtn = document.getElementById('camera-facing-btn');
-            const retakeBtn = document.getElementById('camera-retake-btn');
-            const saveBtn = document.getElementById('camera-save-btn');
+            const captureBtn = document.getElementById('cam-btn-capture');
+            const retakeBtn = document.getElementById('cam-btn-retake');
+            const saveBtn = document.getElementById('cam-btn-save');
 
-            if (!cameraStream) return;
+            if (!cameraStream || !video) return;
 
             // Draw current video frame onto a canvas
-            const canvas = document.createElement('canvas');
+            const canvas = document.getElementById('camera-canvas') || document.createElement('canvas');
             canvas.width = video.videoWidth || 640;
             canvas.height = video.videoHeight || 480;
             const ctx = canvas.getContext('2d');
@@ -1841,22 +1849,37 @@
             ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
 
             // Set source of preview image
-            preview.src = canvas.toDataURL('image/png');
-            preview.style.display = 'block';
+            if (preview) {
+                preview.src = canvas.toDataURL('image/png');
+                preview.style.display = 'block';
+            }
             video.style.display = 'none';
 
             // Toggle button states
-            captureBtn.style.display = 'none';
-            toggleFacingBtn.style.display = 'none';
-            retakeBtn.style.display = 'inline-block';
-            saveBtn.style.display = 'inline-block';
+            if (captureBtn) captureBtn.style.display = 'none';
+            if (retakeBtn) retakeBtn.style.display = 'inline-block';
+            if (saveBtn) saveBtn.style.display = 'inline-block';
 
             triggerHaptic(40);
         }
 
-        function saveCapturedSnapshot() {
+        function retakePhoto() {
+            const video = document.getElementById('camera-video');
             const preview = document.getElementById('camera-preview');
-            if (!preview.src || preview.src.startsWith('data:image/svg+xml')) return;
+            const captureBtn = document.getElementById('cam-btn-capture');
+            const retakeBtn = document.getElementById('cam-btn-retake');
+            const saveBtn = document.getElementById('cam-btn-save');
+
+            if (video) video.style.display = 'block';
+            if (preview) preview.style.display = 'none';
+            if (captureBtn) captureBtn.style.display = 'inline-block';
+            if (retakeBtn) retakeBtn.style.display = 'none';
+            if (saveBtn) saveBtn.style.display = 'none';
+        }
+
+        function savePhotoToGrid() {
+            const preview = document.getElementById('camera-preview');
+            if (!preview || !preview.src || preview.src.startsWith('data:image/svg+xml')) return;
 
             const img = new Image();
             img.onload = function() {
@@ -3686,7 +3709,7 @@
             ctx.restore();
 
             // Draw jelly mesh body
-            if (jellyImage.complete && jellyImage.naturalWidth > 0 && (activeBase === 'strawberry_rabbit' || activeBase === 'camera_face' || activeBase === 'illust_body')) {
+            if (jellyImage.complete && jellyImage.naturalWidth > 0 && (activeBase === 'strawberry_rabbit' || activeBase === 'camera_face' || activeBase === 'illust_body' || activeBase.startsWith('custom_photo_'))) {
                 for (let r = 0; r < rows - 1; r++) {
                     for (let c = 0; c < cols - 1; c++) {
                         let pTL = points[r * cols + c];
@@ -4481,7 +4504,7 @@
         }
 
         function triggerPhotoZone() {
-            document.getElementById('camera-input').click();
+            openCustomCamera();
         }
 
         function triggerImageImport() {
