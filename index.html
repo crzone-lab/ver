@@ -1290,6 +1290,10 @@
         let rows = 10;
         let cols = 10;
         let grabbedPointIndex = null;
+        let isTouching = false;
+        let touchX = 0;
+        let touchY = 0;
+        let touchTime = 0;
 
         let activeBase = 'strawberry_rabbit';
         let activeEmoji = '🍓';
@@ -3247,7 +3251,37 @@
                 }
             }
 
-            // 2. Update mesh points
+            // 2. Pin grabbed point and apply continuous touch hold squish forces
+            if (isTouching) {
+                if (grabbedPointIndex !== null) {
+                    points[grabbedPointIndex].x = touchX;
+                    points[grabbedPointIndex].y = touchY;
+                    points[grabbedPointIndex].vx = 0;
+                    points[grabbedPointIndex].vy = 0;
+                }
+                
+                touchTime = Math.min(touchTime + 1, 120);
+                let squishIntensity = Math.min(touchTime / 45, 1.8);
+                let squishForce = squishIntensity * 3.5;
+                let maxDist = width * 0.35;
+                
+                for (let i = 0; i < points.length; i++) {
+                    if (i === grabbedPointIndex) continue;
+                    let p = points[i];
+                    let dx = p.x - touchX;
+                    let dy = p.y - touchY;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    if (dist < maxDist && dist > 1) {
+                        let weight = 1 - (dist / maxDist);
+                        let angle = Math.atan2(dy, dx);
+                        // Outward radial squish expansion velocity force
+                        p.vx += Math.cos(angle) * squishForce * weight * 12;
+                        p.vy += Math.sin(angle) * squishForce * weight * 12;
+                    }
+                }
+            }
+
+            // 3. Update mesh points
             for (let i = 0; i < points.length; i++) {
                 points[i].update();
             }
@@ -3321,6 +3355,11 @@
                 playSquishSound(false);
                 triggerHaptic(15);
             }
+            
+            isTouching = true;
+            touchX = mx;
+            touchY = my;
+            touchTime = 0;
         });
 
         canvas.addEventListener('mousemove', (e) => {
@@ -3329,6 +3368,12 @@
             let scaleY = canvas.height / rect.height;
             let mx = (e.clientX - rect.left) * scaleX;
             let my = (e.clientY - rect.top) * scaleY;
+
+            if (e.buttons === 1 || grabbedPointIndex !== null) {
+                touchX = mx;
+                touchY = my;
+                isTouching = true;
+            }
 
             if (grabbedPointIndex !== null) {
                 // Pin grabbed point directly to mouse cursor
@@ -3395,6 +3440,8 @@
                 triggerHaptic(30);
             }
             grabbedPointIndex = null;
+            isTouching = false;
+            touchTime = 0;
         };
         canvas.addEventListener('mouseup', releaseGrab);
         canvas.addEventListener('mouseleave', releaseGrab);
@@ -3430,12 +3477,21 @@
                 playSquishSound(false);
                 triggerHaptic(15);
             }
+            
+            isTouching = true;
+            touchX = pos.x;
+            touchY = pos.y;
+            touchTime = 0;
         }, { passive: false });
 
         canvas.addEventListener('touchmove', (e) => {
             e.preventDefault();
             let pos = getTouchPos(e);
             if (!pos) return;
+            touchX = pos.x;
+            touchY = pos.y;
+            isTouching = true;
+
             if (grabbedPointIndex !== null) {
                 points[grabbedPointIndex].x = pos.x;
                 points[grabbedPointIndex].y = pos.y;
@@ -3541,12 +3597,21 @@
                 autoDestX = autoMX + (dirX / len) * 85;
                 autoDestY = autoMY + (dirY / len) * 85;
 
+                isTouching = true;
+                touchX = autoMX;
+                touchY = autoMY;
+                touchTime = 0;
+
                 autopilotPhase = 1;
                 autopilotTimer = setTimeout(runAutopilotStep, 100);
             } else if (autopilotPhase === 1) {
                 // Drag the node smoothly
                 autoMX += (autoDestX - autoMX) * 0.25;
                 autoMY += (autoDestY - autoMY) * 0.25;
+
+                isTouching = true;
+                touchX = autoMX;
+                touchY = autoMY;
 
                 if (grabbedPointIndex !== null) {
                     points[grabbedPointIndex].x = autoMX;
@@ -3723,37 +3788,37 @@
             
             tracks: [
                 {
-                    name: "Strawberry Dream",
+                    name: "Sunshine Strawberry",
                     chords: [
-                        [174.61, 220.00, 261.63, 329.63], // Fmaj7
-                        [196.00, 246.94, 293.66, 329.63], // G6
-                        [164.81, 196.00, 246.94, 293.66], // Em7
-                        [220.00, 261.63, 329.63, 392.00]  // Am7
+                        [261.63, 329.63, 392.00, 493.88], // Cmaj7 (C3, E3, G3, B3)
+                        [196.00, 246.94, 293.66, 329.63], // G6 (G2, B2, D3, E3)
+                        [220.00, 261.63, 329.63, 392.00], // Am7 (A2, C3, E3, G3)
+                        [174.61, 261.63, 329.63, 440.00]  // Fmaj7 (F2, C3, E3, A3)
                     ],
-                    melodyNotes: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
-                    tempo: 6000
+                    melodyNotes: [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51], // C5, D5, E5, G5, A5, C6, D6, E6
+                    tempo: 3200
                 },
                 {
-                    name: "Peach Sunset",
+                    name: "Joyful Peach",
                     chords: [
-                        [146.83, 185.00, 220.00, 277.18, 329.63], // Dmaj9
-                        [138.59, 164.81, 207.65, 246.94],         // C#m7
-                        [123.47, 146.83, 185.00, 220.00],         // Bm7
-                        [220.00, 277.18, 329.63, 415.30]          // Amaj7
+                        [220.00, 277.18, 329.63, 415.30], // Amaj7
+                        [185.00, 220.00, 277.18, 329.63], // F#m7
+                        [146.83, 220.00, 277.18, 369.99], // Dmaj7
+                        [164.81, 220.00, 293.66, 329.63]  // E7sus4
                     ],
-                    melodyNotes: [220.00, 246.94, 277.18, 329.63, 369.99, 440.00, 493.88, 554.37],
-                    tempo: 7000
+                    melodyNotes: [554.37, 659.25, 739.99, 880.00, 987.77, 1108.73, 1318.51, 1479.98], // A5, C#5...
+                    tempo: 3200
                 },
                 {
-                    name: "Lemon Cloud",
+                    name: "Sparkling Lemon",
                     chords: [
-                        [130.81, 164.81, 196.00, 246.94, 293.66], // Cmaj9
-                        [174.61, 220.00, 261.63, 329.63],         // Fmaj7
-                        [146.83, 174.61, 220.00, 261.63],         // Dm7
-                        [196.00, 261.63, 293.66, 349.23, 440.00]  // G9sus4
+                        [196.00, 246.94, 293.66, 369.99], // Gmaj7
+                        [261.63, 329.63, 392.00, 493.88], // Cmaj7
+                        [246.94, 293.66, 369.99, 440.00], // Bm7
+                        [293.66, 329.63, 392.00, 440.00]  // D7
                     ],
-                    melodyNotes: [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25],
-                    tempo: 6500
+                    melodyNotes: [587.33, 659.25, 739.99, 783.99, 880.00, 987.77, 1174.66, 1318.51], // G5, A5...
+                    tempo: 3200
                 }
             ],
             
@@ -3766,7 +3831,7 @@
                     this.filterNode = audioCtx.createBiquadFilter();
                     
                     this.filterNode.type = 'lowpass';
-                    this.filterNode.frequency.setValueAtTime(450, audioCtx.currentTime);
+                    this.filterNode.frequency.setValueAtTime(1500, audioCtx.currentTime); // Bright sparkling filter frequency
                     
                     this.gainNode.gain.setValueAtTime(this.volume, audioCtx.currentTime);
                     
@@ -3803,15 +3868,16 @@
                         osc.connect(gain);
                         gain.connect(this.filterNode);
                         
-                        osc.type = 'triangle';
+                        osc.type = 'triangle'; // Smooth base chords
                         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                         
                         let now = audioCtx.currentTime;
                         let duration = track.tempo / 1000;
                         
+                        // Cheerful rhythmic pulsing envelope for chords
                         gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.08, now + 1.5);
-                        gain.gain.setValueAtTime(0.08, now + duration - 1.8);
+                        gain.gain.linearRampToValueAtTime(0.04, now + 0.05); // quick fade in
+                        gain.gain.setValueAtTime(0.04, now + duration - 0.4);
                         gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
                         
                         osc.start(now);
@@ -3819,7 +3885,7 @@
                     });
                     
                     this.chordStep++;
-                    if (this.chordStep >= 16) {
+                    if (this.chordStep >= 8) { // Rotate track after 8 measures for freshness
                         this.chordStep = 0;
                         let prevIndex = this.currentTrackIndex;
                         do {
@@ -3843,6 +3909,7 @@
                     }
                     
                     let track = this.tracks[this.currentTrackIndex];
+                    // Quantized grid-based melody triggers for cute rhythm
                     if (Math.random() < 0.6) {
                         let noteIndex = Math.floor(Math.random() * track.melodyNotes.length);
                         let freq = track.melodyNotes[noteIndex];
@@ -3853,22 +3920,21 @@
                         osc.connect(gain);
                         gain.connect(this.filterNode);
                         
-                        osc.type = 'sine';
+                        osc.type = 'sine'; // pure crystal clear bell pluck
                         osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
                         
                         let now = audioCtx.currentTime;
-                        let duration = 2.5 + Math.random() * 2.0;
-                        
+                        // Crisp music box sound envelope (instant click, fast decay)
                         gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.04, now + 0.2);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                        gain.gain.linearRampToValueAtTime(0.07, now + 0.006); // plucky attack
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35); // fast release
                         
                         osc.start(now);
-                        osc.stop(now + duration);
+                        osc.stop(now + 0.35);
                     }
                     
-                    let nextDelay = 2000 + Math.random() * 2500;
-                    this.melodyTimerId = setTimeout(playMelody, nextDelay);
+                    // Rhythmic quantized interval: 400ms (eighth notes)
+                    this.melodyTimerId = setTimeout(playMelody, 400);
                 };
                 
                 playNextMeasure();
