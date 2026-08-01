@@ -4574,12 +4574,7 @@
 
         function handlePhotoZoneGlobal() {
             stopAutopilot();
-            const lobby = document.getElementById('lobby-screen');
-            if (lobby.style.display !== 'none') {
-                triggerPhotoZone();
-            } else {
-                capturePhotoInstant();
-            }
+            openCustomCamera();
         }
 
         function triggerPhotoZone() {
