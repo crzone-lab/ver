@@ -2031,7 +2031,23 @@
                         }
                         
                         // Draw entire video frame to canvas using 5-argument drawImage to prevent iOS WebKit hardware decoding blank canvas bugs
-                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        let vW = video.videoWidth || 1280;
+                        let vH = video.videoHeight || 720;
+                        if (vW > 0 && vH > 0) {
+                            let vAspect = vW / vH;
+                            let cAspect = canvas.width / canvas.height;
+                            let sx = 0, sy = 0, sWidth = vW, sHeight = vH;
+                            if (vAspect > cAspect) {
+                                sWidth = vH * cAspect;
+                                sx = (vW - sWidth) / 2;
+                            } else {
+                                sHeight = vW / cAspect;
+                                sy = (vH - sHeight) / 2;
+                            }
+                            ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
+                        } else {
+                            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        }
                         
                         // Restore transform on video element
                         video.style.transform = originalTransform;
