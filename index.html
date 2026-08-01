@@ -4101,12 +4101,11 @@
                     
                     touchTime = Math.min(touchTime + 1, 120);
                     // Moderate and progressive build up (charged in 45 frames, up to 1.5)
-                    let squishIntensity = Math.min(touchTime / 35, 2.0);
-                    let squishForce = squishIntensity * 9.5;
-                    let maxDist = width * 0.42;
+                    let squishIntensity = Math.min(touchTime / 25, 2.5);
+                    let squishForce = squishIntensity * 14.0;
+                    let maxDist = width * 0.55;
                     
                     for (let i = 0; i < points.length; i++) {
-                        if (i === grabbedPointIndex) continue;
                         let p = points[i];
                         let dx = p.x - touchX;
                         let dy = p.y - touchY;
@@ -4115,18 +4114,18 @@
                             let weight = 1 - (dist / maxDist);
                             let angle = Math.atan2(dy, dx);
                             
-                            // 1. Smooth radial outward push to create touch indentation
-                            let forceX = Math.cos(angle) * squishForce * weight * 65;
-                            let forceY = Math.sin(angle) * squishForce * weight * 55;
+                            // 1. Radial outward indentation
+                            let forceX = Math.cos(angle) * squishForce * weight * 85;
+                            let forceY = Math.sin(angle) * squishForce * weight * 75;
                             
-                            // 2. Horizontal expansion (sides bulge out nicely)
-                            forceX += (dx / dist) * squishForce * weight * 35;
+                            // 2. Horizontal expansion (bulging sides out)
+                            forceX += (dx / dist) * squishForce * weight * 45;
                             
-                            // 3. Vertical compression (flattens)
-                            forceY -= (dy / dist) * squishForce * weight * 20;
+                            // 3. Vertical compression (flattens down)
+                            forceY -= (dy / dist) * squishForce * weight * 30;
                             
-                            // 4. DEEP DOWNWARD SINK FORCE (sinks character deep into background!)
-                            forceY += squishForce * weight * 130;
+                            // 4. DRAMATIC DEEP DOWNWARD SINK FORCE (sinks character deep into background!)
+                            forceY += squishForce * weight * 180;
                             
                             p.vx += forceX;
                             p.vy += forceY;
