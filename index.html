@@ -1605,6 +1605,7 @@
         let touchX = 0;
         let touchY = 0;
         let touchTime = 0;
+        let touchHapticFrame = 0;
 
         let activeBase = 'strawberry_rabbit';
         let activeEmoji = '🍓';
@@ -2044,9 +2045,6 @@
 
                 if (!cameraStream || !video) return;
 
-                // Draw current video frame onto a canvas
-                const canvas = document.getElementById('camera-canvas') || document.createElement('canvas');
-                
                 // Get camera container dimensions
                 const container = document.querySelector('.camera-video-container');
                 let viewWidth = container ? container.clientWidth : 0;
@@ -2057,72 +2055,90 @@
                 }
                 if (viewWidth < 100) viewWidth = 360;
                 if (viewHeight < 100) viewHeight = 640;
-                const viewAspect = viewWidth / viewHeight;
 
-                // Video aspect calculation
-                let videoWidth = video.videoWidth;
-                let videoHeight = video.videoHeight;
-                if (!videoWidth || !videoHeight) {
-                    videoWidth = 640;
-                    videoHeight = 480;
-                }
-                const videoAspect = videoWidth / videoHeight;
-
-                // Math to perform object-fit: cover simulation
-                let sx, sy, sWidth, sHeight;
-                if (videoAspect > viewAspect) {
-                    // Video is wider than viewport -> crop left/right
-                    sWidth = videoHeight * viewAspect;
-                    sHeight = videoHeight;
-                    sx = (videoWidth - sWidth) / 2;
-                    sy = 0;
-                } else {
-                    // Video is taller than viewport -> crop top/bottom
-                    sWidth = videoWidth;
-                    sHeight = videoWidth / viewAspect;
-                    sx = 0;
-                    sy = (videoHeight - sHeight) / 2;
-                }
-
-                // Keep crop values safely inside image limits and ensure finite integer values
-                sx = Math.max(0, Math.floor(sx || 0));
-                sy = Math.max(0, Math.floor(sy || 0));
-                sWidth = Math.max(1, Math.min(videoWidth - sx, Math.floor(sWidth || videoWidth)));
-                sHeight = Math.max(1, Math.min(videoHeight - sy, Math.floor(sHeight || videoHeight)));
-
+                const canvas = document.getElementById('camera-canvas') || document.createElement('canvas');
                 canvas.width = viewWidth;
                 canvas.height = viewHeight;
                 const ctx = canvas.getContext('2d');
 
-                // If front camera, mirror
-                if (cameraFacingMode === 'user') {
-                    ctx.translate(canvas.width, 0);
-                    ctx.scale(-1, 1);
+                let attempt = 0;
+                function tryCapture() {
+                    try {
+                        // Temporarily clear transform style to avoid Safari transform capture bugs
+                        const originalTransform = video.style.transform;
+                        video.style.transform = 'none';
+                        video.offsetHeight; // trigger reflow
+                        
+                        ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        
+                        // Reset transform before drawing if mirrored
+                        ctx.setTransform(1, 0, 0, 1, 0, 0);
+                        if (cameraFacingMode === 'user') {
+                            ctx.translate(canvas.width, 0);
+                            ctx.scale(-1, 1);
+                        }
+                        
+                        // Draw entire video frame to canvas using 5-argument drawImage to prevent iOS WebKit hardware decoding blank canvas bugs
+                        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                        
+                        // Restore transform on video element
+                        video.style.transform = originalTransform;
+                        
+                        // Check if captured frame is blank/black
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const data = imageData.data;
+                        let isBlank = true;
+                        // Check every 10th pixel for performance
+                        for (let i = 0; i < data.length; i += 40) {
+                            const r = data[i];
+                            const g = data[i+1];
+                            const b = data[i+2];
+                            const a = data[i+3];
+                            if (a > 0 && (r > 0 || g > 0 || b > 0) && (r < 255 || g < 255 || b < 255)) {
+                                isBlank = false;
+                                break;
+                            }
+                        }
+                        
+                        if (isBlank && attempt < 3) {
+                            attempt++;
+                            console.log("Captured frame is blank, retrying attempt " + attempt + "...");
+                            setTimeout(tryCapture, 80);
+                        } else {
+                            // Apply captured frame to preview image safely
+                            if (preview) {
+                                preview.src = canvas.toDataURL('image/png');
+                                preview.style.display = 'block';
+                            }
+                            video.style.display = 'none';
+                            if (guide) guide.style.display = 'none';
+
+                            // Show and init finger tracing crop canvas overlay
+                            if (drawCanvas) {
+                                drawCanvas.style.display = 'block';
+                                setTimeout(initDrawingCrop, 50);
+                            }
+
+                            // Toggle button states
+                            if (captureBtn) captureBtn.style.display = 'none';
+                            if (retakeBtn) retakeBtn.style.display = 'inline-block';
+                            if (saveBtn) saveBtn.style.display = 'inline-block';
+
+                            showNotification(i18n.t('cam-draw-guide-text') || "손가락으로 얼굴을 그려서 잘라보세요!");
+                            triggerHaptic(40);
+                        }
+                    } catch (captureErr) {
+                        console.error("Internal tryCapture error:", captureErr);
+                        if (attempt < 3) {
+                            attempt++;
+                            setTimeout(tryCapture, 80);
+                        } else {
+                            throw captureErr;
+                        }
+                    }
                 }
-                ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
-
-                // Set source of preview image safely
-                if (preview) {
-                    preview.src = canvas.toDataURL('image/png');
-                    preview.style.display = 'block';
-                }
-                video.style.display = 'none';
-                if (guide) guide.style.display = 'none';
-
-                // Show and init finger tracing crop canvas overlay
-                if (drawCanvas) {
-                    drawCanvas.style.display = 'block';
-                    // Wait for layout update to ensure dimensions are loaded
-                    setTimeout(initDrawingCrop, 50);
-                }
-
-                // Toggle button states
-                if (captureBtn) captureBtn.style.display = 'none';
-                if (retakeBtn) retakeBtn.style.display = 'inline-block';
-                if (saveBtn) saveBtn.style.display = 'inline-block';
-
-                showNotification(i18n.t('cam-draw-guide-text') || "손가락으로 얼굴을 그려서 잘라보세요!");
-                triggerHaptic(40);
+                
+                tryCapture();
             } catch (err) {
                 console.error("capturePhoto error:", err);
                 showNotification("Photo capture failed: " + err.message);
@@ -2186,317 +2202,325 @@
         }
 
         function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
-            const size = 512;
-            
-            // Canvas A: Original Image centered with margin or custom trace cropped
-            const imgCanvas = document.createElement('canvas');
-            imgCanvas.width = size;
-            imgCanvas.height = size;
-            const imgCtx = imgCanvas.getContext('2d');
-            
-            if (isCamera) {
-                const aspect = img.naturalWidth / img.naturalHeight;
+            try {
+                const size = 512;
                 
-                // Helper to map relative viewport coordinates (0..1) to the centered 512x512 canvas coordinates
-                function mapViewportToJellyCanvas(px, py) {
-                    let cx, cy;
-                    if (aspect < 1) {
-                        // Portrait (width < height) - width covers 512, height exceeds 512 centered
-                        cx = px * size;
-                        cy = (py - 0.5) * (size / aspect) + (size / 2);
+                // Safe fallbacks for image dimensions to prevent NaN or division-by-zero errors
+                let imgW = img.naturalWidth || img.width || 512;
+                let imgH = img.naturalHeight || img.height || 512;
+                if (imgW <= 0) imgW = 512;
+                if (imgH <= 0) imgH = 512;
+                
+                let aspect = imgW / imgH;
+                if (isNaN(aspect) || aspect <= 0) {
+                    aspect = 1;
+                }
+
+                // Canvas A: Original Image centered with margin or custom trace cropped
+                const imgCanvas = document.createElement('canvas');
+                imgCanvas.width = size;
+                imgCanvas.height = size;
+                const imgCtx = imgCanvas.getContext('2d');
+                
+                if (isCamera) {
+                    // Helper to map relative viewport coordinates (0..1) to the centered 512x512 canvas coordinates
+                    function mapViewportToJellyCanvas(px, py) {
+                        let cx, cy;
+                        const safetyX = isNaN(px) ? 0.5 : px;
+                        const safetyY = isNaN(py) ? 0.5 : py;
+                        if (aspect < 1) {
+                            // Portrait (width < height) - width covers 512, height exceeds 512 centered
+                            cx = safetyX * size;
+                            cy = (safetyY - 0.5) * (size / aspect) + (size / 2);
+                        } else {
+                            // Landscape (width >= height) - height covers 512, width exceeds 512 centered
+                            cx = (safetyX - 0.5) * (size * aspect) + (size / 2);
+                            cy = safetyY * size;
+                        }
+                        if (isNaN(cx)) cx = size / 2;
+                        if (isNaN(cy)) cy = size / 2;
+                        return { x: cx, y: cy };
+                    }
+
+                    imgCtx.save();
+                    imgCtx.beginPath();
+                    if (customPath && customPath.length > 5) {
+                        // Draw user's manual finger crop trace using aspect-correct coordinate mapping
+                        const pt0 = mapViewportToJellyCanvas(customPath[0].x, customPath[0].y);
+                        imgCtx.moveTo(pt0.x, pt0.y);
+                        for (let i = 1; i < customPath.length; i++) {
+                            const pt = mapViewportToJellyCanvas(customPath[i].x, customPath[i].y);
+                            imgCtx.lineTo(pt.x, pt.y);
+                        }
+                        imgCtx.closePath();
                     } else {
-                        // Landscape (width >= height) - height covers 512, width exceeds 512 centered
-                        cx = (px - 0.5) * (size * aspect) + (size / 2);
-                        cy = py * size;
+                        // Default vertical oval clip path for face snapshot aligning perfectly with guide
+                        const gc = guideCenter || { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 };
+                        const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
+                        const rx = (gc.rx || 0.26) * size;
+                        const ry = (gc.ry || 0.35) * (aspect < 1 ? size / aspect : size);
+                        
+                        let finalRx = isNaN(rx) ? 133 : rx;
+                        let finalRy = isNaN(ry) ? 179 : ry;
+                        if (!isFinite(finalRx) || finalRx <= 0) finalRx = 133;
+                        if (!isFinite(finalRy) || finalRy <= 0) finalRy = 179;
+                        
+                        imgCtx.ellipse(center.x, center.y, finalRx, finalRy, 0, 0, Math.PI * 2);
                     }
-                    return { x: cx, y: cy };
-                }
+                    imgCtx.clip();
 
-                imgCtx.save();
-                imgCtx.beginPath();
-                if (customPath && customPath.length > 5) {
-                    // Draw user's manual finger crop trace using aspect-correct coordinate mapping
-                    const pt0 = mapViewportToJellyCanvas(customPath[0].x, customPath[0].y);
-                    imgCtx.moveTo(pt0.x, pt0.y);
-                    for (let i = 1; i < customPath.length; i++) {
-                        const pt = mapViewportToJellyCanvas(customPath[i].x, customPath[i].y);
-                        imgCtx.lineTo(pt.x, pt.y);
-                    }
-                    imgCtx.closePath();
+                    // Scale and draw the image inside the clipped path (fill the 512x512 canvas area)
+                    const scale = Math.max(size / imgW, size / imgH);
+                    const w = imgW * scale;
+                    const h = imgH * scale;
+                    const x = (size - w) / 2;
+                    const y = (size - h) / 2;
+                    imgCtx.drawImage(img, x, y, w, h);
+                    imgCtx.restore();
                 } else {
-                    // Default vertical oval clip path for face snapshot aligning perfectly with guide
-                    const gc = guideCenter || { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 };
-                    const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
-                    const rx = gc.rx * size;
-                    const ry = gc.ry * (aspect < 1 ? size / aspect : size);
-                    imgCtx.ellipse(center.x, center.y, rx, ry, 0, 0, Math.PI * 2);
-                }
-                imgCtx.clip();
+                    // Scale down to fit with margin for the gel border
+                    const margin = 45;
+                    const fitSize = size - margin * 2;
+                    const scale = Math.min(fitSize / imgW, fitSize / imgH);
+                    const w = imgW * scale;
+                    const h = imgH * scale;
+                    const x = (size - w) / 2;
+                    const y = (size - h) / 2;
+                    imgCtx.drawImage(img, x, y, w, h);
 
-                // Scale and draw the image inside the clipped path (fill the 512x512 canvas area)
-                const scale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
-                const w = img.naturalWidth * scale;
-                const h = img.naturalHeight * scale;
-                const x = (size - w) / 2;
-                const y = (size - h) / 2;
-                imgCtx.drawImage(img, x, y, w, h);
-                imgCtx.restore();
-            } else {
-                // Scale down to fit with margin for the gel border
-                const margin = 45;
-                const fitSize = size - margin * 2;
-                const scale = Math.min(fitSize / img.naturalWidth, fitSize / img.naturalHeight);
-                const w = img.naturalWidth * scale;
-                const h = img.naturalHeight * scale;
-                const x = (size - w) / 2;
-                const y = (size - h) / 2;
-                imgCtx.drawImage(img, x, y, w, h);
+                    // Run background keyer
+                    const imgData = imgCtx.getImageData(0, 0, size, size);
+                    const pixels = imgData.data;
 
-                // Run background keyer
-                const imgData = imgCtx.getImageData(0, 0, size, size);
-                const pixels = imgData.data;
-
-                // 1. Mark non-white/colored pixels as outline boundaries
-                const solidOutline = new Uint8Array(size * size);
-                for (let i = 0; i < pixels.length; i += 4) {
-                    const r = pixels[i];
-                    const g = pixels[i+1];
-                    const b = pixels[i+2];
-                    const a = pixels[i+3];
-                    if (a > 50 && (r < 220 || g < 220 || b < 220)) {
-                        solidOutline[i / 4] = 1;
+                    // 1. Mark non-white/colored pixels as outline boundaries
+                    const solidOutline = new Uint8Array(size * size);
+                    for (let i = 0; i < pixels.length; i += 4) {
+                        const r = pixels[i];
+                        const g = pixels[i+1];
+                        const b = pixels[i+2];
+                        const a = pixels[i+3];
+                        if (a > 50 && (r < 220 || g < 220 || b < 220)) {
+                            solidOutline[i / 4] = 1;
+                        }
                     }
-                }
 
-                // 2. Perform morphological dilation on outline to seal any tiny line gaps (radius = 3)
-                const closedOutline = new Uint8Array(size * size);
-                const r_dilate = 3;
-                for (let y = 0; y < size; y++) {
-                    for (let x = 0; x < size; x++) {
-                        if (solidOutline[y * size + x]) {
-                            for (let dy = -r_dilate; dy <= r_dilate; dy++) {
-                                const ny = y + dy;
-                                if (ny >= 0 && ny < size) {
-                                    for (let dx = -r_dilate; dx <= r_dilate; dx++) {
-                                        const nx = x + dx;
-                                        if (nx >= 0 && nx < size) {
-                                            closedOutline[ny * size + nx] = 1;
+                    // 2. Perform morphological dilation on outline to seal any tiny line gaps (radius = 3)
+                    const closedOutline = new Uint8Array(size * size);
+                    const r_dilate = 3;
+                    for (let y = 0; y < size; y++) {
+                        for (let x = 0; x < size; x++) {
+                            if (solidOutline[y * size + x]) {
+                                for (let dy = -r_dilate; dy <= r_dilate; dy++) {
+                                    const ny = y + dy;
+                                    if (ny >= 0 && ny < size) {
+                                        for (let dx = -r_dilate; dx <= r_dilate; dx++) {
+                                            const nx = x + dx;
+                                            if (nx >= 0 && nx < size) {
+                                                closedOutline[ny * size + nx] = 1;
+                                            }
                                         }
                                     }
                                 }
                             }
                         }
                     }
-                }
 
-                // 3. Setup flood-fill traversal from outer canvas borders
-                const visited = new Uint8Array(size * size);
-                const queue = [];
-
-                function isBackgroundCandidate(x, y) {
-                    const idx = y * size + x;
-                    if (closedOutline[idx]) return false;
-
-                    const pIdx = idx * 4;
-                    const r = pixels[pIdx];
-                    const g = pixels[pIdx+1];
-                    const b = pixels[pIdx+2];
-                    const a = pixels[pIdx+3];
-                    return a < 45 || (r > 220 && g > 220 && b > 220);
-                }
-
-                for (let x = 0; x < size; x++) {
-                    if (!visited[x] && isBackgroundCandidate(x, 0)) {
-                        visited[x] = 1;
-                        queue.push(x);
+                    // 3. Flood-fill from outer edges to detect the transparent background area
+                    const transparentBackground = new Uint8Array(size * size);
+                    const queue = [];
+                    
+                    // Add edge boundary pixels to initialization queue
+                    for (let x = 0; x < size; x++) {
+                        if (!closedOutline[x]) { transparentBackground[x] = 1; queue.push(x); }
+                        const bottomIdx = (size - 1) * size + x;
+                        if (!closedOutline[bottomIdx]) { transparentBackground[bottomIdx] = 1; queue.push(bottomIdx); }
                     }
-                    const yBottom = size - 1;
-                    const idxBottom = yBottom * size + x;
-                    if (!visited[idxBottom] && isBackgroundCandidate(x, yBottom)) {
-                        visited[idxBottom] = 1;
-                        queue.push(idxBottom);
+                    for (let y = 0; y < size; y++) {
+                        const leftIdx = y * size;
+                        if (!closedOutline[leftIdx]) { transparentBackground[leftIdx] = 1; queue.push(leftIdx); }
+                        const rightIdx = y * size + (size - 1);
+                        if (!closedOutline[rightIdx]) { transparentBackground[rightIdx] = 1; queue.push(rightIdx); }
                     }
-                }
-                for (let y = 0; y < size; y++) {
-                    const idxLeft = y * size;
-                    if (!visited[idxLeft] && isBackgroundCandidate(0, y)) {
-                        visited[idxLeft] = 1;
-                        queue.push(idxLeft);
-                    }
-                    const xRight = size - 1;
-                    const idxRight = y * size + xRight;
-                    if (!visited[idxRight] && isBackgroundCandidate(xRight, y)) {
-                        visited[idxRight] = 1;
-                        queue.push(idxRight);
-                    }
-                }
 
-                // 4. BFS traversal
-                let head = 0;
-                while (head < queue.length) {
-                    const curr = queue[head++];
-                    const cx = curr % size;
-                    const cy = Math.floor(curr / size);
+                    // BFS Flood fill
+                    while (queue.length > 0) {
+                        const idx = queue.shift();
+                        const cx = idx % size;
+                        const cy = Math.floor(idx / size);
 
-                    const idx = curr * 4;
-                    pixels[idx + 3] = 0;
+                        const neighbors = [
+                            {x: cx - 1, y: cy}, {x: cx + 1, y: cy},
+                            {x: cx, y: cy - 1}, {x: cx, y: cy + 1}
+                        ];
 
-                    const neighbors = [
-                        {x: cx + 1, y: cy},
-                        {x: cx - 1, y: cy},
-                        {x: cx, y: cy + 1},
-                        {x: cx, y: cy - 1}
-                    ];
-
-                    for (let i = 0; i < neighbors.length; i++) {
-                        const nx = neighbors[i].x;
-                        const ny = neighbors[i].y;
-                        if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-                            const nIdx = ny * size + nx;
-                            if (!visited[nIdx] && isBackgroundCandidate(nx, ny)) {
-                                visited[nIdx] = 1;
-                                queue.push(nIdx);
+                        for (const n of neighbors) {
+                            if (n.x >= 0 && n.x < size && n.y >= 0 && n.y < size) {
+                                const nIdx = n.y * size + n.x;
+                                if (!closedOutline[nIdx] && !transparentBackground[nIdx]) {
+                                    transparentBackground[nIdx] = 1;
+                                    queue.push(nIdx);
+                                }
                             }
                         }
                     }
+
+                    // 4. Force background pixels to fully transparent, keeping only key object silhouette
+                    for (let i = 0; i < pixels.length; i += 4) {
+                        const idx = i / 4;
+                        if (transparentBackground[idx]) {
+                            pixels[i + 3] = 0; // Transparent alpha
+                        }
+                    }
+                    imgCtx.putImageData(imgData, 0, 0);
                 }
-                imgCtx.putImageData(imgData, 0, 0);
-            }
 
-            // Canvas B: Silhouette (Solid White)
-            const silCanvas = document.createElement('canvas');
-            silCanvas.width = size;
-            silCanvas.height = size;
-            const silCtx = silCanvas.getContext('2d');
-            silCtx.drawImage(imgCanvas, 0, 0);
-            silCtx.globalCompositeOperation = 'source-in';
-            silCtx.fillStyle = 'white';
-            silCtx.fillRect(0, 0, size, size);
-
-            // Canvas C: Dilated Mask (Outer contour shape)
-            const maskCanvas = document.createElement('canvas');
-            maskCanvas.width = size;
-            maskCanvas.height = size;
-            const maskCtx = maskCanvas.getContext('2d');
-            
-            // Dilation via radial offset drawing to create consistent boundary padding
-            const padRadius = 24; 
-            for (let angle = 0; angle < Math.PI * 2; angle += Math.PI / 8) {
-                const dx = Math.cos(angle) * padRadius;
-                const dy = Math.sin(angle) * padRadius;
-                maskCtx.drawImage(silCanvas, dx, dy);
-            }
-            maskCtx.drawImage(silCanvas, 0, 0); // Fill center gaps
-
-            // Canvas D: Shading & Gel effects
-            const shadingCanvas = document.createElement('canvas');
-            shadingCanvas.width = size;
-            shadingCanvas.height = size;
-            const shadCtx = shadingCanvas.getContext('2d');
-
-            // Draw base shape
-            shadCtx.drawImage(maskCanvas, 0, 0);
-            
-            // Tint base jelly color
-            shadCtx.globalCompositeOperation = 'source-in';
-            shadCtx.fillStyle = 'rgba(255, 100, 130, 0.28)'; // Soft gel tint
-            shadCtx.fillRect(0, 0, size, size);
-
-            // Shading inside the contour shape
-            shadCtx.globalCompositeOperation = 'source-over';
-            
-            // 1. Dark Inner Shadow (Dome Bevel matching the character shape outline)
-            const shadowCanvas = document.createElement('canvas');
-            shadowCanvas.width = size;
-            shadowCanvas.height = size;
-            const shadowCtx = shadowCanvas.getContext('2d');
-            shadowCtx.shadowColor = 'rgba(0, 0, 0, 0.7)';
-            shadowCtx.shadowBlur = 30;
-            shadowCtx.shadowOffsetX = -14;
-            shadowCtx.shadowOffsetY = -14;
-            shadowCtx.drawImage(maskCanvas, -14, -14);
-            shadowCtx.globalCompositeOperation = 'destination-in';
-            shadowCtx.drawImage(maskCanvas, 0, 0);
-            
-            shadCtx.drawImage(shadowCanvas, 0, 0);
-
-            // 2. Light Inner Glow (Bottom-Right refractive light glow)
-            const glowCanvas = document.createElement('canvas');
-            glowCanvas.width = size;
-            glowCanvas.height = size;
-            const glowCtx = glowCanvas.getContext('2d');
-            glowCtx.shadowColor = 'rgba(255, 255, 255, 0.5)';
-            glowCtx.shadowBlur = 18;
-            glowCtx.shadowOffsetX = 10;
-            glowCtx.shadowOffsetY = 10;
-            glowCtx.drawImage(maskCanvas, 10, 10);
-            glowCtx.globalCompositeOperation = 'destination-in';
-            glowCtx.drawImage(maskCanvas, 0, 0);
-            
-            shadCtx.drawImage(glowCanvas, 0, 0);
-
-            // 3. Multi-source Specular Highlights
-            shadCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-            shadCtx.beginPath();
-            shadCtx.ellipse(size * 0.32, size * 0.32, size * 0.12, size * 0.055, Math.PI / 4, 0, Math.PI * 2);
-            shadCtx.fill();
-
-            shadCtx.fillStyle = 'rgba(255, 255, 255, 0.88)';
-            shadCtx.beginPath();
-            shadCtx.arc(size * 0.46, size * 0.22, size * 0.022, 0, Math.PI * 2);
-            shadCtx.fill();
-
-            shadCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-            shadCtx.beginPath();
-            shadCtx.ellipse(size * 0.22, size * 0.44, size * 0.05, size * 0.016, Math.PI / 3, 0, Math.PI * 2);
-            shadCtx.fill();
-
-            // Canvas E: Final Composited Texture
-            const finalCanvas = document.createElement('canvas');
-            finalCanvas.width = size;
-            finalCanvas.height = size;
-            const finalCtx = finalCanvas.getContext('2d');
-
-            // Draw shading base gel backing
-            finalCtx.drawImage(shadingCanvas, 0, 0);
-            
-            // Draw original image on top of gel
-            finalCtx.drawImage(imgCanvas, 0, 0);
-
-            // Update the active texture
-            const finalImgData = finalCanvas.toDataURL('image/png');
-            jellyImage.onload = function() {
-                jellyImage.onload = null; // Prevent callback memory leak and infinite loops on subsequent image updates
+                // Canvas B: Solid Character Mask Canvas
+                const maskCanvas = document.createElement('canvas');
+                maskCanvas.width = size;
+                maskCanvas.height = size;
+                const maskCtx = maskCanvas.getContext('2d');
+                maskCtx.drawImage(imgCanvas, 0, 0);
                 
-                // Register as custom photo character in lobby
-                const newChar = {
-                    emoji: '📸',
-                    name: `${i18n.t('card-camera') || '내 사진'} ${customPhotoCounter++}`,
-                    base: `custom_photo_${Date.now()}`,
-                    hue: 350,
-                    imgData: finalImgData
+                const maskData = maskCtx.getImageData(0, 0, size, size);
+                const mPixels = maskData.data;
+                for (let i = 0; i < mPixels.length; i += 4) {
+                    const alpha = mPixels[i + 3];
+                    if (alpha > 10) {
+                        mPixels[i] = 255;
+                        mPixels[i+1] = 255;
+                        mPixels[i+2] = 255;
+                        mPixels[i+3] = 255;
+                    } else {
+                        mPixels[i+3] = 0;
+                    }
+                }
+                maskCtx.putImageData(maskData, 0, 0);
+
+                // Canvas C: Translucent Gel Shadow & Glow Backing (Creates the 3D jelly volume effect)
+                const glowCanvas = document.createElement('canvas');
+                glowCanvas.width = size;
+                glowCanvas.height = size;
+                const glowCtx = glowCanvas.getContext('2d');
+                glowCtx.drawImage(maskCanvas, 0, 0);
+
+                const glowData = glowCtx.getImageData(0, 0, size, size);
+                const gPixels = glowData.data;
+                for (let i = 0; i < gPixels.length; i += 4) {
+                    const alpha = gPixels[i + 3];
+                    if (alpha > 10) {
+                        gPixels[i] = 255;     // Red
+                        gPixels[i+1] = 110;   // Green
+                        gPixels[i+2] = 130;   // Blue (Creates beautiful pink base gel)
+                        gPixels[i+3] = 220;   // Mostly opaque
+                    }
+                }
+                glowCtx.putImageData(glowData, 0, 0);
+
+                // Canvas D: Multi-Pass Shaded Gel Backdrop
+                const shadingCanvas = document.createElement('canvas');
+                shadingCanvas.width = size;
+                shadingCanvas.height = size;
+                const shadCtx = shadingCanvas.getContext('2d');
+
+                // 1. Draw glowing background gel base
+                shadCtx.drawImage(glowCanvas, 0, 0);
+
+                // 2. Draw 3D inner shadows
+                glowCtx.clearRect(0, 0, size, size);
+                glowCtx.drawImage(maskCanvas, 0, 0);
+                glowCtx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+                glowCtx.shadowBlur = 18;
+                glowCtx.shadowOffsetX = 12;
+                glowCtx.shadowOffsetY = 12;
+                glowCtx.globalCompositeOperation = 'source-in';
+                glowCtx.drawImage(maskCanvas, 0, 0);
+                
+                // Negative inner shadow punch
+                glowCtx.globalCompositeOperation = 'difference';
+                glowCtx.fillStyle = '#ffffff';
+                glowCtx.fillRect(0, 0, size, size);
+                glowCtx.globalCompositeOperation = 'destination-in';
+                glowCtx.drawImage(maskCanvas, 0, 0);
+                
+                // Draw mask shadow to shading context
+                const shadowCanvas = document.createElement('canvas');
+                shadowCanvas.width = size;
+                shadowCanvas.height = size;
+                const shadowCtx = shadowCanvas.getContext('2d');
+                shadowCtx.shadowColor = 'rgba(0, 0, 0, 0.45)';
+                shadowCtx.shadowBlur = 18;
+                shadowCtx.shadowOffsetX = 12;
+                shadowCtx.shadowOffsetY = 12;
+                shadowCtx.drawImage(maskCanvas, 0, 0);
+                
+                shadCtx.drawImage(shadowCanvas, 0, 0);
+
+                // 3. Multi-source Specular Highlights
+                shadCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+                shadCtx.beginPath();
+                shadCtx.ellipse(size * 0.32, size * 0.32, size * 0.12, size * 0.055, Math.PI / 4, 0, Math.PI * 2);
+                shadCtx.fill();
+
+                shadCtx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+                shadCtx.beginPath();
+                shadCtx.arc(size * 0.46, size * 0.22, size * 0.022, 0, Math.PI * 2);
+                shadCtx.fill();
+
+                shadCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
+                shadCtx.beginPath();
+                shadCtx.ellipse(size * 0.22, size * 0.44, size * 0.05, size * 0.016, Math.PI / 3, 0, Math.PI * 2);
+                shadCtx.fill();
+
+                // Canvas E: Final Composited Texture
+                const finalCanvas = document.createElement('canvas');
+                finalCanvas.width = size;
+                finalCanvas.height = size;
+                const finalCtx = finalCanvas.getContext('2d');
+
+                // Draw shading base gel backing
+                finalCtx.drawImage(shadingCanvas, 0, 0);
+                
+                // Draw original image on top of gel
+                finalCtx.drawImage(imgCanvas, 0, 0);
+
+                // Update the active texture
+                const finalImgData = finalCanvas.toDataURL('image/png');
+                jellyImage.onload = function() {
+                    jellyImage.onload = null; // Prevent callback memory leak and infinite loops on subsequent image updates
+                    
+                    // Register as custom photo character in lobby
+                    const newChar = {
+                        emoji: '📸',
+                        name: `${i18n.t('card-camera') || '내 사진'} ${customPhotoCounter++}`,
+                        base: `custom_photo_${Date.now()}`,
+                        hue: 350,
+                        imgData: finalImgData
+                    };
+                    lobbyCharacters.push(newChar);
+                    activeLobbyIndex = lobbyCharacters.length - 1;
+                    
+                    activeEmoji = newChar.emoji;
+                    activeBase = newChar.base;
+                    activeHue = newChar.hue;
+                    
+                    // Re-init mesh boundary coordinates for the new silhouette mask
+                    initMesh();
+                    
+                    // Generate matching background jellies (using pink/red cherry tone 355)
+                    generateDecoJellies(355);
+                    
+                    // Re-render lobby grid to show the custom thumbnail
+                    renderLobbyGrid();
+                    
+                    // Transition: Go to playground stage
+                    setScreenMode('playground');
+                    showNotification(i18n.t('notif-silhouette-mapping'));
                 };
-                lobbyCharacters.push(newChar);
-                activeLobbyIndex = lobbyCharacters.length - 1;
-                
-                activeEmoji = newChar.emoji;
-                activeBase = newChar.base;
-                activeHue = newChar.hue;
-                
-                // Re-init mesh boundary coordinates for the new silhouette mask
-                initMesh();
-                
-                // Generate matching background jellies (using pink/red cherry tone 355)
-                generateDecoJellies(355);
-                
-                // Re-render lobby grid to show the custom thumbnail
-                renderLobbyGrid();
-                
-                // Transition: Go to playground stage
-                setScreenMode('playground');
-                showNotification(i18n.t('notif-silhouette-mapping'));
-            };
-            jellyImage.src = finalImgData;
+                jellyImage.src = finalImgData;
+            } catch (err) {
+                console.error("processImageToJelly error:", err);
+                showNotification("Image processing failed: " + err.message);
+            }
         }
 
         function importFromIllustrationCard(cardId) {
@@ -4124,6 +4148,19 @@
                         points[grabbedPointIndex].y = touchY;
                         points[grabbedPointIndex].vx = 0;
                         points[grabbedPointIndex].vy = 0;
+                        
+                        touchHapticFrame++;
+                        // Trigger a haptic pulse every 12 frames (~200ms at 60fps)
+                        if (touchHapticFrame % 12 === 0) {
+                            // Alternate between strong (35ms) and weak (12ms) vibration
+                            const isStrong = (Math.floor(touchHapticFrame / 12) % 2 === 0);
+                            const duration = isStrong ? 35 : 12;
+                            if (navigator.vibrate) {
+                                navigator.vibrate(duration);
+                            }
+                        }
+                    } else {
+                        touchHapticFrame = 0;
                     }
                     
                     touchTime = Math.min(touchTime + 1, 120);
@@ -4159,6 +4196,8 @@
                             p.vy += forceY;
                         }
                     }
+                } else {
+                    touchHapticFrame = 0;
                 }
 
                 // 3. Update mesh points
