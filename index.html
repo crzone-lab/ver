@@ -135,7 +135,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            background: linear-gradient(135deg, #fff2f9 0%, #ffe3f1 50%, #ffd6e8 100%);
+            background: linear-gradient(135deg, #090712 0%, #120e24 50%, #1c1535 100%);
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -158,6 +158,7 @@
             justify-content: center;
             align-items: center;
             margin-bottom: 50px;
+            filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.55));
         }
 
         .start-logo-img {
@@ -182,7 +183,7 @@
             padding: 16px 48px;
             font-size: 1.35rem;
             font-weight: 800;
-            box-shadow: 0 8px 24px rgba(255, 71, 87, 0.4), 0 0 0 4px rgba(255, 71, 87, 0.15);
+            box-shadow: 0 8px 24px rgba(255, 71, 87, 0.45), 0 0 0 4px rgba(255, 71, 87, 0.2);
             cursor: pointer;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             animation: pulseBtn 2s infinite;
@@ -192,7 +193,7 @@
         .start-game-btn:hover {
             transform: scale(1.08);
             background: linear-gradient(135deg, #ff6b81, #ff4757);
-            box-shadow: 0 10px 28px rgba(255, 71, 87, 0.5), 0 0 0 6px rgba(255, 71, 87, 0.25);
+            box-shadow: 0 10px 28px rgba(255, 71, 87, 0.55), 0 0 0 6px rgba(255, 71, 87, 0.3);
         }
 
         @keyframes pulseBtn {
@@ -205,8 +206,9 @@
             position: absolute;
             bottom: 24px;
             font-size: 0.8rem;
-            color: rgba(255, 71, 87, 0.6);
+            color: rgba(255, 255, 255, 0.35);
             font-weight: 600;
+            letter-spacing: 0.5px;
         }
 
         .recording-pill {
@@ -3671,20 +3673,26 @@
         }
 
         function startGameSession() {
-            if (synth) {
-                try {
-                    let osc = synth.ctx.createOscillator();
-                    let gain = synth.ctx.createGain();
-                    osc.connect(gain);
-                    gain.connect(synth.ctx.destination);
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(150, synth.ctx.currentTime);
-                    osc.frequency.exponentialRampToValueAtTime(500, synth.ctx.currentTime + 0.16);
-                    gain.gain.setValueAtTime(0.2, synth.ctx.currentTime);
-                    gain.gain.exponentialRampToValueAtTime(0.001, synth.ctx.currentTime + 0.16);
-                    osc.start();
-                    osc.stop(synth.ctx.currentTime + 0.17);
-                } catch (err) {}
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(500, audioCtx.currentTime + 0.16);
+                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.17);
+            } catch (err) {
+                console.log("AudioContext start error:", err);
             }
             triggerHaptic(40);
             
