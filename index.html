@@ -858,15 +858,15 @@
             <!-- Advanced Hidden Settings (Developers only) -->
             <div class="advanced-settings-drawer" id="advanced-drawer">
                 <div class="advanced-row">
-                    <span data-i18n="label-stiffness">Spring Stiffness</span>
+                    <span><span data-i18n="label-stiffness">Spring Stiffness</span> (<span id="stiffness-val">50</span>)</span>
                     <input type="range" id="spring-stiffness" min="10" max="150" value="50" oninput="updateSliders()">
                 </div>
                 <div class="advanced-row">
-                    <span data-i18n="label-damping">Damping</span>
-                    <input type="range" id="dampening" min="1" max="25" value="8" oninput="updateSliders()">
+                    <span><span data-i18n="label-damping">Damping</span> (<span id="damping-val">8</span>)</span>
+                    <input type="range" id="dampening" min="1" max="25" step="0.5" value="8" oninput="updateSliders()">
                 </div>
                 <div class="advanced-row">
-                    <span data-i18n="label-bgm">BGM Volume</span>
+                    <span><span data-i18n="label-bgm">BGM Volume</span> (<span id="bgm-val">50%</span>)</span>
                     <input type="range" id="bgm-volume" min="0" max="100" value="50" oninput="updateBGMVolume()">
                 </div>
                 <div class="advanced-row" style="margin-top: 8px; justify-content: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
@@ -1443,9 +1443,20 @@
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         }
 
+        function syncSliderLabels() {
+            const stiffnessEl = document.getElementById('spring-stiffness');
+            const dampingEl = document.getElementById('dampening');
+            const bgmEl = document.getElementById('bgm-volume');
+            
+            if (stiffnessEl) document.getElementById('stiffness-val').innerText = stiffnessEl.value;
+            if (dampingEl) document.getElementById('damping-val').innerText = dampingEl.value;
+            if (bgmEl) document.getElementById('bgm-val').innerText = bgmEl.value + '%';
+        }
+
         function updateSliders() {
             stiffness = parseFloat(document.getElementById('spring-stiffness').value);
             damping = parseFloat(document.getElementById('dampening').value);
+            syncSliderLabels();
         }
 
         // Pop-up Overlays UI controllers
@@ -3658,6 +3669,7 @@
             // Sync developers inputs
             document.getElementById('spring-stiffness').value = stiffness;
             document.getElementById('dampening').value = damping;
+            syncSliderLabels();
         }
 
         function setScreenMode(mode) {
@@ -3878,6 +3890,7 @@
             if (bgmPlayer.gainNode) {
                 bgmPlayer.gainNode.gain.setValueAtTime(volume, audioCtx.currentTime);
             }
+            syncSliderLabels();
         }
 
         function startGameSession() {
@@ -3951,6 +3964,7 @@
         // Initialize Lobby on start
         i18n.init();
         translateDOM();
+        syncSliderLabels();
         defaultStrawberrySrc = jellyImage.src;
         initMesh();
         draw();
