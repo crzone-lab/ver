@@ -824,9 +824,9 @@
         /* 📸 Face Silhouette Guide overlay inside camera preview */
         .camera-face-guide-container {
             position: absolute;
-            top: 50%;
+            top: 15%; /* Raised high up close to top front camera lens */
             left: 50%;
-            transform: translate(-50%, -55%); /* offset slightly upwards for natural chin placement */
+            transform: translateX(-50%);
             width: 240px;
             height: 320px;
             z-index: 3;
@@ -1842,7 +1842,7 @@
             drawCropPoints = [];
             isDrawingCrop = false;
             
-            // Unconditionally set canvas size using parent container size to ensure non-zero bounds
+            // Set canvas resolution using actual parent container size to ensure 100% alignment
             const container = document.querySelector('.camera-video-container');
             const w = container ? container.clientWidth : (drawCanvas.clientWidth || window.innerWidth);
             const h = container ? container.clientHeight : (drawCanvas.clientHeight || window.innerHeight);
@@ -1851,6 +1851,11 @@
             
             const ctx = drawCanvas.getContext('2d');
             ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+        }
+
+        function setupDrawingCropListeners() {
+            const drawCanvas = document.getElementById('camera-draw-crop-canvas');
+            if (!drawCanvas) return;
             
             function getPos(e) {
                 const rect = drawCanvas.getBoundingClientRect();
@@ -1875,7 +1880,7 @@
             }
             
             function handleStart(e) {
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 isDrawingCrop = true;
                 drawCropPoints = [getPos(e)];
                 drawPath();
@@ -1883,13 +1888,14 @@
             
             function handleMove(e) {
                 if (!isDrawingCrop) return;
-                e.preventDefault();
+                if (e.cancelable) e.preventDefault();
                 drawCropPoints.push(getPos(e));
                 drawPath();
             }
             
             function handleEnd(e) {
                 if (!isDrawingCrop) return;
+                if (e.cancelable) e.preventDefault();
                 isDrawingCrop = false;
                 if (drawCropPoints.length > 2) {
                     drawCropPoints.push({ x: drawCropPoints[0].x, y: drawCropPoints[0].y });
@@ -1898,6 +1904,7 @@
             }
             
             function drawPath() {
+                const ctx = drawCanvas.getContext('2d');
                 ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
                 if (drawCropPoints.length < 2) return;
                 
@@ -1922,18 +1929,17 @@
                 ctx.fill();
             }
             
-            // Register both pointer events AND standard mouse/touch events directly for absolute compatibility
-            drawCanvas.onpointerdown = handleStart;
-            drawCanvas.onpointermove = handleMove;
-            drawCanvas.onpointerup = handleEnd;
+            drawCanvas.addEventListener('pointerdown', handleStart);
+            drawCanvas.addEventListener('pointermove', handleMove);
+            drawCanvas.addEventListener('pointerup', handleEnd);
 
-            drawCanvas.ontouchstart = handleStart;
-            drawCanvas.ontouchmove = handleMove;
-            drawCanvas.ontouchend = handleEnd;
+            drawCanvas.addEventListener('touchstart', handleStart, { passive: false });
+            drawCanvas.addEventListener('touchmove', handleMove, { passive: false });
+            drawCanvas.addEventListener('touchend', handleEnd, { passive: false });
             
-            drawCanvas.onmousedown = handleStart;
-            drawCanvas.onmousemove = handleMove;
-            drawCanvas.onmouseup = handleEnd;
+            drawCanvas.addEventListener('mousedown', handleStart);
+            drawCanvas.addEventListener('mousemove', handleMove);
+            drawCanvas.addEventListener('mouseup', handleEnd);
         }
 
         async function openCustomCamera() {
@@ -1970,6 +1976,11 @@
                     audio: false
                 });
                 video.srcObject = cameraStream;
+                if (cameraFacingMode === 'user') {
+                    video.style.transform = 'scaleX(-1)';
+                } else {
+                    video.style.transform = 'scaleX(1)';
+                }
             } catch (err) {
                 console.log("Camera access error:", err);
                 showNotification(i18n.t('notif-camera-error') || "Camera access failed. Try file upload.");
@@ -2013,16 +2024,44 @@
 
             // Draw current video frame onto a canvas
             const canvas = document.getElementById('camera-canvas') || document.createElement('canvas');
-            canvas.width = video.videoWidth || 640;
-            canvas.height = video.videoHeight || 480;
+            
+            // Get camera container dimensions
+            const container = document.querySelector('.camera-video-container');
+            const viewWidth = container ? container.clientWidth : (video.clientWidth || window.innerWidth);
+            const viewHeight = container ? container.clientHeight : (video.clientHeight || window.innerHeight);
+            const viewAspect = viewWidth / viewHeight;
+
+            // Video aspect calculation
+            const videoWidth = video.videoWidth || 640;
+            const videoHeight = video.videoHeight || 480;
+            const videoAspect = videoWidth / videoHeight;
+
+            // Math to perform object-fit: cover simulation
+            let sx, sy, sWidth, sHeight;
+            if (videoAspect > viewAspect) {
+                // Video is wider than viewport -> crop left/right
+                sWidth = videoHeight * viewAspect;
+                sHeight = videoHeight;
+                sx = (videoWidth - sWidth) / 2;
+                sy = 0;
+            } else {
+                // Video is taller than viewport -> crop top/bottom
+                sWidth = videoWidth;
+                sHeight = videoWidth / viewAspect;
+                sx = 0;
+                sy = (videoHeight - sHeight) / 2;
+            }
+
+            canvas.width = viewWidth;
+            canvas.height = viewHeight;
             const ctx = canvas.getContext('2d');
 
-            // If front camera, mirror the preview image
+            // If front camera, mirror
             if (cameraFacingMode === 'user') {
                 ctx.translate(canvas.width, 0);
                 ctx.scale(-1, 1);
             }
-            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            ctx.drawImage(video, sx, sy, sWidth, sHeight, 0, 0, canvas.width, canvas.height);
 
             // Set source of preview image
             if (preview) {
@@ -2069,21 +2108,40 @@
             }
         }
 
+        function getFaceGuideRelativeCenter() {
+            const guide = document.getElementById('camera-face-guide');
+            const container = document.querySelector('.camera-video-container');
+            if (guide && container) {
+                const gRect = guide.getBoundingClientRect();
+                const cRect = container.getBoundingClientRect();
+                return {
+                    cx: (gRect.left + gRect.width / 2 - cRect.left) / cRect.width,
+                    cy: (gRect.top + gRect.height / 2 - cRect.top) / cRect.height,
+                    rx: (gRect.width / 2) / cRect.width,
+                    ry: (gRect.height / 2) / cRect.height
+                };
+            }
+            return { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 }; // fallback matching 15% top styling
+        }
+
         function savePhotoToGrid() {
             const preview = document.getElementById('camera-preview');
             if (!preview || !preview.src || preview.src.startsWith('data:image/svg+xml')) return;
+
+            // Measure guide relative center before closing camera overlay
+            const guideCenter = getFaceGuideRelativeCenter();
 
             const img = new Image();
             img.onload = function() {
                 // Pass drawing path if they drew at least 6 points
                 const path = (drawCropPoints && drawCropPoints.length > 5) ? drawCropPoints : null;
-                processImageToJelly(img, true, path);
+                processImageToJelly(img, true, path, guideCenter);
                 closeCustomCamera();
             };
             img.src = preview.src;
         }
 
-        function processImageToJelly(img, isCamera = false, customPath = null) {
+        function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
             const size = 512;
             
             // Canvas A: Original Image centered with margin or custom trace cropped
@@ -2093,22 +2151,41 @@
             const imgCtx = imgCanvas.getContext('2d');
             
             if (isCamera) {
+                const aspect = img.naturalWidth / img.naturalHeight;
+                
+                // Helper to map relative viewport coordinates (0..1) to the centered 512x512 canvas coordinates
+                function mapViewportToJellyCanvas(px, py) {
+                    let cx, cy;
+                    if (aspect < 1) {
+                        // Portrait (width < height) - width covers 512, height exceeds 512 centered
+                        cx = px * size;
+                        cy = (py - 0.5) * (size / aspect) + (size / 2);
+                    } else {
+                        // Landscape (width >= height) - height covers 512, width exceeds 512 centered
+                        cx = (px - 0.5) * (size * aspect) + (size / 2);
+                        cy = py * size;
+                    }
+                    return { x: cx, y: cy };
+                }
+
                 imgCtx.save();
                 imgCtx.beginPath();
                 if (customPath && customPath.length > 5) {
-                    // Draw user's manual finger crop trace
-                    imgCtx.moveTo(customPath[0].x * size, customPath[0].y * size);
+                    // Draw user's manual finger crop trace using aspect-correct coordinate mapping
+                    const pt0 = mapViewportToJellyCanvas(customPath[0].x, customPath[0].y);
+                    imgCtx.moveTo(pt0.x, pt0.y);
                     for (let i = 1; i < customPath.length; i++) {
-                        imgCtx.lineTo(customPath[i].x * size, customPath[i].y * size);
+                        const pt = mapViewportToJellyCanvas(customPath[i].x, customPath[i].y);
+                        imgCtx.lineTo(pt.x, pt.y);
                     }
                     imgCtx.closePath();
                 } else {
-                    // Default vertical oval clip path for face snapshot
-                    const cx = size / 2;
-                    const cy = size / 2;
-                    const rx = 135; // Horizontal radius
-                    const ry = 180; // Vertical radius
-                    imgCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                    // Default vertical oval clip path for face snapshot aligning perfectly with guide
+                    const gc = guideCenter || { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 };
+                    const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
+                    const rx = gc.rx * size;
+                    const ry = gc.ry * (aspect < 1 ? size / aspect : size);
+                    imgCtx.ellipse(center.x, center.y, rx, ry, 0, 0, Math.PI * 2);
                 }
                 imgCtx.clip();
 
@@ -4878,6 +4955,7 @@
         i18n.init();
         translateDOM();
         syncSliderLabels();
+        setupDrawingCropListeners();
         defaultStrawberrySrc = jellyImage.src;
         initMesh();
         draw();
