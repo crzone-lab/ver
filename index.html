@@ -3045,15 +3045,23 @@
         }
 
         function drawWarpedTriangle(ctx, img, p0, p1, p2, imgW, imgH) {
-            let startX = (width - 380) / 2;
-            let startY = (height - 253) / 2;
+            let targetW = 630;
+            let targetH = 420;
+            let startX = (width - targetW) / 2;
+            let startY = (height - targetH) / 2;
 
-            let u0 = ((p0.ox - startX) / 380) * imgW;
-            let v0 = ((p0.oy - startY) / 253) * imgH;
-            let u1 = ((p1.ox - startX) / 380) * imgW;
-            let v1 = ((p1.oy - startY) / 253) * imgH;
-            let u2 = ((p2.ox - startX) / 380) * imgW;
-            let v2 = ((p2.oy - startY) / 253) * imgH;
+            // Crop transparent padding to zoom in on the central rabbit character
+            let cropX0 = 0.18 * imgW;
+            let cropX1 = 0.82 * imgW;
+            let cropY0 = 0.12 * imgH;
+            let cropY1 = 0.88 * imgH;
+
+            let u0 = cropX0 + ((p0.ox - startX) / targetW) * (cropX1 - cropX0);
+            let v0 = cropY0 + ((p0.oy - startY) / targetH) * (cropY1 - cropY0);
+            let u1 = cropX0 + ((p1.ox - startX) / targetW) * (cropX1 - cropX0);
+            let v1 = cropY0 + ((p1.oy - startY) / targetH) * (cropY1 - cropY0);
+            let u2 = cropX0 + ((p2.ox - startX) / targetW) * (cropX1 - cropX0);
+            let v2 = cropY0 + ((p2.oy - startY) / targetH) * (cropY1 - cropY0);
 
             let x0 = p0.x;
             let y0 = p0.y;
