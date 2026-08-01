@@ -2133,188 +2133,48 @@
         function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
             try {
                 const size = 512;
-                
                 let imgW = img.naturalWidth || img.width || 512;
                 let imgH = img.naturalHeight || img.height || 512;
                 if (imgW <= 0) imgW = 512;
                 if (imgH <= 0) imgH = 512;
-                
-                let aspect = imgW / imgH;
-                if (isNaN(aspect) || aspect <= 0) aspect = 1;
 
-                // Canvas A: Original Image centered or cropped
                 const imgCanvas = document.createElement('canvas');
                 imgCanvas.width = size;
                 imgCanvas.height = size;
                 const imgCtx = imgCanvas.getContext('2d');
-                
-                if (isCamera) {
-                    function mapViewportToJellyCanvas(px, py) {
-                        let cx, cy;
-                        const safetyX = isNaN(px) ? 0.5 : px;
-                        const safetyY = isNaN(py) ? 0.5 : py;
-                        if (aspect < 1) {
-                            cx = safetyX * size;
-                            cy = (safetyY - 0.5) * (size / aspect) + (size / 2);
-                        } else {
-                            cx = (safetyX - 0.5) * (size * aspect) + (size / 2);
-                            cy = safetyY * size;
-                        }
-                        if (isNaN(cx)) cx = size / 2;
-                        if (isNaN(cy)) cy = size / 2;
-                        return { x: cx, y: cy };
-                    }
 
-                    imgCtx.save();
-                    imgCtx.beginPath();
-                    if (customPath && customPath.length > 5) {
-                        const pt0 = mapViewportToJellyCanvas(customPath[0].x, customPath[0].y);
-                        imgCtx.moveTo(pt0.x, pt0.y);
-                        for (let i = 1; i < customPath.length; i++) {
-                            const pt = mapViewportToJellyCanvas(customPath[i].x, customPath[i].y);
-                            imgCtx.lineTo(pt.x, pt.y);
-                        }
-                        imgCtx.closePath();
-                    } else {
-                        const gc = guideCenter || { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 };
-                        const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
-                        // 1:1 Natural circular face crop (prevents photo squishing)
-                        const faceRadius = Math.min(size * 0.35, 175);
-                        imgCtx.arc(center.x, center.y, faceRadius, 0, Math.PI * 2);
-                    }
-                    imgCtx.clip();
+                // 1:1 Center cover crop for camera photos to prevent vertical squishing
+                const scale = Math.max(size / imgW, size / imgH);
+                const w = imgW * scale;
+                const h = imgH * scale;
+                const x = (size - w) / 2;
+                const y = (size - h) / 2;
 
-                    const scale = Math.max(size / imgW, size / imgH);
-                    const w = imgW * scale;
-                    const h = imgH * scale;
-                    const x = (size - w) / 2;
-                    const y = (size - h) / 2;
-                    imgCtx.drawImage(img, x, y, w, h);
-                    imgCtx.restore();
-                } else {
-                    // Inspect original img for transparency BEFORE drawing margins
-                    const testCanvas = document.createElement('canvas');
-                    testCanvas.width = imgW;
-                    testCanvas.height = imgH;
-                    const tCtx = testCanvas.getContext('2d');
-                    tCtx.drawImage(img, 0, 0);
-                    const testData = tCtx.getImageData(0, 0, imgW, imgH).data;
+                imgCtx.save();
+                imgCtx.beginPath();
+                imgCtx.arc(size / 2, size / 2, size * 0.45, 0, Math.PI * 2);
+                imgCtx.clip();
+                imgCtx.drawImage(img, x, y, w, h);
+                imgCtx.restore();
 
-                    const p1 = testData[3];
-                    const p2 = testData[(imgW - 1) * 4 + 3];
-                    const p3 = testData[((imgH - 1) * imgW) * 4 + 3];
-                    const p4 = testData[(imgW * imgH - 1) * 4 + 3];
-
-                    const isAlreadyTransparent = (p1 === 0 || p2 === 0 || p3 === 0 || p4 === 0);
-
-                    const margin = 45;
-                    const fitSize = size - margin * 2;
-                    const scale = Math.min(fitSize / imgW, fitSize / imgH);
-                    const w = imgW * scale;
-                    const h = imgH * scale;
-                    const x = (size - w) / 2;
-                    const y = (size - h) / 2;
-                    imgCtx.drawImage(img, x, y, w, h);
-
-                    if (!isAlreadyTransparent) {
-                        const imgData = imgCtx.getImageData(0, 0, size, size);
-                        const pixels = imgData.data;
-
-                        const solidOutline = new Uint8Array(size * size);
-                        for (let i = 0; i < pixels.length; i += 4) {
-                            const r = pixels[i];
-                            const g = pixels[i+1];
-                            const b = pixels[i+2];
-                            const a = pixels[i+3];
-                            if (a > 50 && (r < 235 || g < 235 || b < 235)) {
-                                solidOutline[i / 4] = 1;
-                            }
-                        }
-
-                        const closedOutline = new Uint8Array(size * size);
-                        const r_dilate = 3;
-                        for (let y = 0; y < size; y++) {
-                            for (let x = 0; x < size; x++) {
-                                if (solidOutline[y * size + x]) {
-                                    for (let dy = -r_dilate; dy <= r_dilate; dy++) {
-                                        const ny = y + dy;
-                                        if (ny >= 0 && ny < size) {
-                                            for (let dx = -r_dilate; dx <= r_dilate; dx++) {
-                                                const nx = x + dx;
-                                                if (nx >= 0 && nx < size) {
-                                                    closedOutline[ny * size + nx] = 1;
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        }
-
-                        const transparentBackground = new Uint8Array(size * size);
-                        const queue = [];
-                        
-                        for (let x = 0; x < size; x++) {
-                            if (!closedOutline[x]) { transparentBackground[x] = 1; queue.push(x); }
-                            const bottomIdx = (size - 1) * size + x;
-                            if (!closedOutline[bottomIdx]) { transparentBackground[bottomIdx] = 1; queue.push(bottomIdx); }
-                        }
-                        for (let y = 0; y < size; y++) {
-                            const leftIdx = y * size;
-                            if (!closedOutline[leftIdx]) { transparentBackground[leftIdx] = 1; queue.push(leftIdx); }
-                            const rightIdx = y * size + (size - 1);
-                            if (!closedOutline[rightIdx]) { transparentBackground[rightIdx] = 1; queue.push(rightIdx); }
-                        }
-
-                        while (queue.length > 0) {
-                            const idx = queue.shift();
-                            const cx = idx % size;
-                            const cy = Math.floor(idx / size);
-
-                            const neighbors = [
-                                {x: cx - 1, y: cy}, {x: cx + 1, y: cy},
-                                {x: cx, y: cy - 1}, {x: cx, y: cy + 1}
-                            ];
-
-                            for (const n of neighbors) {
-                                if (n.x >= 0 && n.x < size && n.y >= 0 && n.y < size) {
-                                    const nIdx = n.y * size + n.x;
-                                    if (!closedOutline[nIdx] && !transparentBackground[nIdx]) {
-                                        transparentBackground[nIdx] = 1;
-                                        queue.push(nIdx);
-                                    }
-                                }
-                            }
-                        }
-
-                        for (let i = 0; i < pixels.length; i += 4) {
-                            const idx = i / 4;
-                            if (transparentBackground[idx]) {
-                                pixels[i + 3] = 0;
-                            }
-                        }
-                        imgCtx.putImageData(imgData, 0, 0);
-                    }
-                }
-
-                // --- 100% PURE 3D STICKER/JELLY RENDERER ---
+                // 3D Glass Jelly Canvas
                 const finalCanvas = document.createElement('canvas');
                 finalCanvas.width = size;
                 finalCanvas.height = size;
                 const finalCtx = finalCanvas.getContext('2d');
 
-                // 1. Soft 3D Ambient Occlusion Floating Shadow
+                // Soft 3D Drop Shadow
                 finalCtx.save();
                 finalCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-                finalCtx.shadowBlur = 20;
+                finalCtx.shadowBlur = 18;
                 finalCtx.shadowOffsetY = 12;
                 finalCtx.drawImage(imgCanvas, 0, 0);
                 finalCtx.restore();
 
-                // 2. Draw 100% crisp original artwork/photo
+                // Original Artwork
                 finalCtx.drawImage(imgCanvas, 0, 0);
 
-                // 3. Add 3D Specular Glass Shine Curve on top-left
+                // Specular Glass Highlight
                 finalCtx.save();
                 const glassGrad = finalCtx.createLinearGradient(120, 80, 220, 220);
                 glassGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
@@ -2326,7 +2186,10 @@
                 finalCtx.restore();
 
                 const finalImgData = finalCanvas.toDataURL('image/png');
-                
+                jellyImage.src = finalImgData;
+                initMesh();
+                draw();
+
                 if (isInitializingDefaultJelly) {
                     defaultStrawberrySrc = finalImgData;
                     isInitializingDefaultJelly = false;
@@ -4680,8 +4543,8 @@
 
         function goBackToLobby() {
             stopAutopilot();
-            setScreenMode('splash');
-            renderLobbyGrid(); // Refresh lobby
+            setScreenMode('lobby');
+            renderLobbyGrid();
         }
 
         function exitGame() {
