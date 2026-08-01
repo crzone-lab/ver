@@ -804,6 +804,131 @@
                 left: 16px !important;
             }
         }
+
+        /* 📸 Custom Camera Overlay CSS */
+        .camera-overlay {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 2600;
+            background: #000;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+        
+        .camera-video-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .camera-video-container video, 
+        .camera-video-container canvas {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .camera-top-bar {
+            display: flex;
+            justify-content: space-between;
+            width: 100%;
+            z-index: 5;
+            margin-top: 16px;
+        }
+
+        .camera-bottom-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            gap: 24px;
+            z-index: 5;
+            margin-bottom: 24px;
+        }
+
+        .camera-action-btn {
+            background: rgba(0, 0, 0, 0.55);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: #fff;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .camera-action-btn:active {
+            transform: scale(0.9);
+            background: rgba(0, 0, 0, 0.8);
+        }
+
+        .camera-capture-trigger {
+            width: 72px;
+            height: 72px;
+            border-radius: 50%;
+            background: #ffffff;
+            border: 6px solid rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            outline: none;
+        }
+
+        .camera-capture-trigger:active {
+            transform: scale(0.92);
+            background: #e0e0e0;
+        }
+
+        .camera-glass-pill {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 24px;
+            padding: 12px 24px;
+            color: #ffffff;
+            font-size: 0.95rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            outline: none;
+        }
+
+        .camera-glass-pill:active {
+            transform: scale(0.95);
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        .camera-glass-pill.save-pill {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            border: none;
+            box-shadow: 0 4px 15px rgba(255, 71, 87, 0.45);
+        }
+        
+        .camera-glass-pill.save-pill:active {
+            background: linear-gradient(135deg, #ff6b81, #ff4757);
+        }
     </style>
 </head>
 <body>
@@ -812,6 +937,28 @@
     <!-- Phone Simulator Frame -->
     <div class="phone-frame">
         <div class="phone-notch"></div>
+
+        <!-- Custom In-App Camera Overlay -->
+        <div id="custom-camera-overlay" class="camera-overlay">
+            <!-- Top Controls -->
+            <div class="camera-top-bar">
+                <button class="camera-action-btn" onclick="toggleCameraFacing()" title="Switch Camera">🔄</button>
+                <button class="camera-action-btn" onclick="closeCustomCamera()" title="Exit Camera">✕</button>
+            </div>
+            
+            <!-- Video Preview Stream -->
+            <div class="camera-video-container">
+                <video id="camera-video" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+            </div>
+            
+            <!-- Bottom Controls -->
+            <div class="camera-bottom-bar">
+                <button id="cam-btn-retake" class="camera-glass-pill" onclick="retakePhoto()" style="display: none;" data-i18n="cam-retake">다시찍기</button>
+                <button id="cam-btn-capture" class="camera-capture-trigger" onclick="capturePhoto()"></button>
+                <button id="cam-btn-save" class="camera-glass-pill save-pill" onclick="savePhotoToGrid()" style="display: none;" data-i18n="cam-save">저장</button>
+            </div>
+        </div>
 
         <!-- Game Start Splash Screen Stage -->
         <div id="start-splash-screen" class="start-splash-screen">
@@ -987,11 +1134,38 @@
     <script>
         // Escape KakaoTalk in-app browser to default mobile browser for full features and support
         if (/KAKAOTALK/i.test(navigator.userAgent)) {
-            location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+            if (navigator.userAgent.match(/Android/i)) {
+                location.href = 'intent://' + location.host + location.pathname + location.search + '#Intent;scheme=https;end';
+            } else {
+                location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+            }
         }
 
         const canvas = document.getElementById('squishy-canvas');
         const ctx = canvas.getContext('2d');
+
+        // Handle page visibility change (exit/suspend/pause game & sounds)
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutopilot();
+                if (audioCtx && audioCtx.state === 'running') {
+                    audioCtx.suspend();
+                }
+                if (typeof bgmPlayer !== 'undefined' && bgmPlayer.stop) {
+                    bgmPlayer.stop();
+                }
+            } else {
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                const splash = document.getElementById('start-splash-screen');
+                if (splash && splash.classList.contains('fade-out')) {
+                    if (typeof bgmPlayer !== 'undefined' && bgmPlayer.start) {
+                        bgmPlayer.start();
+                    }
+                }
+            }
+        });
 
         const i18n = {
             lang: 'en',
@@ -1071,7 +1245,9 @@
                     "btn-toggle-fullscreen": "전체화면 토글",
                     "notif-fullscreen-error": "전체화면을 지원하지 않는 브라우저/환경입니다.",
                     "notif-fullscreen-entered": "🖥️ 전체화면 모드가 활성화되었습니다!",
-                    "notif-fullscreen-exited": "🚪 전체화면 모드가 해제되었습니다."
+                    "notif-fullscreen-exited": "🚪 전체화면 모드가 해제되었습니다.",
+                    "cam-retake": "다시찍기",
+                    "cam-save": "저장"
                 },
                 en: {
                     "btn-gamestart": "Game Start",
@@ -1148,7 +1324,9 @@
                     "btn-toggle-fullscreen": "Toggle Fullscreen",
                     "notif-fullscreen-error": "Fullscreen is not supported on this browser/context.",
                     "notif-fullscreen-entered": "🖥️ Fullscreen mode enabled!",
-                    "notif-fullscreen-exited": "🚪 Fullscreen mode disabled."
+                    "notif-fullscreen-exited": "🚪 Fullscreen mode disabled.",
+                    "cam-retake": "Retake",
+                    "cam-save": "Save"
                 },
                 ja: {
                     "btn-gamestart": "ゲーム開始",
@@ -1221,7 +1399,9 @@
                     "fruit-pear_rabbit": "梨",
                     "fruit-tangerine_rabbit": "みかん",
                     "fruit-tomato_rabbit": "トマト",
-                    "fruit-carrot_rabbit": "にんじん"
+                    "fruit-carrot_rabbit": "にんじん",
+                    "cam-retake": "撮り直し",
+                    "cam-save": "保存"
                 },
                 zh: {
                     "btn-gamestart": "开始游戏",
@@ -1294,7 +1474,9 @@
                     "fruit-pear_rabbit": "梨",
                     "fruit-tangerine_rabbit": "蜜橘",
                     "fruit-tomato_rabbit": "番茄",
-                    "fruit-carrot_rabbit": "胡萝卜"
+                    "fruit-carrot_rabbit": "胡萝卜",
+                    "cam-retake": "重拍",
+                    "cam-save": "保存"
                 }
             },
             t(key) {
@@ -1323,6 +1505,9 @@
         }
 
         function getRabbitName(char) {
+            if (char.base.startsWith('custom_photo_')) {
+                return `${char.emoji} ${char.name}`;
+            }
             const fruitName = i18n.t('fruit-' + char.base);
             const rabbitWord = i18n.t('word-rabbit');
             const space = (i18n.lang === 'ko' || i18n.lang === 'en') ? ' ' : '';
@@ -1572,6 +1757,115 @@
             reader.readAsDataURL(file);
         }
 
+        async function openCustomCamera() {
+            stopAutopilot();
+            const modal = document.getElementById('camera-modal');
+            const video = document.getElementById('camera-video');
+            const placeholder = document.getElementById('camera-placeholder');
+            const preview = document.getElementById('camera-preview');
+            const retakeBtn = document.getElementById('camera-retake-btn');
+            const saveBtn = document.getElementById('camera-save-btn');
+            const captureBtn = document.getElementById('camera-capture-btn');
+            const toggleFacingBtn = document.getElementById('camera-facing-btn');
+
+            // Reset modal UI state
+            video.style.display = 'none';
+            placeholder.style.display = 'flex';
+            preview.style.display = 'none';
+            retakeBtn.style.display = 'none';
+            saveBtn.style.display = 'none';
+            captureBtn.style.display = 'inline-block';
+            toggleFacingBtn.style.display = 'inline-block';
+
+            modal.style.display = 'flex';
+
+            // Start stream
+            try {
+                if (cameraStream) {
+                    cameraStream.getTracks().forEach(track => track.stop());
+                }
+                cameraStream = await navigator.mediaDevices.getUserMedia({
+                    video: { facingMode: cameraFacingMode },
+                    audio: false
+                });
+                video.srcObject = cameraStream;
+                video.style.display = 'block';
+                placeholder.style.display = 'none';
+            } catch (err) {
+                console.log("Camera access error:", err);
+                showNotification(i18n.t('notif-camera-error') || "Camera access failed. Try file upload.");
+                // Trigger fallback input
+                document.getElementById('camera-input').click();
+                closeCustomCamera();
+            }
+        }
+
+        function closeCustomCamera() {
+            const modal = document.getElementById('camera-modal');
+            modal.style.display = 'none';
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+                cameraStream = null;
+            }
+            const video = document.getElementById('camera-video');
+            video.srcObject = null;
+        }
+
+        async function toggleCameraFacing() {
+            cameraFacingMode = (cameraFacingMode === 'user') ? 'environment' : 'user';
+            // Restart stream with new facing mode
+            await openCustomCamera();
+        }
+
+        function captureCameraSnapshot() {
+            const video = document.getElementById('camera-video');
+            const preview = document.getElementById('camera-preview');
+            const captureBtn = document.getElementById('camera-capture-btn');
+            const toggleFacingBtn = document.getElementById('camera-facing-btn');
+            const retakeBtn = document.getElementById('camera-retake-btn');
+            const saveBtn = document.getElementById('camera-save-btn');
+
+            if (!cameraStream) return;
+
+            // Draw current video frame onto a canvas
+            const canvas = document.createElement('canvas');
+            canvas.width = video.videoWidth || 640;
+            canvas.height = video.videoHeight || 480;
+            const ctx = canvas.getContext('2d');
+
+            // If front camera, mirror the preview image
+            if (cameraFacingMode === 'user') {
+                ctx.translate(canvas.width, 0);
+                ctx.scale(-1, 1);
+            }
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+
+            // Set source of preview image
+            preview.src = canvas.toDataURL('image/png');
+            preview.style.display = 'block';
+            video.style.display = 'none';
+
+            // Toggle button states
+            captureBtn.style.display = 'none';
+            toggleFacingBtn.style.display = 'none';
+            retakeBtn.style.display = 'inline-block';
+            saveBtn.style.display = 'inline-block';
+
+            triggerHaptic(40);
+        }
+
+        function saveCapturedSnapshot() {
+            const preview = document.getElementById('camera-preview');
+            if (!preview.src || preview.src.startsWith('data:image/svg+xml')) return;
+
+            const img = new Image();
+            img.onload = function() {
+                processImageToJelly(img);
+                closeCustomCamera();
+            };
+            img.src = preview.src;
+        }
+
         function processImageToJelly(img) {
             const size = 512;
             
@@ -1807,9 +2101,22 @@
             finalCtx.drawImage(imgCanvas, 0, 0);
 
             // Update the active texture
+            const finalImgData = finalCanvas.toDataURL('image/png');
             jellyImage.onload = function() {
-                activeEmoji = '📷';
-                activeBase = 'camera_face';
+                // Register as custom photo character in lobby
+                const newChar = {
+                    emoji: '📸',
+                    name: `${i18n.t('card-camera') || '내 사진'} ${customPhotoCounter++}`,
+                    base: `custom_photo_${Date.now()}`,
+                    hue: 350,
+                    imgData: finalImgData
+                };
+                lobbyCharacters.push(newChar);
+                activeLobbyIndex = lobbyCharacters.length - 1;
+                
+                activeEmoji = newChar.emoji;
+                activeBase = newChar.base;
+                activeHue = newChar.hue;
                 
                 // Re-init mesh boundary coordinates for the new silhouette mask
                 initMesh();
@@ -1817,11 +2124,14 @@
                 // Generate matching background jellies (using pink/red cherry tone 355)
                 generateDecoJellies(355);
                 
+                // Re-render lobby grid to show the custom thumbnail
+                renderLobbyGrid();
+                
                 // Transition: Go to playground stage
                 setScreenMode('playground');
                 showNotification(i18n.t('notif-silhouette-mapping'));
             };
-            jellyImage.src = finalCanvas.toDataURL('image/png');
+            jellyImage.src = finalImgData;
         }
 
         function importFromIllustrationCard(cardId) {
@@ -3723,6 +4033,11 @@
             }
         }
 
+        // Custom camera streaming state variables
+        let cameraStream = null;
+        let cameraFacingMode = 'user'; // 'user' for front-facing, 'environment' for rear-facing
+        let customPhotoCounter = 1;
+
         // Lobby Characters Database (20 Fruit Rabbits)
         const lobbyCharacters = [
             { emoji: '🍓', name: '딸기 토끼', base: 'strawberry_rabbit', hue: 350 },
@@ -3757,11 +4072,34 @@
             lobbyCharacters.forEach((char, idx) => {
                 const bubble = document.createElement('div');
                 bubble.className = `grid-char-bubble ${idx === activeLobbyIndex ? 'active' : ''}`;
-                bubble.innerText = char.emoji;
+                
+                if (char.base.startsWith('custom_photo_') && char.imgData) {
+                    bubble.style.backgroundImage = `url(${char.imgData})`;
+                    bubble.style.backgroundSize = 'cover';
+                    bubble.style.backgroundPosition = 'center';
+                    bubble.innerText = '';
+                } else {
+                    bubble.innerText = char.emoji;
+                    bubble.style.backgroundImage = 'none';
+                }
+                
                 bubble.title = getRabbitName(char);
                 bubble.onclick = () => selectLobbyCharacter(idx, bubble);
                 grid.appendChild(bubble);
             });
+
+            // Append the '+' circular bubble card for photo zone trigger
+            const plusBubble = document.createElement('div');
+            plusBubble.className = 'grid-char-bubble plus-bubble';
+            plusBubble.innerText = '+';
+            plusBubble.title = i18n.t('opt-photozone') || '포토존';
+            plusBubble.style.background = 'radial-gradient(circle at 35% 35%, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.02) 55%, rgba(0,0,0,0.15) 100%)';
+            plusBubble.style.borderColor = 'rgba(255, 255, 255, 0.25)';
+            plusBubble.style.fontSize = '2rem';
+            plusBubble.style.fontWeight = 'bold';
+            plusBubble.style.color = 'rgba(255, 255, 255, 0.6)';
+            plusBubble.onclick = () => openCustomCamera();
+            grid.appendChild(plusBubble);
         }
 
         function selectLobbyCharacter(index, element) {
@@ -3779,6 +4117,9 @@
                 if (jellyImage.src !== defaultStrawberrySrc) {
                     jellyImage.src = defaultStrawberrySrc;
                 }
+            } else if (char.base.startsWith('custom_photo_') && char.imgData) {
+                // Load saved custom photo jelly texture
+                jellyImage.src = char.imgData;
             }
             
             // Reinitialize mesh to sync correctly
@@ -3793,7 +4134,14 @@
 
             // Highlight selected bubble
             document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
-            if (element) element.classList.add('active');
+            if (element) {
+                element.classList.add('active');
+            } else {
+                const bubbles = document.querySelectorAll('.grid-char-bubble');
+                if (bubbles[index]) {
+                    bubbles[index].classList.add('active');
+                }
+            }
         }
 
         function selectFeelPill(feel) {
@@ -4072,6 +4420,13 @@
             triggerHaptic(40);
             
             bgmPlayer.start();
+            
+            // Try to auto-enable fullscreen mode upon user gesture
+            if (document.documentElement.requestFullscreen) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Auto-fullscreen blocked:", err);
+                });
+            }
             
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
