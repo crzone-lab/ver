@@ -1693,28 +1693,12 @@
             // Generate 45 to 60 background jellies for a packed background look
             const count = 45 + Math.floor(Math.random() * 15);
             for (let i = 0; i < count; i++) {
-                // Distribute in zones to prevent them from being hidden under the center character mesh:
-                // Zone 0: Left side, Zone 1: Right side, Zone 2: Top area, Zone 3: Bottom area
-                const zone = Math.floor(Math.random() * 4);
-                let x = 0;
-                let y = 0;
-                
-                if (zone === 0) { // Left strip
-                    x = 10 + Math.random() * 75;
-                    y = 90 + Math.random() * (height - 180);
-                } else if (zone === 1) { // Right strip
-                    x = width - 85 - Math.random() * 75;
-                    y = 90 + Math.random() * (height - 180);
-                } else if (zone === 2) { // Top strip
-                    x = 20 + Math.random() * (width - 40);
-                    y = 90 + Math.random() * 140;
-                } else { // Bottom strip
-                    x = 20 + Math.random() * (width - 40);
-                    y = height - 260 + Math.random() * 190;
-                }
+                // Populate uniformly across the entire screen area
+                let x = Math.random() * width;
+                let y = Math.random() * height;
 
-                // Size variation (from 24px to 58px) to create depth
-                const size = 24 + Math.random() * 34; 
+                // Size variation (from 46px to 70px) to make them clearly recognizable on mobile
+                const size = 46 + Math.random() * 24; 
                 
                 // Hue variation around the base hue (with occasional random pops of complementary hues to look delicious!)
                 let hue = (baseHue - 45 + Math.random() * 90 + 360) % 360;
@@ -1724,20 +1708,22 @@
                 }
 
                 const phase = Math.random() * Math.PI * 2;
-                const angle = (Math.random() - 0.5) * 1.0;
+                const angle = (Math.random() - 0.5) * Math.PI * 2;
                 
+                // Roaming speed vectors (pixels per animation frame)
+                // Range: -0.45 to +0.45 pixels/frame in all directions (sa-bang-pal-bang)
+                const vx = (Math.random() - 0.5) * 0.9;
+                const vy = (Math.random() - 0.5) * 0.9;
+                const vrot = (Math.random() - 0.5) * 0.012;
+
                 const types = [
                     'strawberry', 'strawberry', 'banana', 'banana', 'apple', 'apple', 'grape', 'grape',
                     'pineapple', 'pineapple', 'orange', 'orange', 'kiwi', 'kiwi', 'watermelon', 'watermelon',
                     'bear', 'heart'
                 ];
                 const type = types[Math.floor(Math.random() * types.length)];
-                const speedX = 0.35 + Math.random() * 0.5;
-                const speedY = 0.35 + Math.random() * 0.5;
-                const ampX = 14 + Math.random() * 16;
-                const ampY = 14 + Math.random() * 16;
                 
-                decoJellies.push({ type, x, y, size, hue, angle, phase, speedX, speedY, ampX, ampY });
+                decoJellies.push({ type, x, y, size, hue, angle, phase, vx, vy, vrot });
             }
         }
 
@@ -2135,15 +2121,11 @@
 
             let bananaPath = () => {
                 ctx.beginPath();
-                ctx.moveTo(-size * 0.34, -size * 0.18);
-                // Outer lower curve
-                ctx.quadraticCurveTo(0, size * 0.32, size * 0.34, -size * 0.18);
-                // Tip end
-                ctx.quadraticCurveTo(size * 0.36, -size * 0.15, size * 0.32, -size * 0.10);
-                // Inner curve
-                ctx.quadraticCurveTo(0, size * 0.16, -size * 0.32, -size * 0.10);
-                // Tip start
-                ctx.quadraticCurveTo(-size * 0.36, -size * 0.15, -size * 0.34, -size * 0.18);
+                ctx.moveTo(-size * 0.35, -size * 0.18);
+                // Outer curve
+                ctx.quadraticCurveTo(0, size * 0.35, size * 0.35, -size * 0.18);
+                // Inner curve (offset downwards so it's a thick moon crescent)
+                ctx.quadraticCurveTo(0, -size * 0.05, -size * 0.35, -size * 0.18);
                 ctx.closePath();
             };
 
@@ -2204,9 +2186,9 @@
             ctx.restore();
 
             // 6. Specular along banana body
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.82)';
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
             ctx.beginPath();
-            ctx.ellipse(0, size * 0.04, size * 0.16, size * 0.04, Math.PI / 16, 0, Math.PI * 2);
+            ctx.ellipse(0, size * 0.08, size * 0.12, size * 0.03, Math.PI / 16, 0, Math.PI * 2);
             ctx.fill();
 
             ctx.restore();
@@ -2888,13 +2870,22 @@
         function drawDecoJellies() {
             let time = Date.now() * 0.002;
             decoJellies.forEach(d => {
-                const speedX = d.speedX || 0.6;
-                const speedY = d.speedY || 0.4;
-                const ampX = d.ampX || 18;
-                const ampY = d.ampY || 18;
-                const dx = Math.sin(time * speedX + d.phase) * ampX;
-                const dy = Math.cos(time * speedY + d.phase * 1.5) * ampY;
-                const rot = d.angle + Math.sin(time * 0.5 + d.phase) * 0.15;
+                // 1. Move using real velocity vectors (roaming randomly in all directions)
+                d.x += d.vx;
+                d.y += d.vy;
+                d.angle += d.vrot;
+
+                // 2. Wrap-around border bounds (using size-based padding)
+                const margin = d.size * 1.5;
+                if (d.x < -margin) d.x = width + margin;
+                if (d.x > width + margin) d.x = -margin;
+                if (d.y < -margin) d.y = height + margin;
+                if (d.y > height + margin) d.y = -margin;
+
+                // 3. Subtle micro-wobble on top of linear drift for rich juicy aesthetics
+                const dx = Math.sin(time * 0.8 + d.phase) * 6;
+                const dy = Math.cos(time * 0.6 + d.phase * 1.5) * 6;
+                const rot = d.angle + Math.sin(time * 0.5 + d.phase) * 0.1;
 
                 if (d.type === 'bear') {
                     draw3DGummyBear(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
