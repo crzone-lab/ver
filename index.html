@@ -1726,20 +1726,32 @@
                 const phase = Math.random() * Math.PI * 2;
                 const angle = (Math.random() - 0.5) * 1.0;
                 
-                const types = ['strawberry', 'strawberry', 'banana', 'apple', 'grape', 'bear', 'heart', 'drop'];
+                const types = [
+                    'strawberry', 'strawberry', 'banana', 'banana', 'apple', 'apple', 'grape', 'grape',
+                    'pineapple', 'pineapple', 'orange', 'orange', 'kiwi', 'kiwi', 'watermelon', 'watermelon',
+                    'bear', 'heart'
+                ];
                 const type = types[Math.floor(Math.random() * types.length)];
+                const speedX = 0.35 + Math.random() * 0.5;
+                const speedY = 0.35 + Math.random() * 0.5;
+                const ampX = 14 + Math.random() * 16;
+                const ampY = 14 + Math.random() * 16;
                 
-                decoJellies.push({ type, x, y, size, hue, angle, phase });
+                decoJellies.push({ type, x, y, size, hue, angle, phase, speedX, speedY, ampX, ampY });
             }
         }
 
         // Initialize with Strawberry red theme on start
         generateDecoJellies(350);
 
+        function applyGummyMotion(ctx, x, y, angle, time, phase) {
+            ctx.translate(x, y);
+            ctx.rotate(angle);
+        }
+
         function draw3DGummyBear(ctx, x, y, size, hue, angle, time, phase) {
             ctx.save();
-            ctx.translate(x, y + Math.sin(time + phase) * 8);
-            ctx.rotate(angle + Math.sin(time + phase) * 0.05);
+            applyGummyMotion(ctx, x, y, angle, time, phase);
 
             // 1. Dropshadow (3D ambient occlusion)
             ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
@@ -1889,8 +1901,7 @@
 
         function draw3DGummyHeart(ctx, x, y, size, hue, angle, time, phase) {
             ctx.save();
-            ctx.translate(x, y + Math.sin(time + phase) * 8);
-            ctx.rotate(angle + Math.sin(time + phase) * 0.05);
+            applyGummyMotion(ctx, x, y, angle, time, phase);
 
             // 1. Dropshadow (3D ambient occlusion)
             ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
@@ -2003,8 +2014,7 @@
 
         function draw3DGummyStrawberry(ctx, x, y, size, hue, angle, time, phase) {
             ctx.save();
-            ctx.translate(x, y + Math.sin(time + phase) * 8);
-            ctx.rotate(angle + Math.sin(time + phase) * 0.05);
+            applyGummyMotion(ctx, x, y, angle, time, phase);
 
             // 1. Dropshadow
             ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
@@ -2116,8 +2126,7 @@
 
         function draw3DGummyBanana(ctx, x, y, size, hue, angle, time, phase) {
             ctx.save();
-            ctx.translate(x, y + Math.sin(time + phase) * 8);
-            ctx.rotate(angle + Math.sin(time + phase) * 0.05);
+            applyGummyMotion(ctx, x, y, angle, time, phase);
 
             // 1. Dropshadow
             ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
@@ -2205,8 +2214,7 @@
 
         function draw3DGummyApple(ctx, x, y, size, hue, angle, time, phase) {
             ctx.save();
-            ctx.translate(x, y + Math.sin(time + phase) * 8);
-            ctx.rotate(angle + Math.sin(time + phase) * 0.05);
+            applyGummyMotion(ctx, x, y, angle, time, phase);
 
             // 1. Dropshadow
             ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
@@ -2300,8 +2308,7 @@
 
         function draw3DGummyGrape(ctx, x, y, size, hue, angle, time, phase) {
             ctx.save();
-            ctx.translate(x, y + Math.sin(time + phase) * 8);
-            ctx.rotate(angle + Math.sin(time + phase) * 0.05);
+            applyGummyMotion(ctx, x, y, angle, time, phase);
 
             // 1. Dropshadow
             ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
@@ -2387,10 +2394,406 @@
             ctx.restore();
         }
 
+        function draw3DGummyPineapple(ctx, x, y, size, hue, angle, time, phase) {
+            ctx.save();
+            applyGummyMotion(ctx, x, y, angle, time, phase);
+
+            // 1. Dropshadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetY = 11;
+
+            let pineapplePath = () => {
+                ctx.beginPath();
+                ctx.ellipse(0, size * 0.05, size * 0.28, size * 0.38, 0, 0, Math.PI * 2);
+                ctx.closePath();
+            };
+
+            pineapplePath();
+
+            // 2. Translucent radial gradient (yellow-orange)
+            let grad = ctx.createRadialGradient(-size * 0.08, -size * 0.08, size * 0.05, 0, 0, size * 0.5);
+            grad.addColorStop(0, `hsla(45, 100%, 82%, 0.98)`);
+            grad.addColorStop(0.6, `hsla(38, 100%, 52%, 0.95)`);
+            grad.addColorStop(1, `hsla(30, 100%, 28%, 1)`);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent';
+
+            // 3. Subsurface scattering
+            ctx.save();
+            pineapplePath();
+            ctx.clip();
+            let subGrad = ctx.createRadialGradient(size * 0.18, size * 0.18, 0, size * 0.14, size * 0.14, size * 0.32);
+            subGrad.addColorStop(0, `hsla(55, 100%, 76%, 0.55)`);
+            subGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = subGrad;
+            ctx.fill();
+
+            // Draw pineapple texture cross grid lines
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.25)';
+            ctx.lineWidth = size * 0.035;
+            for (let offset = -size * 0.5; offset <= size * 0.5; offset += size * 0.16) {
+                ctx.beginPath();
+                ctx.moveTo(-size * 0.4, offset - size * 0.2);
+                ctx.lineTo(size * 0.4, offset + size * 0.2);
+                ctx.stroke();
+                
+                ctx.beginPath();
+                ctx.moveTo(-size * 0.4, offset + size * 0.2);
+                ctx.lineTo(size * 0.4, offset - size * 0.2);
+                ctx.stroke();
+            }
+            ctx.restore();
+
+            // Draw spikey green crown
+            ctx.save();
+            ctx.fillStyle = `hsla(110, 75%, 42%, 0.95)`;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.12, -size * 0.30);
+            ctx.lineTo(-size * 0.20, -size * 0.50);
+            ctx.lineTo(-size * 0.05, -size * 0.38);
+            ctx.lineTo(0, -size * 0.58);
+            ctx.lineTo(size * 0.05, -size * 0.38);
+            ctx.lineTo(size * 0.20, -size * 0.50);
+            ctx.lineTo(size * 0.12, -size * 0.30);
+            ctx.closePath();
+            ctx.fill();
+            ctx.restore();
+
+            // 4. Glossy Bevel
+            ctx.save();
+            pineapplePath();
+            ctx.clip();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.lineWidth = size * 0.07;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = -size * 0.04;
+            ctx.shadowOffsetY = -size * 0.04;
+            ctx.stroke();
+            ctx.restore();
+
+            // 5. Sugar frosting
+            ctx.save();
+            pineapplePath();
+            ctx.clip();
+            let seed = phase * 120;
+            function randomSeeded() {
+                let x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            }
+            for (let i = 0; i < 70; i++) {
+                let px = (randomSeeded() - 0.5) * size * 1.5;
+                let py = (randomSeeded() - 0.5) * size * 1.5;
+                let rw = 1.0 + randomSeeded() * 1.8;
+                let rh = 1.0 + randomSeeded() * 1.8;
+                let alpha = 0.35 + randomSeeded() * 0.65;
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.fillRect(px, py, rw, rh);
+            }
+            ctx.restore();
+
+            // 6. Specular
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.08, -size * 0.05, size * 0.12, size * 0.05, Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function draw3DGummyOrange(ctx, x, y, size, hue, angle, time, phase) {
+            ctx.save();
+            applyGummyMotion(ctx, x, y, angle, time, phase);
+
+            // 1. Dropshadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetY = 11;
+
+            let orangePath = () => {
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.42, 0, Math.PI, false);
+                ctx.closePath();
+            };
+
+            orangePath();
+
+            // 2. Translucent radial gradient (orange)
+            let grad = ctx.createRadialGradient(-size * 0.08, -size * 0.08, size * 0.05, 0, 0, size * 0.5);
+            grad.addColorStop(0, `hsla(28, 100%, 82%, 0.98)`);
+            grad.addColorStop(0.6, `hsla(20, 100%, 52%, 0.95)`);
+            grad.addColorStop(1, `hsla(15, 100%, 28%, 1)`);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent';
+
+            // 3. Subsurface scattering
+            ctx.save();
+            orangePath();
+            ctx.clip();
+            let subGrad = ctx.createRadialGradient(size * 0.18, size * 0.18, 0, size * 0.14, size * 0.14, size * 0.32);
+            subGrad.addColorStop(0, `hsla(35, 100%, 76%, 0.55)`);
+            subGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = subGrad;
+            ctx.fill();
+
+            // Draw orange segments
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.32)';
+            for (let a = 0.25; a < Math.PI - 0.25; a += 0.45) {
+                ctx.beginPath();
+                ctx.moveTo(Math.cos(a) * size * 0.06, Math.sin(a) * size * 0.06);
+                ctx.lineTo(Math.cos(a - 0.15) * size * 0.34, Math.sin(a - 0.15) * size * 0.34);
+                ctx.lineTo(Math.cos(a + 0.15) * size * 0.34, Math.sin(a + 0.15) * size * 0.34);
+                ctx.closePath();
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // 4. Glossy Bevel
+            ctx.save();
+            orangePath();
+            ctx.clip();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.lineWidth = size * 0.07;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = -size * 0.04;
+            ctx.shadowOffsetY = -size * 0.04;
+            ctx.stroke();
+            ctx.restore();
+
+            // 5. Sugar frosting
+            ctx.save();
+            orangePath();
+            ctx.clip();
+            let seed = phase * 120;
+            function randomSeeded() {
+                let x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            }
+            for (let i = 0; i < 70; i++) {
+                let px = (randomSeeded() - 0.5) * size * 1.5;
+                let py = (randomSeeded() - 0.5) * size * 1.5;
+                let rw = 1.0 + randomSeeded() * 1.8;
+                let rh = 1.0 + randomSeeded() * 1.8;
+                let alpha = 0.35 + randomSeeded() * 0.65;
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.fillRect(px, py, rw, rh);
+            }
+            ctx.restore();
+
+            // 6. Specular
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.85)';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.1, size * 0.1, size * 0.12, size * 0.04, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function draw3DGummyKiwi(ctx, x, y, size, hue, angle, time, phase) {
+            ctx.save();
+            applyGummyMotion(ctx, x, y, angle, time, phase);
+
+            // 1. Dropshadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetY = 11;
+
+            let kiwiPath = () => {
+                ctx.beginPath();
+                ctx.arc(0, 0, size * 0.44, 0, Math.PI * 2);
+                ctx.closePath();
+            };
+
+            kiwiPath();
+
+            // 2. Translucent radial gradient (kiwi green)
+            let grad = ctx.createRadialGradient(-size * 0.08, -size * 0.08, size * 0.05, 0, 0, size * 0.5);
+            grad.addColorStop(0, `hsla(85, 90%, 82%, 0.98)`);
+            grad.addColorStop(0.6, `hsla(95, 100%, 46%, 0.95)`);
+            grad.addColorStop(1, `hsla(105, 100%, 22%, 1)`);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent';
+
+            // 3. Subsurface scattering
+            ctx.save();
+            kiwiPath();
+            ctx.clip();
+            let subGrad = ctx.createRadialGradient(size * 0.18, size * 0.18, 0, size * 0.14, size * 0.14, size * 0.32);
+            subGrad.addColorStop(0, `hsla(110, 100%, 70%, 0.55)`);
+            subGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = subGrad;
+            ctx.fill();
+
+            // Draw white core
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.55)';
+            ctx.beginPath();
+            ctx.ellipse(0, 0, size * 0.13, size * 0.09, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Draw tiny kiwi seeds
+            ctx.fillStyle = '#1c1c1c';
+            for (let a = 0; a < Math.PI * 2; a += Math.PI / 7) {
+                ctx.beginPath();
+                ctx.arc(Math.cos(a) * size * 0.22, Math.sin(a) * size * 0.22, size * 0.016, 0, Math.PI * 2);
+                ctx.fill();
+            }
+            ctx.restore();
+
+            // 4. Glossy Bevel
+            ctx.save();
+            kiwiPath();
+            ctx.clip();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.lineWidth = size * 0.07;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = -size * 0.04;
+            ctx.shadowOffsetY = -size * 0.04;
+            ctx.stroke();
+            ctx.restore();
+
+            // 5. Sugar frosting
+            ctx.save();
+            kiwiPath();
+            ctx.clip();
+            let seed = phase * 120;
+            function randomSeeded() {
+                let x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            }
+            for (let i = 0; i < 70; i++) {
+                let px = (randomSeeded() - 0.5) * size * 1.5;
+                let py = (randomSeeded() - 0.5) * size * 1.5;
+                let rw = 1.0 + randomSeeded() * 1.8;
+                let rh = 1.0 + randomSeeded() * 1.8;
+                let alpha = 0.35 + randomSeeded() * 0.65;
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.fillRect(px, py, rw, rh);
+            }
+            ctx.restore();
+
+            // 6. Specular
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.12, -size * 0.12, size * 0.12, size * 0.05, Math.PI / 4, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
+        function draw3DGummyWatermelon(ctx, x, y, size, hue, angle, time, phase) {
+            ctx.save();
+            applyGummyMotion(ctx, x, y, angle, time, phase);
+
+            // 1. Dropshadow
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
+            ctx.shadowBlur = 14;
+            ctx.shadowOffsetY = 11;
+
+            let watermelonPath = () => {
+                ctx.beginPath();
+                ctx.moveTo(-size * 0.36, -size * 0.22);
+                ctx.lineTo(size * 0.36, -size * 0.22);
+                ctx.quadraticCurveTo(0, size * 0.42, -size * 0.36, -size * 0.22);
+                ctx.closePath();
+            };
+
+            watermelonPath();
+
+            // 2. Translucent radial gradient (watermelon red)
+            let grad = ctx.createRadialGradient(-size * 0.05, -size * 0.05, size * 0.05, 0, 0, size * 0.5);
+            grad.addColorStop(0, `hsla(355, 100%, 82%, 0.98)`);
+            grad.addColorStop(0.6, `hsla(350, 100%, 50%, 0.95)`);
+            grad.addColorStop(1, `hsla(345, 100%, 28%, 1)`);
+            ctx.fillStyle = grad;
+            ctx.fill();
+
+            ctx.shadowColor = 'transparent';
+
+            // 3. Subsurface scattering
+            ctx.save();
+            watermelonPath();
+            ctx.clip();
+            let subGrad = ctx.createRadialGradient(size * 0.18, size * 0.18, 0, size * 0.14, size * 0.14, size * 0.32);
+            subGrad.addColorStop(0, `hsla(10, 100%, 76%, 0.55)`);
+            subGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            ctx.fillStyle = subGrad;
+            ctx.fill();
+
+            // Draw green rind along the bottom curve
+            ctx.strokeStyle = `hsla(120, 85%, 36%, 0.9)`;
+            ctx.lineWidth = size * 0.075;
+            ctx.beginPath();
+            ctx.arc(0, -size * 0.07, size * 0.35, 0.25, Math.PI - 0.25, false);
+            ctx.stroke();
+
+            // Draw tiny black seeds
+            ctx.fillStyle = '#1c1c1c';
+            let seedCoords = [
+                [-0.10, -0.05], [0.10, -0.05],
+                [-0.05, 0.08], [0.05, 0.08],
+                [0, 0.2]
+            ];
+            seedCoords.forEach(s => {
+                ctx.beginPath();
+                ctx.arc(s[0]*size, s[1]*size, size*0.016, 0, Math.PI*2);
+                ctx.fill();
+            });
+            ctx.restore();
+
+            // 4. Glossy Bevel
+            ctx.save();
+            watermelonPath();
+            ctx.clip();
+            ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)';
+            ctx.lineWidth = size * 0.07;
+            ctx.shadowColor = 'rgba(255, 255, 255, 0.75)';
+            ctx.shadowBlur = 10;
+            ctx.shadowOffsetX = -size * 0.04;
+            ctx.shadowOffsetY = -size * 0.04;
+            ctx.stroke();
+            ctx.restore();
+
+            // 5. Sugar frosting
+            ctx.save();
+            watermelonPath();
+            ctx.clip();
+            let seed = phase * 120;
+            function randomSeeded() {
+                let x = Math.sin(seed++) * 10000;
+                return x - Math.floor(x);
+            }
+            for (let i = 0; i < 70; i++) {
+                let px = (randomSeeded() - 0.5) * size * 1.5;
+                let py = (randomSeeded() - 0.5) * size * 1.5;
+                let rw = 1.0 + randomSeeded() * 1.8;
+                let rh = 1.0 + randomSeeded() * 1.8;
+                let alpha = 0.35 + randomSeeded() * 0.65;
+                ctx.fillStyle = `rgba(255, 255, 255, ${alpha})`;
+                ctx.fillRect(px, py, rw, rh);
+            }
+            ctx.restore();
+
+            // 6. Specular
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.88)';
+            ctx.beginPath();
+            ctx.ellipse(-size * 0.12, -size * 0.06, size * 0.12, size * 0.05, Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.restore();
+        }
+
         function draw3DGummyDrop(ctx, x, y, size, hue, angle, time, phase) {
             ctx.save();
-            ctx.translate(x, y + Math.sin(time + phase) * 8);
-            ctx.rotate(angle + Math.sin(time + phase) * 0.05);
+            applyGummyMotion(ctx, x, y, angle, time, phase);
 
             // 1. Dropshadow (3D ambient occlusion)
             ctx.shadowColor = 'rgba(0, 0, 0, 0.26)';
@@ -2485,20 +2888,36 @@
         function drawDecoJellies() {
             let time = Date.now() * 0.002;
             decoJellies.forEach(d => {
+                const speedX = d.speedX || 0.6;
+                const speedY = d.speedY || 0.4;
+                const ampX = d.ampX || 18;
+                const ampY = d.ampY || 18;
+                const dx = Math.sin(time * speedX + d.phase) * ampX;
+                const dy = Math.cos(time * speedY + d.phase * 1.5) * ampY;
+                const rot = d.angle + Math.sin(time * 0.5 + d.phase) * 0.15;
+
                 if (d.type === 'bear') {
-                    draw3DGummyBear(ctx, d.x, d.y, d.size, d.hue, d.angle, time, d.phase);
+                    draw3DGummyBear(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
                 } else if (d.type === 'heart') {
-                    draw3DGummyHeart(ctx, d.x, d.y, d.size, d.hue, d.angle, time, d.phase);
+                    draw3DGummyHeart(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
                 } else if (d.type === 'strawberry') {
-                    draw3DGummyStrawberry(ctx, d.x, d.y, d.size, d.hue, d.angle, time, d.phase);
+                    draw3DGummyStrawberry(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
                 } else if (d.type === 'banana') {
-                    draw3DGummyBanana(ctx, d.x, d.y, d.size, d.hue, d.angle, time, d.phase);
+                    draw3DGummyBanana(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
                 } else if (d.type === 'apple') {
-                    draw3DGummyApple(ctx, d.x, d.y, d.size, d.hue, d.angle, time, d.phase);
+                    draw3DGummyApple(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
                 } else if (d.type === 'grape') {
-                    draw3DGummyGrape(ctx, d.x, d.y, d.size, d.hue, d.angle, time, d.phase);
+                    draw3DGummyGrape(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
+                } else if (d.type === 'pineapple') {
+                    draw3DGummyPineapple(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
+                } else if (d.type === 'orange') {
+                    draw3DGummyOrange(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
+                } else if (d.type === 'kiwi') {
+                    draw3DGummyKiwi(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
+                } else if (d.type === 'watermelon') {
+                    draw3DGummyWatermelon(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
                 } else {
-                    draw3DGummyDrop(ctx, d.x, d.y, d.size, d.hue, d.angle, time, d.phase);
+                    draw3DGummyDrop(ctx, d.x + dx, d.y + dy, d.size, d.hue, rot, time, d.phase);
                 }
             });
         }
