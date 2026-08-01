@@ -792,7 +792,7 @@
                 <div class="action-circle-btn" id="global-home-exit-btn" onclick="exitGame()" title="Exit Game" data-i18n-title="btn-exit" style="display: flex; align-items: center; justify-content: center;">
                     <img src="out.png" alt="Exit" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
-                <div class="action-circle-btn" onclick="toggleAdvancedSettings()" title="Settings" data-i18n-title="btn-setting" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" id="settings-toggle-btn" onclick="toggleAdvancedSettings()" title="Settings" data-i18n-title="btn-setting" style="display: flex; align-items: center; justify-content: center;">
                     <img src="setting.png" alt="Settings" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
             </div>
@@ -1446,6 +1446,17 @@
             const el = document.getElementById('advanced-drawer');
             el.style.display = el.style.display === 'flex' ? 'none' : 'flex';
         }
+
+        // Close settings drawer when clicking outside
+        document.addEventListener('pointerdown', (e) => {
+            const drawer = document.getElementById('advanced-drawer');
+            const toggleBtn = document.getElementById('settings-toggle-btn');
+            if (drawer && drawer.style.display === 'flex') {
+                if (!drawer.contains(e.target) && !toggleBtn.contains(e.target)) {
+                    drawer.style.display = 'none';
+                }
+            }
+        });
 
         function syncSliderLabels() {
             const stiffnessEl = document.getElementById('spring-stiffness');
