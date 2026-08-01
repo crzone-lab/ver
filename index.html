@@ -2370,7 +2370,7 @@
                     }
                 }
 
-                // --- 3D GLASS GUMMY JELLY RENDER ENGINE ---
+                // --- UNIVERSAL 3D GLASS GUMMY JELLY CAPSULE ENGINE ---
                 const finalCanvas = document.createElement('canvas');
                 finalCanvas.width = size;
                 finalCanvas.height = size;
@@ -2378,42 +2378,77 @@
 
                 // 1. Soft 3D Floating Drop Shadow
                 finalCtx.save();
-                finalCtx.shadowColor = 'rgba(0, 0, 0, 0.32)';
-                finalCtx.shadowBlur = 18;
-                finalCtx.shadowOffsetY = 10;
+                finalCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+                finalCtx.shadowBlur = 20;
+                finalCtx.shadowOffsetY = 12;
                 finalCtx.drawImage(imgCanvas, 0, 0);
                 finalCtx.restore();
 
-                // 2. Draw crisp artwork
+                // 2. Draw 100% crisp original drawing/photo (any animal or person)
                 finalCtx.drawImage(imgCanvas, 0, 0);
 
-                // 3. Create 3D Glass Gloss Rim Overlay
-                const glossCanvas = document.createElement('canvas');
-                glossCanvas.width = size;
-                glossCanvas.height = size;
-                const gCtx = glossCanvas.getContext('2d');
-                gCtx.shadowColor = 'rgba(255, 255, 255, 0.85)';
-                gCtx.shadowBlur = 12;
-                gCtx.shadowOffsetX = 2000 + 5;
-                gCtx.shadowOffsetY = 2000 + 5;
-                gCtx.drawImage(imgCanvas, -2000, -2000);
+                // 3. Create 3D Glass Capsule Rim (Glossy Top-Left Bevel)
+                const capsuleGloss = document.createElement('canvas');
+                capsuleGloss.width = size;
+                capsuleGloss.height = size;
+                const cgCtx = capsuleGloss.getContext('2d');
+                cgCtx.shadowColor = 'rgba(255, 255, 255, 0.9)';
+                cgCtx.shadowBlur = 10;
+                cgCtx.shadowOffsetX = 2000 + 6;
+                cgCtx.shadowOffsetY = 2000 + 6;
+                cgCtx.drawImage(imgCanvas, -2000, -2000);
 
                 const clippedGloss = document.createElement('canvas');
                 clippedGloss.width = size;
                 clippedGloss.height = size;
-                const cgCtx = clippedGloss.getContext('2d');
-                cgCtx.drawImage(imgCanvas, 0, 0);
-                cgCtx.globalCompositeOperation = 'source-in';
-                cgCtx.drawImage(glossCanvas, 0, 0);
+                const clgCtx = clippedGloss.getContext('2d');
+                clgCtx.drawImage(imgCanvas, 0, 0);
+                clgCtx.globalCompositeOperation = 'source-in';
+                clgCtx.drawImage(capsuleGloss, 0, 0);
 
-                finalCtx.save();
-                finalCtx.globalAlpha = 0.65;
+                // 4. Create 3D Depth Shadow Rim (Gel Thickness Bottom-Right)
+                const capsuleShadow = document.createElement('canvas');
+                capsuleShadow.width = size;
+                capsuleShadow.height = size;
+                const csCtx = capsuleShadow.getContext('2d');
+                csCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+                csCtx.shadowBlur = 12;
+                csCtx.shadowOffsetX = 2000 - 6;
+                csCtx.shadowOffsetY = 2000 - 6;
+                csCtx.drawImage(imgCanvas, -2000, -2000);
+
+                const clippedShadow = document.createElement('canvas');
+                clippedShadow.width = size;
+                clippedShadow.height = size;
+                const clsCtx = clippedShadow.getContext('2d');
+                clsCtx.drawImage(imgCanvas, 0, 0);
+                clsCtx.globalCompositeOperation = 'source-in';
+                clsCtx.drawImage(capsuleShadow, 0, 0);
+
+                // 5. Specular Glass Highlight Spot on Head/Body
+                const capsuleSpec = document.createElement('canvas');
+                capsuleSpec.width = size;
+                capsuleSpec.height = size;
+                const spCtx = capsuleSpec.getContext('2d');
+                spCtx.save();
+                spCtx.fillStyle = 'rgba(255, 255, 255, 0.5)';
+                spCtx.beginPath();
+                spCtx.ellipse(size * 0.35, size * 0.3, size * 0.09, size * 0.045, -Math.PI / 6, 0, Math.PI * 2);
+                spCtx.fill();
+                spCtx.restore();
+
+                const clippedSpec = document.createElement('canvas');
+                clippedSpec.width = size;
+                clippedSpec.height = size;
+                const clspCtx = clippedSpec.getContext('2d');
+                clspCtx.drawImage(imgCanvas, 0, 0);
+                clspCtx.globalCompositeOperation = 'source-in';
+                clspCtx.drawImage(capsuleSpec, 0, 0);
+
+                // Overlay 3D Glass Capsule Effects onto finalCtx
+                finalCtx.drawImage(clippedShadow, 0, 0);
                 finalCtx.drawImage(clippedGloss, 0, 0);
-                finalCtx.restore();
-                finalCtx.restore();
-
-                // 2. Draw 100% crisp original artwork/photo on top (NO white mask overlays!)
-                finalCtx.drawImage(imgCanvas, 0, 0);
+                finalCtx.drawImage(clippedSpec, 0, 0);
 
                 const finalImgData = finalCanvas.toDataURL('image/png');
                 
