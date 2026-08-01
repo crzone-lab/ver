@@ -3261,10 +3261,10 @@
                 }
                 
                 touchTime = Math.min(touchTime + 1, 120);
-                // Rapidly build up intensity (fully charged in 30 frames, up to 2.5)
-                let squishIntensity = Math.min(touchTime / 30, 2.5);
-                let squishForce = squishIntensity * 12.0; // Boosted force multiplier
-                let maxDist = width * 0.4; // Slightly wider area of influence for dramatic effect
+                // Moderate and progressive build up (charged in 45 frames, up to 1.5)
+                let squishIntensity = Math.min(touchTime / 45, 1.5);
+                let squishForce = squishIntensity * 4.5; // Toned down multiplier
+                let maxDist = width * 0.26; // Localized radius to preserve boundary and prevent tearing/tangling
                 
                 for (let i = 0; i < points.length; i++) {
                     if (i === grabbedPointIndex) continue;
@@ -3276,18 +3276,18 @@
                         let weight = 1 - (dist / maxDist);
                         let angle = Math.atan2(dy, dx);
                         
-                        // 1. Radial outward push to clear the finger area
-                        let forceX = Math.cos(angle) * squishForce * weight * 150;
-                        let forceY = Math.sin(angle) * squishForce * weight * 150;
+                        // 1. Smooth radial outward push to create touch indentation
+                        let forceX = Math.cos(angle) * squishForce * weight * 35;
+                        let forceY = Math.sin(angle) * squishForce * weight * 30;
                         
-                        // 2. Extra horizontal expansion to bulge sides
-                        forceX += Math.sign(dx) * squishForce * weight * 100;
+                        // 2. Gentle horizontal expansion (sides bulge slightly)
+                        forceX += (dx / dist) * squishForce * weight * 15;
                         
-                        // 3. Extra vertical compression to flatten the center
-                        forceY -= Math.sign(dy) * squishForce * weight * 80;
+                        // 3. Gentle vertical compression (flattens slightly)
+                        forceY -= (dy / dist) * squishForce * weight * 10;
                         
-                        // 4. Downward sink force (sinking along with the press)
-                        forceY += squishForce * weight * 150;
+                        // 4. Stable downward sink (moderate push downward)
+                        forceY += squishForce * weight * 40;
                         
                         p.vx += forceX;
                         p.vy += forceY;
