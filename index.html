@@ -4927,7 +4927,6 @@
             
             bgmPlayer.start();
             
-            // Try to auto-enable fullscreen mode upon user gesture
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(err => {
                     console.log("Auto-fullscreen blocked:", err);
@@ -4937,7 +4936,11 @@
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
                 splash.classList.add('fade-out');
+                setTimeout(() => { splash.style.display = 'none'; }, 400);
             }
+
+            // Transition from lobby to playground stage!
+            setScreenMode('playground');
         }
 
         function resetLobby() {
