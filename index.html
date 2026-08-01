@@ -1083,8 +1083,6 @@
                         <div class="option-label" data-i18n="opt-import">이미지</div>
                     </label>
                 </div>
-            </div>
-        </div>
 
         <!-- Interactive Screen Stage -->
         <div class="stage-area">
@@ -2272,7 +2270,7 @@
                     imgCtx.drawImage(img, x, y, w, h);
                     imgCtx.restore();
                 } else {
-                    // Check if original img has transparent background BEFORE drawing margins
+                    // Inspect original img for transparency BEFORE drawing margins
                     const testCanvas = document.createElement('canvas');
                     testCanvas.width = imgW;
                     testCanvas.height = imgH;
@@ -2378,64 +2376,22 @@
                     }
                 }
 
-                // --- 100% PURE CRISP GRAPHICS WITH 3D FLOATING DROP SHADOW ---
+                // --- 100% PURE FAIL-SAFE 3D STICKER/JELLY RENDERER ---
                 const finalCanvas = document.createElement('canvas');
                 finalCanvas.width = size;
                 finalCanvas.height = size;
                 const finalCtx = finalCanvas.getContext('2d');
 
-                // 1. Soft 3D Floating Drop Shadow
+                // 1. Soft 3D Ambient Occlusion Floating Shadow
                 finalCtx.save();
-                finalCtx.shadowColor = 'rgba(0, 0, 0, 0.32)';
-                finalCtx.shadowBlur = 18;
-                finalCtx.shadowOffsetY = 10;
+                finalCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+                finalCtx.shadowBlur = 20;
+                finalCtx.shadowOffsetY = 12;
                 finalCtx.drawImage(imgCanvas, 0, 0);
                 finalCtx.restore();
 
-                // 2. Draw 100% crisp original artwork/photo (NO white mask overlays!)
+                // 2. Draw 100% pure, crisp original artwork/photo (NO white blurs/masks!)
                 finalCtx.drawImage(imgCanvas, 0, 0);
-
-                // 3. Create 3D Glass Capsule Rim (Glossy Top-Left Bevel)
-                const capsuleGloss = document.createElement('canvas');
-                capsuleGloss.width = size;
-                capsuleGloss.height = size;
-                const cgCtx = capsuleGloss.getContext('2d');
-                cgCtx.shadowColor = 'rgba(255, 255, 255, 0.9)';
-                cgCtx.shadowBlur = 10;
-                cgCtx.shadowOffsetX = 2000 + 6;
-                cgCtx.shadowOffsetY = 2000 + 6;
-                cgCtx.drawImage(imgCanvas, -2000, -2000);
-
-                const clippedGloss = document.createElement('canvas');
-                clippedGloss.width = size;
-                clippedGloss.height = size;
-                const clgCtx = clippedGloss.getContext('2d');
-                clgCtx.drawImage(imgCanvas, 0, 0);
-                clgCtx.globalCompositeOperation = 'source-in';
-                clgCtx.drawImage(capsuleGloss, 0, 0);
-
-                // 4. Create 3D Depth Shadow Rim (Gel Thickness Bottom-Right)
-                const capsuleShadow = document.createElement('canvas');
-                capsuleShadow.width = size;
-                capsuleShadow.height = size;
-                const csCtx = capsuleShadow.getContext('2d');
-                csCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-                csCtx.shadowBlur = 12;
-                csCtx.shadowOffsetX = 2000 - 6;
-                csCtx.shadowOffsetY = 2000 - 6;
-                csCtx.drawImage(imgCanvas, -2000, -2000);
-
-                const clippedShadow = document.createElement('canvas');
-                clippedShadow.width = size;
-                clippedShadow.height = size;
-                const clsCtx = clippedShadow.getContext('2d');
-                clsCtx.drawImage(imgCanvas, 0, 0);
-                clsCtx.globalCompositeOperation = 'source-in';
-                clsCtx.drawImage(capsuleShadow, 0, 0);
-
-                // Overlay 3D Glass Capsule Rim onto finalCtx
-                finalCtx.drawImage(clippedShadow, 0, 0);
-                finalCtx.drawImage(clippedGloss, 0, 0);
 
                 const finalImgData = finalCanvas.toDataURL('image/png');
                 
