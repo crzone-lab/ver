@@ -130,6 +130,7 @@
 
         /* Game Start Splash Screen Style */
         .start-splash-screen {
+            display: none !important;
             position: absolute;
             top: 0;
             left: 0;
@@ -5030,7 +5031,8 @@
         translateDOM();
         syncSliderLabels();
         setupDrawingCropListeners();
-        defaultStrawberrySrc = jellyImage.src;
+        const splash = document.getElementById('start-splash-screen');
+        if (splash) splash.style.display = 'none';
         initMesh();
         draw();
         renderLobbyGrid();
