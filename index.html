@@ -1049,11 +1049,11 @@
         </div>
 
         <!-- 3. Game Start Splash Screen Stage (Bypassed) -->
-        <div id="start-splash-screen" class="start-splash-screen">
+        <div id="start-splash-screen" class="start-splash-screen" onclick="startGameSession(event)" ontouchstart="startGameSession(event)" style="cursor: pointer;">
             <div class="start-logo-container">
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
-            <button class="start-game-btn" onclick="startGameSession()" data-i18n="btn-gamestart">게임 시작</button>
+            <button id="game-start-btn" class="start-game-btn" onclick="startGameSession()" ontouchstart="startGameSession()" data-i18n="btn-gamestart">게임 시작</button>
             <div class="start-footer-text">© 2026 Fruitrabbit Malrangi</div>
         </div>
 
@@ -5014,7 +5014,25 @@
             syncSliderLabels();
         }
 
-        function startGameSession() {
+        function startGameSession(e) {
+            if (e) {
+                try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+            }
+            
+            // 1. Instantly hide splash screen first so game start NEVER blocks
+            const splash = document.getElementById('start-splash-screen');
+            if (splash) {
+                splash.classList.add('fade-out');
+                splash.style.display = 'none';
+                splash.style.visibility = 'hidden';
+                splash.style.opacity = '0';
+            }
+
+            // 2. Open Lobby Character Selection Screen
+            setScreenMode('lobby');
+            renderLobbyGrid();
+
+            // 3. Audio & Haptics in safe try-catch
             try {
                 if (!audioCtx) {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -5022,38 +5040,14 @@
                 if (audioCtx.state === 'suspended') {
                     audioCtx.resume();
                 }
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(500, audioCtx.currentTime + 0.16);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.17);
+                bgmPlayer.start();
             } catch (err) {
                 console.log("AudioContext start error:", err);
             }
-            triggerHaptic(40);
-            
-            bgmPlayer.start();
-            
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log("Auto-fullscreen blocked:", err);
-                });
-            }
-            
-            const splash = document.getElementById('start-splash-screen');
-            if (splash) {
-                splash.classList.add('fade-out');
-                setTimeout(() => { splash.style.display = 'none'; }, 400);
-            }
 
-            // Transition from lobby to playground stage!
-            setScreenMode('playground');
+            try {
+                triggerHaptic(40);
+            } catch (err) {}
         }
 
         function resetLobby() {
@@ -5119,7 +5113,7 @@
         initMesh();
         draw();
         renderLobbyGrid();
-        setScreenMode('playground');
+        setScreenMode('lobby');
 
         // Assign Base64 character artwork dynamically to card selector thumbnail on load
         setTimeout(() => {
@@ -5128,6 +5122,18 @@
                 thumb.style.backgroundImage = `url(${jellyImage.src})`;
             }
         }, 100);
+
+
+        // Explicitly bind multiple touch & click listeners to Game Start button
+        window.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('game-start-btn');
+            if (startBtn) {
+                const handler = (e) => startGameSession(e);
+                startBtn.addEventListener('click', handler);
+                startBtn.addEventListener('touchstart', handler, { passive: false });
+                startBtn.addEventListener('pointerdown', handler);
+            }
+        });
 
 </script>
 </body>
