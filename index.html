@@ -1548,15 +1548,29 @@
                 this.vy = 0;
             }
             update() {
-                // Weak origin spring to allow cohesive whole-body translation
-                let fx = (this.ox - this.x) * (stiffness * 0.003);
-                let fy = (this.oy - this.y) * (stiffness * 0.003);
+                // Elastic restoring force back to original shape
+                let kOrigin = 0.08;
+                let fx = (this.ox - this.x) * kOrigin;
+                let fy = (this.oy - this.y) * kOrigin;
+                
                 this.vx += fx;
                 this.vy += fy;
-                this.vx *= (1 - damping * 0.035);
-                this.vy *= (1 - damping * 0.035);
-                this.x += this.vx * 0.016;
-                this.y += this.vy * 0.016;
+                
+                // Stable damping to prevent spring energy buildup / explosion
+                this.vx *= 0.82;
+                this.vy *= 0.82;
+                
+                this.x += this.vx;
+                this.y += this.vy;
+                
+                // Canvas boundary safety guard
+                const pad = 15;
+                const canvasW = width || 388;
+                const canvasH = height || 840;
+                if (this.x < pad) { this.x = pad; this.vx *= -0.2; }
+                if (this.x > canvasW - pad) { this.x = canvasW - pad; this.vx *= -0.2; }
+                if (this.y < pad) { this.y = pad; this.vy *= -0.2; }
+                if (this.y > canvasH - pad) { this.y = canvasH - pad; this.vy *= -0.2; }
             }
         }
 
@@ -1570,10 +1584,12 @@
                 let dx = this.p2.x - this.p1.x;
                 let dy = this.p2.y - this.p1.y;
                 let dist = Math.sqrt(dx * dx + dy * dy);
-                if (dist < 0.1) return;
+                if (dist < 0.01) return;
 
-                // Hooke's law force between vertices
-                let force = (dist - this.restLength) * (stiffness * 0.035);
+                let delta = dist - this.restLength;
+                let k = 0.12;
+                let force = delta * k;
+                
                 let nx = dx / dist;
                 let ny = dy / dist;
 
@@ -1591,10 +1607,12 @@
             points = [];
             springs = [];
 
-            let meshW = 300;
-            let meshH = 300;
-            let startX = (width - meshW) / 2;
-            let startY = (height - meshH) / 2;
+            let meshW = 280;
+            let meshH = 280;
+            let canvasW = width || 388;
+            let canvasH = height || 840;
+            let startX = (canvasW - meshW) / 2;
+            let startY = (canvasH - meshH) / 2;
 
             // 1. Create Points within Rabbit Bounds
             for (let r = 0; r < rows; r++) {
@@ -1658,18 +1676,19 @@
         }
 
         function deformMesh(mx, my, force) {
-            let maxRadius = width * 0.3;
+            let canvasW = width || 388;
+            let maxRadius = canvasW * 0.35;
             for (let i = 0; i < points.length; i++) {
                 let p = points[i];
                 let dx = p.x - mx;
                 let dy = p.y - my;
                 let dist = Math.sqrt(dx * dx + dy * dy);
 
-                if (dist < maxRadius) {
+                if (dist < maxRadius && dist > 1) {
                     let weight = 1 - (dist / maxRadius);
                     let angle = Math.atan2(dy, dx);
-                    p.vx += Math.cos(angle) * force * weight * 16;
-                    p.vy += Math.sin(angle) * force * weight * 16;
+                    p.vx += Math.cos(angle) * force * weight * 0.15;
+                    p.vy += Math.sin(angle) * force * weight * 0.15;
                 }
             }
         }
@@ -4044,14 +4063,14 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                // 1. Solve springs (8 substeps for instant force propagation across the entire mesh)
-                for (let step = 0; step < 8; step++) {
+                // 1. Solve springs (3 substeps for smooth elasticity and high numerical stability)
+                for (let step = 0; step < 3; step++) {
                     for (let i = 0; i < springs.length; i++) {
                         springs[i].solve();
                     }
                 }
 
-                // 2. Pin grabbed point and apply continuous touch hold squish forces
+                // 2. Pin grabbed point and apply continuous gentle touch squish forces
                 if (isTouching) {
                     if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                         points[grabbedPointIndex].x = touchX;
@@ -4060,9 +4079,7 @@
                         points[grabbedPointIndex].vy = 0;
                         
                         touchHapticFrame++;
-                        // Trigger a haptic pulse every 12 frames (~200ms at 60fps)
                         if (touchHapticFrame % 12 === 0) {
-                            // Alternate between strong (35ms) and weak (12ms) vibration
                             const isStrong = (Math.floor(touchHapticFrame / 12) % 2 === 0);
                             const duration = isStrong ? 35 : 12;
                             if (navigator.vibrate) {
@@ -4074,10 +4091,8 @@
                     }
                     
                     touchTime = Math.min(touchTime + 1, 120);
-                    // Moderate and progressive build up (charged in 45 frames, up to 1.5)
-                    let squishIntensity = Math.min(touchTime / 45, 1.5);
-                    let squishForce = squishIntensity * 5.5; // Slightly boosted multiplier for deeper sink
-                    let maxDist = width * 0.28; // Slightly larger localized radius
+                    let squishIntensity = Math.min(touchTime / 30, 1.0);
+                    let maxDist = width * 0.35;
                     
                     for (let i = 0; i < points.length; i++) {
                         if (i === grabbedPointIndex) continue;
@@ -4086,24 +4101,13 @@
                         let dy = p.y - touchY;
                         let dist = Math.sqrt(dx * dx + dy * dy);
                         if (dist < maxDist && dist > 1) {
-                            let weight = 1 - (dist / maxDist);
+                            let weight = (1 - (dist / maxDist));
+                            weight = weight * weight;
                             let angle = Math.atan2(dy, dx);
                             
-                            // 1. Smooth radial outward push to create touch indentation
-                            let forceX = Math.cos(angle) * squishForce * weight * 45;
-                            let forceY = Math.sin(angle) * squishForce * weight * 40;
-                            
-                            // 2. Gentle horizontal expansion (sides bulge slightly)
-                            forceX += (dx / dist) * squishForce * weight * 15;
-                            
-                            // 3. Gentle vertical compression (flattens slightly)
-                            forceY -= (dy / dist) * squishForce * weight * 10;
-                            
-                            // 4. Stable downward sink (deeper moderate push downward)
-                            forceY += squishForce * weight * 65;
-                            
-                            p.vx += forceX;
-                            p.vy += forceY;
+                            let pushForce = squishIntensity * weight * 1.8;
+                            p.vx += Math.cos(angle) * pushForce;
+                            p.vy += Math.sin(angle) * pushForce + pushForce * 0.4;
                         }
                     }
                 } else {
