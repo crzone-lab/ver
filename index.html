@@ -2205,35 +2205,29 @@
             try {
                 const size = 512;
                 
-                // Safe fallbacks for image dimensions to prevent NaN or division-by-zero errors
                 let imgW = img.naturalWidth || img.width || 512;
                 let imgH = img.naturalHeight || img.height || 512;
                 if (imgW <= 0) imgW = 512;
                 if (imgH <= 0) imgH = 512;
                 
                 let aspect = imgW / imgH;
-                if (isNaN(aspect) || aspect <= 0) {
-                    aspect = 1;
-                }
+                if (isNaN(aspect) || aspect <= 0) aspect = 1;
 
-                // Canvas A: Original Image centered with margin or custom trace cropped
+                // Canvas A: Original Image centered or cropped
                 const imgCanvas = document.createElement('canvas');
                 imgCanvas.width = size;
                 imgCanvas.height = size;
                 const imgCtx = imgCanvas.getContext('2d');
                 
                 if (isCamera) {
-                    // Helper to map relative viewport coordinates (0..1) to the centered 512x512 canvas coordinates
                     function mapViewportToJellyCanvas(px, py) {
                         let cx, cy;
                         const safetyX = isNaN(px) ? 0.5 : px;
                         const safetyY = isNaN(py) ? 0.5 : py;
                         if (aspect < 1) {
-                            // Portrait (width < height) - width covers 512, height exceeds 512 centered
                             cx = safetyX * size;
                             cy = (safetyY - 0.5) * (size / aspect) + (size / 2);
                         } else {
-                            // Landscape (width >= height) - height covers 512, width exceeds 512 centered
                             cx = (safetyX - 0.5) * (size * aspect) + (size / 2);
                             cy = safetyY * size;
                         }
@@ -2245,7 +2239,6 @@
                     imgCtx.save();
                     imgCtx.beginPath();
                     if (customPath && customPath.length > 5) {
-                        // Draw user's manual finger crop trace using aspect-correct coordinate mapping
                         const pt0 = mapViewportToJellyCanvas(customPath[0].x, customPath[0].y);
                         imgCtx.moveTo(pt0.x, pt0.y);
                         for (let i = 1; i < customPath.length; i++) {
@@ -2254,7 +2247,6 @@
                         }
                         imgCtx.closePath();
                     } else {
-                        // Default vertical oval clip path for face snapshot aligning perfectly with guide
                         const gc = guideCenter || { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 };
                         const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
                         const rx = (gc.rx || 0.26) * size;
@@ -2269,7 +2261,6 @@
                     }
                     imgCtx.clip();
 
-                    // Scale and draw the image inside the clipped path (fill the 512x512 canvas area)
                     const scale = Math.max(size / imgW, size / imgH);
                     const w = imgW * scale;
                     const h = imgH * scale;
@@ -2278,7 +2269,6 @@
                     imgCtx.drawImage(img, x, y, w, h);
                     imgCtx.restore();
                 } else {
-                    // Scale down to fit with margin for the gel border
                     const margin = 45;
                     const fitSize = size - margin * 2;
                     const scale = Math.min(fitSize / imgW, fitSize / imgH);
@@ -2288,11 +2278,10 @@
                     const y = (size - h) / 2;
                     imgCtx.drawImage(img, x, y, w, h);
 
-                    // Run background keyer
+                    // Run background keyer to remove outer white background
                     const imgData = imgCtx.getImageData(0, 0, size, size);
                     const pixels = imgData.data;
 
-                    // 1. Mark non-white/colored pixels as outline boundaries
                     const solidOutline = new Uint8Array(size * size);
                     for (let i = 0; i < pixels.length; i += 4) {
                         const r = pixels[i];
@@ -2304,7 +2293,6 @@
                         }
                     }
 
-                    // 2. Perform morphological dilation on outline to seal any tiny line gaps (radius = 3)
                     const closedOutline = new Uint8Array(size * size);
                     const r_dilate = 3;
                     for (let y = 0; y < size; y++) {
@@ -2325,11 +2313,9 @@
                         }
                     }
 
-                    // 3. Flood-fill from outer edges to detect the transparent background area
                     const transparentBackground = new Uint8Array(size * size);
                     const queue = [];
                     
-                    // Add edge boundary pixels to initialization queue
                     for (let x = 0; x < size; x++) {
                         if (!closedOutline[x]) { transparentBackground[x] = 1; queue.push(x); }
                         const bottomIdx = (size - 1) * size + x;
@@ -2342,7 +2328,6 @@
                         if (!closedOutline[rightIdx]) { transparentBackground[rightIdx] = 1; queue.push(rightIdx); }
                     }
 
-                    // BFS Flood fill
                     while (queue.length > 0) {
                         const idx = queue.shift();
                         const cx = idx % size;
@@ -2364,11 +2349,10 @@
                         }
                     }
 
-                    // 4. Force background pixels to fully transparent, keeping only key object silhouette
                     for (let i = 0; i < pixels.length; i += 4) {
                         const idx = i / 4;
                         if (transparentBackground[idx]) {
-                            pixels[i + 3] = 0; // Transparent alpha
+                            pixels[i + 3] = 0;
                         }
                     }
                     imgCtx.putImageData(imgData, 0, 0);
@@ -2396,127 +2380,64 @@
                 }
                 maskCtx.putImageData(maskData, 0, 0);
 
-                // Canvas C: Translucent Gel Shadow & Glow Backing (Creates the 3D jelly volume effect)
-                const glowCanvas = document.createElement('canvas');
-                glowCanvas.width = size;
-                glowCanvas.height = size;
-                const glowCtx = glowCanvas.getContext('2d');
-                glowCtx.drawImage(maskCanvas, 0, 0);
-
-                const glowData = glowCtx.getImageData(0, 0, size, size);
-                const gPixels = glowData.data;
-                for (let i = 0; i < gPixels.length; i += 4) {
-                    const alpha = gPixels[i + 3];
-                    if (alpha > 10) {
-                        gPixels[i] = 255;     // Red
-                        gPixels[i+1] = 110;   // Green
-                        gPixels[i+2] = 130;   // Blue (Creates beautiful pink base gel)
-                        gPixels[i+3] = 220;   // Mostly opaque
-                    }
-                }
-                glowCtx.putImageData(glowData, 0, 0);
-
-                // Canvas D: Multi-Pass Shaded Gel Backdrop
-                const shadingCanvas = document.createElement('canvas');
-                shadingCanvas.width = size;
-                shadingCanvas.height = size;
-                const shadCtx = shadingCanvas.getContext('2d');
-
-                // 1. Draw glowing background gel base
-                shadCtx.drawImage(glowCanvas, 0, 0);
-
-                // 2. Draw 3D inner shadows
-                glowCtx.clearRect(0, 0, size, size);
-                glowCtx.drawImage(maskCanvas, 0, 0);
-                glowCtx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-                glowCtx.shadowBlur = 18;
-                glowCtx.shadowOffsetX = 12;
-                glowCtx.shadowOffsetY = 12;
-                glowCtx.globalCompositeOperation = 'source-in';
-                glowCtx.drawImage(maskCanvas, 0, 0);
-                
-                // Negative inner shadow punch
-                glowCtx.globalCompositeOperation = 'difference';
-                glowCtx.fillStyle = '#ffffff';
-                glowCtx.fillRect(0, 0, size, size);
-                glowCtx.globalCompositeOperation = 'destination-in';
-                glowCtx.drawImage(maskCanvas, 0, 0);
-                
-                // Draw mask shadow to shading context
-                const shadowCanvas = document.createElement('canvas');
-                shadowCanvas.width = size;
-                shadowCanvas.height = size;
-                const shadowCtx = shadowCanvas.getContext('2d');
-                shadowCtx.shadowColor = 'rgba(0, 0, 0, 0.45)';
-                shadowCtx.shadowBlur = 18;
-                shadowCtx.shadowOffsetX = 12;
-                shadowCtx.shadowOffsetY = 12;
-                shadowCtx.drawImage(maskCanvas, 0, 0);
-                
-                shadCtx.drawImage(shadowCanvas, 0, 0);
-
-                // 3. Multi-source Specular Highlights
-                shadCtx.fillStyle = 'rgba(255, 255, 255, 0.85)';
-                shadCtx.beginPath();
-                shadCtx.ellipse(size * 0.32, size * 0.32, size * 0.12, size * 0.055, Math.PI / 4, 0, Math.PI * 2);
-                shadCtx.fill();
-
-                shadCtx.fillStyle = 'rgba(255, 255, 255, 0.88)';
-                shadCtx.beginPath();
-                shadCtx.arc(size * 0.46, size * 0.22, size * 0.022, 0, Math.PI * 2);
-                shadCtx.fill();
-
-                shadCtx.fillStyle = 'rgba(255, 255, 255, 0.35)';
-                shadCtx.beginPath();
-                shadCtx.ellipse(size * 0.22, size * 0.44, size * 0.05, size * 0.016, Math.PI / 3, 0, Math.PI * 2);
-                shadCtx.fill();
-
-                // Canvas E: Final Composited Texture
+                // Canvas C: 100% Clean 3-Step Composited Texture (NO SOLID WHITE MASKS, NO SAFARI BUGS!)
                 const finalCanvas = document.createElement('canvas');
                 finalCanvas.width = size;
                 finalCanvas.height = size;
                 const finalCtx = finalCanvas.getContext('2d');
 
-                // Draw shading base gel backing
-                finalCtx.drawImage(shadingCanvas, 0, 0);
-                
-                // Draw original image on top of gel
+                // Step 1: Soft Drop Shadow underneath character
+                finalCtx.save();
+                finalCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+                finalCtx.shadowBlur = 16;
+                finalCtx.shadowOffsetY = 8;
+                finalCtx.drawImage(maskCanvas, 0, 0);
+                finalCtx.restore();
+
+                // Step 2: Clear inside of drop shadow area so original colors are 100% pure
+                finalCtx.globalCompositeOperation = 'destination-out';
+                finalCtx.drawImage(maskCanvas, 0, 0);
+                finalCtx.globalCompositeOperation = 'source-over';
+
+                // Step 3: Draw original crisp image/photo (100% crisp original artwork/photo)
                 finalCtx.drawImage(imgCanvas, 0, 0);
 
-                // Update the active texture
                 const finalImgData = finalCanvas.toDataURL('image/png');
-                jellyImage.onload = function() {
-                    jellyImage.onload = null; // Prevent callback memory leak and infinite loops on subsequent image updates
+                
+                if (isInitializingDefaultJelly) {
+                    defaultStrawberrySrc = finalImgData;
+                    isInitializingDefaultJelly = false;
                     
-                    // Register as custom photo character in lobby
-                    const newChar = {
-                        emoji: '📸',
-                        name: `${i18n.t('card-camera') || '내 사진'} ${customPhotoCounter++}`,
-                        base: `custom_photo_${Date.now()}`,
-                        hue: 350,
-                        imgData: finalImgData
-                    };
-                    lobbyCharacters.push(newChar);
-                    activeLobbyIndex = lobbyCharacters.length - 1;
-                    
-                    activeEmoji = newChar.emoji;
-                    activeBase = newChar.base;
-                    activeHue = newChar.hue;
-                    
-                    // Re-init mesh boundary coordinates for the new silhouette mask
+                    jellyImage.src = finalImgData;
                     initMesh();
-                    
-                    // Generate matching background jellies (using pink/red cherry tone 355)
-                    generateDecoJellies(355);
-                    
-                    // Re-render lobby grid to show the custom thumbnail
                     renderLobbyGrid();
-                    
-                    // Transition: Go to playground stage
-                    setScreenMode('playground');
-                    showNotification(i18n.t('notif-silhouette-mapping'));
+                    const thumb = document.getElementById('card-strawberry-thumb');
+                    if (thumb) {
+                        thumb.style.backgroundImage = `url(${finalImgData})`;
+                    }
+                    return;
+                }
+
+                const newChar = {
+                    emoji: '📸',
+                    name: `${i18n.t('card-camera') || '내 사진'} ${customPhotoCounter++}`,
+                    base: `custom_photo_${Date.now()}`,
+                    hue: 355,
+                    imgData: finalImgData
                 };
+                lobbyCharacters.push(newChar);
+                activeLobbyIndex = lobbyCharacters.length - 1;
+                
+                activeEmoji = newChar.emoji;
+                activeBase = newChar.base;
+                activeHue = newChar.hue;
+                
                 jellyImage.src = finalImgData;
+                initMesh();
+                generateDecoJellies(355);
+                renderLobbyGrid();
+                setScreenMode('playground');
+                showNotification(i18n.t('notif-silhouette-mapping'));
             } catch (err) {
                 console.error("processImageToJelly error:", err);
                 showNotification("Image processing failed: " + err.message);
