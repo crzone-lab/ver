@@ -4160,6 +4160,9 @@
             touchTime = 0;
         });
 
+        let lastMouseX = null, lastMouseY = null;
+        canvas.addEventListener('mouseup', () => { lastMouseX = null; lastMouseY = null; });
+        canvas.addEventListener('mouseleave', () => { lastMouseX = null; lastMouseY = null; });
         canvas.addEventListener('mousemove', (e) => {
             if (!isPlaygroundActive()) return;
             let rect = canvas.getBoundingClientRect();
@@ -4168,21 +4171,30 @@
             let mx = (e.clientX - rect.left) * scaleX;
             let my = (e.clientY - rect.top) * scaleY;
 
-            if (e.buttons === 1 || grabbedPointIndex !== null) {
+            if (e.buttons === 1) {
                 touchX = mx;
                 touchY = my;
                 isTouching = true;
             }
 
-            if (grabbedPointIndex !== null) {
-                // Pin grabbed point directly to mouse cursor
-                points[grabbedPointIndex].x = mx;
-                points[grabbedPointIndex].y = my;
-                points[grabbedPointIndex].vx = 0;
-                points[grabbedPointIndex].vy = 0;
-            } else if (e.buttons === 1) {
-                deformMesh(mx, my, 15);
+            if (lastMouseX !== null && lastMouseY !== null) {
+                let dx = mx - lastMouseX;
+                let dy = my - lastMouseY;
+                let maxRadius = width * 0.35;
+                for (let i = 0; i < points.length; i++) {
+                    let p = points[i];
+                    let dist = Math.sqrt(Math.pow(p.x - mx, 2) + Math.pow(p.y - my, 2));
+                    if (dist < maxRadius) {
+                        let weight = Math.pow(1 - dist / maxRadius, 2);
+                        p.vx += dx * weight * 0.3;
+                        p.vy += dy * weight * 0.3;
+                    }
+                }
+            } else {
+                deformMesh(mx, my, 8);
             }
+            lastMouseX = mx;
+            lastMouseY = my;
         });
 
         let audioCtx = null;
@@ -4674,10 +4686,7 @@
 
         function exitGame() {
             stopAutopilot();
-            showNotification(i18n.t('notif-exit'));
-            setTimeout(() => {
-                window.location.reload();
-            }, 800);
+            setScreenMode('lobby');
         }
 
         const bgmPlayer = {
