@@ -2278,84 +2278,95 @@
                     const y = (size - h) / 2;
                     imgCtx.drawImage(img, x, y, w, h);
 
-                    // Run background keyer to remove outer white background
+                    // Check if image is already a transparent PNG (e.g. imported character graphics)
                     const imgData = imgCtx.getImageData(0, 0, size, size);
                     const pixels = imgData.data;
 
-                    const solidOutline = new Uint8Array(size * size);
-                    for (let i = 0; i < pixels.length; i += 4) {
-                        const r = pixels[i];
-                        const g = pixels[i+1];
-                        const b = pixels[i+2];
-                        const a = pixels[i+3];
-                        if (a > 50 && (r < 220 || g < 220 || b < 220)) {
-                            solidOutline[i / 4] = 1;
-                        }
-                    }
+                    // Inspect 4 corner pixels to detect if background is already transparent
+                    const cornerAlpha1 = pixels[3];
+                    const cornerAlpha2 = pixels[(size - 1) * 4 + 3];
+                    const cornerAlpha3 = pixels[((size - 1) * size) * 4 + 3];
+                    const cornerAlpha4 = pixels[(size * size - 1) * 4 + 3];
 
-                    const closedOutline = new Uint8Array(size * size);
-                    const r_dilate = 3;
-                    for (let y = 0; y < size; y++) {
-                        for (let x = 0; x < size; x++) {
-                            if (solidOutline[y * size + x]) {
-                                for (let dy = -r_dilate; dy <= r_dilate; dy++) {
-                                    const ny = y + dy;
-                                    if (ny >= 0 && ny < size) {
-                                        for (let dx = -r_dilate; dx <= r_dilate; dx++) {
-                                            const nx = x + dx;
-                                            if (nx >= 0 && nx < size) {
-                                                closedOutline[ny * size + nx] = 1;
+                    const isAlreadyTransparent = (cornerAlpha1 === 0 || cornerAlpha2 === 0 || cornerAlpha3 === 0 || cornerAlpha4 === 0);
+
+                    if (!isAlreadyTransparent) {
+                        // Image has solid opaque background (e.g. JPG photo) -> Run background keyer
+                        const solidOutline = new Uint8Array(size * size);
+                        for (let i = 0; i < pixels.length; i += 4) {
+                            const r = pixels[i];
+                            const g = pixels[i+1];
+                            const b = pixels[i+2];
+                            const a = pixels[i+3];
+                            if (a > 50 && (r < 220 || g < 220 || b < 220)) {
+                                solidOutline[i / 4] = 1;
+                            }
+                        }
+
+                        const closedOutline = new Uint8Array(size * size);
+                        const r_dilate = 3;
+                        for (let y = 0; y < size; y++) {
+                            for (let x = 0; x < size; x++) {
+                                if (solidOutline[y * size + x]) {
+                                    for (let dy = -r_dilate; dy <= r_dilate; dy++) {
+                                        const ny = y + dy;
+                                        if (ny >= 0 && ny < size) {
+                                            for (let dx = -r_dilate; dx <= r_dilate; dx++) {
+                                                const nx = x + dx;
+                                                if (nx >= 0 && nx < size) {
+                                                    closedOutline[ny * size + nx] = 1;
+                                                }
                                             }
                                         }
                                     }
                                 }
                             }
                         }
-                    }
 
-                    const transparentBackground = new Uint8Array(size * size);
-                    const queue = [];
-                    
-                    for (let x = 0; x < size; x++) {
-                        if (!closedOutline[x]) { transparentBackground[x] = 1; queue.push(x); }
-                        const bottomIdx = (size - 1) * size + x;
-                        if (!closedOutline[bottomIdx]) { transparentBackground[bottomIdx] = 1; queue.push(bottomIdx); }
-                    }
-                    for (let y = 0; y < size; y++) {
-                        const leftIdx = y * size;
-                        if (!closedOutline[leftIdx]) { transparentBackground[leftIdx] = 1; queue.push(leftIdx); }
-                        const rightIdx = y * size + (size - 1);
-                        if (!closedOutline[rightIdx]) { transparentBackground[rightIdx] = 1; queue.push(rightIdx); }
-                    }
+                        const transparentBackground = new Uint8Array(size * size);
+                        const queue = [];
+                        
+                        for (let x = 0; x < size; x++) {
+                            if (!closedOutline[x]) { transparentBackground[x] = 1; queue.push(x); }
+                            const bottomIdx = (size - 1) * size + x;
+                            if (!closedOutline[bottomIdx]) { transparentBackground[bottomIdx] = 1; queue.push(bottomIdx); }
+                        }
+                        for (let y = 0; y < size; y++) {
+                            const leftIdx = y * size;
+                            if (!closedOutline[leftIdx]) { transparentBackground[leftIdx] = 1; queue.push(leftIdx); }
+                            const rightIdx = y * size + (size - 1);
+                            if (!closedOutline[rightIdx]) { transparentBackground[rightIdx] = 1; queue.push(rightIdx); }
+                        }
 
-                    while (queue.length > 0) {
-                        const idx = queue.shift();
-                        const cx = idx % size;
-                        const cy = Math.floor(idx / size);
+                        while (queue.length > 0) {
+                            const idx = queue.shift();
+                            const cx = idx % size;
+                            const cy = Math.floor(idx / size);
 
-                        const neighbors = [
-                            {x: cx - 1, y: cy}, {x: cx + 1, y: cy},
-                            {x: cx, y: cy - 1}, {x: cx, y: cy + 1}
-                        ];
+                            const neighbors = [
+                                {x: cx - 1, y: cy}, {x: cx + 1, y: cy},
+                                {x: cx, y: cy - 1}, {x: cx, y: cy + 1}
+                            ];
 
-                        for (const n of neighbors) {
-                            if (n.x >= 0 && n.x < size && n.y >= 0 && n.y < size) {
-                                const nIdx = n.y * size + n.x;
-                                if (!closedOutline[nIdx] && !transparentBackground[nIdx]) {
-                                    transparentBackground[nIdx] = 1;
-                                    queue.push(nIdx);
+                            for (const n of neighbors) {
+                                if (n.x >= 0 && n.x < size && n.y >= 0 && n.y < size) {
+                                    const nIdx = n.y * size + n.x;
+                                    if (!closedOutline[nIdx] && !transparentBackground[nIdx]) {
+                                        transparentBackground[nIdx] = 1;
+                                        queue.push(nIdx);
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    for (let i = 0; i < pixels.length; i += 4) {
-                        const idx = i / 4;
-                        if (transparentBackground[idx]) {
-                            pixels[i + 3] = 0;
+                        for (let i = 0; i < pixels.length; i += 4) {
+                            const idx = i / 4;
+                            if (transparentBackground[idx]) {
+                                pixels[i + 3] = 0;
+                            }
                         }
+                        imgCtx.putImageData(imgData, 0, 0);
                     }
-                    imgCtx.putImageData(imgData, 0, 0);
                 }
 
                 // Canvas B: Solid Character Mask Canvas
