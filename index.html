@@ -1754,6 +1754,8 @@
                 const img = new Image();
                 img.onload = function() {
                     processImageToJelly(img);
+                    setScreenMode('playground');
+                    showNotification(i18n.t('notif-import-success') || "이미지가 성공적으로 등록되었습니다!");
                 };
                 img.src = e.target.result;
             };
@@ -1961,7 +1963,29 @@
             await openCustomCamera();
         }
 
+        
+        function playShutterSound() {
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+                // Realistic Camera Shutter Snap
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(900, now);
+                osc.frequency.exponentialRampToValueAtTime(150, now + 0.08);
+                gain.gain.setValueAtTime(0.4, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.08);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } catch(e) {}
+        }
+
         function capturePhoto() {
+            playShutterSound();
             try {
                 const video = document.getElementById('camera-video');
                 const preview = document.getElementById('camera-preview');
@@ -2116,15 +2140,15 @@
             const preview = document.getElementById('camera-preview');
             if (!preview || !preview.src || preview.src.startsWith('data:image/svg+xml')) return;
 
-            // Measure guide relative center before closing camera overlay
             const guideCenter = getFaceGuideRelativeCenter();
 
             const img = new Image();
             img.onload = function() {
-                // Pass drawing path if they drew at least 6 points
                 const path = (drawCropPoints && drawCropPoints.length > 5) ? drawCropPoints : null;
                 processImageToJelly(img, true, path, guideCenter);
                 closeCustomCamera();
+                setScreenMode('playground');
+                showNotification("사진 캐릭터가 성공적으로 등록되었습니다!");
             };
             img.src = preview.src;
         }
@@ -2177,8 +2201,8 @@
                     } else {
                         const gc = guideCenter || { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 };
                         const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
-                        const rx = (gc.rx || 0.26) * size;
-                        const ry = (gc.ry || 0.35) * (aspect < 1 ? size / aspect : size);
+                        const rx = size * 0.40;
+                        const ry = size * 0.40;
                         
                         let finalRx = isNaN(rx) ? 133 : rx;
                         let finalRy = isNaN(ry) ? 179 : ry;
