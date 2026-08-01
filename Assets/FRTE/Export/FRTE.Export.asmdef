@@ -1,0 +1,16 @@
+{
+    "name": "FRTE.Export",
+    "rootNamespace": "FRTE.Export",
+    "references": [
+        "FRTE.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

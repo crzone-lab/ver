@@ -1,0 +1,24 @@
+{
+    "name": "FRTE.Physics",
+    "rootNamespace": "FRTE.Physics",
+    "references": [
+        "FRTE.Core",
+        "FRTE.Photo",
+        "Unity.InputSystem"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [
+        {
+            "name": "com.unity.inputsystem",
+            "expression": "1.0.0",
+            "define": "FRTE_INPUT_SYSTEM"
+        }
+    ],
+    "noEngineReferences": false
+}

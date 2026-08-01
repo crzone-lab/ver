@@ -1,0 +1,22 @@
+{
+    "name": "FRTE.PhotoZone.Tests.PlayMode",
+    "rootNamespace": "FRTE.PhotoZone.Tests.PlayMode",
+    "references": [
+        "UnityEngine.TestRunner",
+        "FRTE.Core",
+        "FRTE.PhotoZone"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

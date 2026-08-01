@@ -1,0 +1,20 @@
+{
+    "name": "FRTE.Physics.Editor",
+    "rootNamespace": "FRTE.Physics.Editor",
+    "references": [
+        "FRTE.Core",
+        "FRTE.Photo",
+        "FRTE.Physics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

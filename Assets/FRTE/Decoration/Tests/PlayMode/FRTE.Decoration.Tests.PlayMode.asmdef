@@ -1,0 +1,22 @@
+{
+    "name": "FRTE.Decoration.Tests.PlayMode",
+    "rootNamespace": "FRTE.Decoration.Tests.PlayMode",
+    "references": [
+        "UnityEngine.TestRunner",
+        "FRTE.Core",
+        "FRTE.Decoration"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

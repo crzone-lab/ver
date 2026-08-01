@@ -1,0 +1,17 @@
+{
+    "name": "FRTE.Surprise",
+    "rootNamespace": "FRTE.Surprise",
+    "references": [
+        "FRTE.Core",
+        "FRTE.Physics"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

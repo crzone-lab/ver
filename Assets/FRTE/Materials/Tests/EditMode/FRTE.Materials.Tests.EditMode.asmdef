@@ -1,0 +1,27 @@
+{
+    "name": "FRTE.Materials.Tests.EditMode",
+    "rootNamespace": "FRTE.Materials.Tests.EditMode",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "FRTE.Core",
+        "FRTE.Photo",
+        "FRTE.Physics",
+        "FRTE.Materials"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

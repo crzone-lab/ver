@@ -1,0 +1,16 @@
+{
+    "name": "FRTE.Photo",
+    "rootNamespace": "FRTE.Photo",
+    "references": [
+        "FRTE.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

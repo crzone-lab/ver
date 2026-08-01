@@ -1,0 +1,26 @@
+{
+    "name": "FRTE.Physics.Tests.EditMode",
+    "rootNamespace": "FRTE.Physics.Tests.EditMode",
+    "references": [
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner",
+        "FRTE.Core",
+        "FRTE.Photo",
+        "FRTE.Physics"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": true,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

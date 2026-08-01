@@ -1,0 +1,16 @@
+{
+    "name": "FRTE.Material",
+    "rootNamespace": "FRTE.Material",
+    "references": [
+        "FRTE.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

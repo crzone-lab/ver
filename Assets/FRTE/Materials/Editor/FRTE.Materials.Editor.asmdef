@@ -1,0 +1,21 @@
+{
+    "name": "FRTE.Materials.Editor",
+    "rootNamespace": "FRTE.Materials.Editor",
+    "references": [
+        "FRTE.Core",
+        "FRTE.Photo",
+        "FRTE.Physics",
+        "FRTE.Materials"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

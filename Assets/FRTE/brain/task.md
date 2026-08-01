@@ -1,0 +1,30 @@
+# FruitRabbit Squishy Round 4 Tasks
+
+- [x] State Mode Controller Setup
+    - [x] Create `SquishyAppMode` & `IAppModeController` in Core
+    - [x] Isolate input conflicts in non-Play states (Bypass touch deforms in Decoration/PhotoZone)
+- [x] Decoration Module Setup
+    - [x] Create `DecorationPreset` and `DecorationInstanceData` SO definitions
+    - [x] Create provider, library loader generating 30 placeholder presets
+    - [x] Create controller supporting Translate, Rotate, Scale, Flip, Duplicate, Delete, Sorting Order
+- [x] Face Landmark Alignment
+    - [x] Implement facial landmark auto-position offsets (TopHead, Cheek, Eyes)
+    - [x] Implement manual point marker overrides for failed/no detection
+- [x] PhotoZone Module Setup
+    - [x] Setup 10-layer sorting sequence
+    - [x] Create 5 default zones (Strawberry Farm, Lemon Garden, Peach Village, Watermelon Beach, Grape Tunnel)
+    - [x] Create transition controllers preserving mesh deformations and materials
+- [x] Subject Extraction Masking
+    - [x] Create `ISubjectMaskProvider` contract and mock
+    - [x] Implement face-only real human crop vs full body illustration character crop rules
+- [x] Surprise Event Solver
+    - [x] Evaluate triggers (TapCount, ConsecutiveTap, LongPress, SpecificArea, MaterialSpecific, ZoneSpecific)
+    - [x] Create 9 standard visual surprise events using Object Pooled procedural tweens
+- [x] Local Collection Book
+    - [x] Implement local PlayerPrefs repository with self-healing json validation
+    - [x] Track UTC discovery logs, first/repeat counts, and updates
+- [x] Extended debug panels and Procedural comparison scene
+    - [x] Connect mode, decoration, photozone, and collection status to Debug GUI
+    - [x] Setup `FRTE_MaterialPresetDemo` and `FRTE_MaterialPresetDemo` procedurally
+- [x] Automated NUnit Verification
+    - [x] Write EditMode/PlayMode tests for Decoration, PhotoZone, Surprise, and Collection
