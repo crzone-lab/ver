@@ -2463,12 +2463,14 @@
         }
 
         function importFromIllustrationCard(cardId) {
-            activeEmoji = '🎨';
-            activeBase = 'illust_body';
-            showNotification(i18n.t('notif-illust-crop'));
-
+            const input = document.getElementById('illust-input') || document.getElementById('camera-input');
+            if (input) {
+                input.value = ''; // Reset input to allow selecting same file again
+                input.click();
+            }
             document.querySelectorAll('#character-pop .grid-card').forEach(el => el.classList.remove('active'));
-            document.getElementById(cardId).classList.add('active');
+            const cardEl = document.getElementById(cardId);
+            if (cardEl) cardEl.classList.add('active');
             closePop('character-pop');
         }
 
@@ -4990,7 +4992,11 @@
         }
 
         function triggerImageImport() {
-            document.getElementById('camera-input').click();
+            const input = document.getElementById('illust-input') || document.getElementById('camera-input');
+            if (input) {
+                input.value = '';
+                input.click();
+            }
         }
 
         // Initialize Lobby on start
