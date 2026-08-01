@@ -2710,11 +2710,20 @@
             ctx.fillStyle = subGrad;
             ctx.fill();
 
-            // Draw green rind along the bottom curve
-            ctx.strokeStyle = `hsla(120, 85%, 36%, 0.9)`;
-            ctx.lineWidth = size * 0.075;
+            // Draw dual-layered rind (white inner layer + vibrant green outer layer)
+            // matching the bottom curve path exactly
+            ctx.strokeStyle = '#fdfdfd'; // White rind layer
+            ctx.lineWidth = size * 0.22;
             ctx.beginPath();
-            ctx.arc(0, -size * 0.07, size * 0.35, 0.25, Math.PI - 0.25, false);
+            ctx.moveTo(-size * 0.36, -size * 0.22);
+            ctx.quadraticCurveTo(0, size * 0.42, size * 0.36, -size * 0.22);
+            ctx.stroke();
+
+            ctx.strokeStyle = '#27ae60'; // Vibrant green rind layer
+            ctx.lineWidth = size * 0.12;
+            ctx.beginPath();
+            ctx.moveTo(-size * 0.36, -size * 0.22);
+            ctx.quadraticCurveTo(0, size * 0.42, size * 0.36, -size * 0.22);
             ctx.stroke();
 
             // Draw tiny black seeds
