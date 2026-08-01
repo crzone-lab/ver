@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>FruitRabbit KeycapLab</title>
+  <link rel="stylesheet" href="./style.css?v=20260802-v33">
+</head>
+<body>
+  <main class="phone-shell">
+    <div class="ambient ambient-a"></div>
+    <div class="ambient ambient-b"></div>
+    <canvas id="extendedLedCanvas" aria-hidden="true"></canvas>
+
+    <section class="mobile-start-screen" id="mobileStartScreen" aria-label="FruitRabbit KeycapLab 게임 시작">
+      <img src="./assets/logo.png?v=20260801-v10" alt="FruitRabbit KeycapLab">
+      <button type="button" id="enterGameButton">
+        <span>▶</span>
+        <strong data-i18n="start">START</strong>
+      </button>
+    </section>
+
+    <header class="topbar">
+      <div class="top-left-actions">
+        <button class="icon-button image-button home-button" id="menuToggle" aria-label="홈" data-i18n-aria="home">
+          <img src="./assets/home.png?v=20260801-v10" alt="">
+        </button>
+        <button class="icon-button image-button reset-button" id="gameResetButton" aria-label="게임 처음부터 다시 시작" title="게임 리셋">
+          <img src="./assets/reset.png?v=20260801-v1" alt="">
+        </button>
+      </div>
+      <div class="brand">
+        <img class="brand-logo" src="./assets/fruitrabbit-keycaplab-logo.png?v=20260801-v10" alt="FruitRabbit KeycapLab">
+      </div>
+      <div class="top-actions">
+        <button class="icon-button image-button feature-top-button active" id="audioToggle" aria-label="오디오 켜짐" aria-pressed="true" hidden>
+          <img src="./assets/icons/Audio/128px/ICO_FRTE_Audio_AudioOn.png" alt="">
+        </button>
+        <button class="icon-button image-button" id="photoCaptureToggle" aria-label="선택한 키에 사진 촬영" title="사진 촬영">
+          <img src="./assets/photo.png?v=20260801-v1" alt="">
+        </button>
+        <button class="icon-button image-button" id="settingsToggle" aria-label="피드백 설정 열기" data-i18n-aria="settingsOpen" aria-expanded="false">
+          <img src="./assets/setting.png?v=20260801-v10" alt="">
+        </button>
+      </div>
+    </header>
+
+    <nav class="mode-switcher" aria-label="Play mode">
+      <button class="mode-button active" id="freeModeButton" aria-pressed="true">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><rect x="7" y="13" width="34" height="25" rx="8"/><circle cx="17" cy="24" r="4"/><path d="M29 20h7M32.5 16.5v7"/></svg>
+        <span data-i18n="free">자유 연주</span>
+      </button>
+      <button class="mode-button rhythm-mode" id="rhythmModeButton" aria-pressed="false">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M18 12v23M18 16l20-4v20"/><circle cx="13" cy="36" r="6"/><circle cx="33" cy="33" r="6"/></svg>
+        <span data-i18n="rhythm">리듬 게임</span>
+      </button>
+      <button class="mode-button memory-mode" id="memoryModeButton" aria-pressed="false">
+        <svg viewBox="0 0 48 48" aria-hidden="true"><path d="M15 20a9 9 0 0 1 18-1c4 1 6 4 6 8 0 5-4 8-9 8H17c-5 0-8-3-8-8 0-3 2-6 6-7Z"/><path d="M19 18v16M29 18v16M15 25h18"/></svg>
+        <span>기억 게임</span>
+      </button>
+    </nav>
+
+    <nav class="edit-categories" aria-label="키패드 편집" data-i18n-aria="keypadEdit">
+      <button class="edit-category" id="colorCategory" data-i18n="keyColor">키캡 컬러</button>
+      <button class="edit-category" id="characterCategory" data-i18n="imageReplace">이미지 교체</button>
+      <button class="edit-category" id="layoutCategory" data-i18n="reposition">위치 변경</button>
+    </nav>
+
+    <section class="feedback-panel" id="feedbackPanel" aria-label="키 피드백 설정">
+      <button class="feedback-toggle active" id="panelAudioToggle" aria-pressed="true">
+        <img src="./assets/icons/Audio/128px/ICO_FRTE_Audio_AudioOn.png" alt="">
+        <span>SOUND</span>
+      </button>
+      <button class="feedback-toggle active" id="ledToggle" aria-pressed="true">
+        <img src="./assets/icons/LED/128px/ICO_FRTE_LED_LEDOn.png" alt="">
+        <span>LED</span>
+      </button>
+      <button class="feedback-toggle active" id="hapticToggle" aria-pressed="true">
+        <img src="./assets/icons/Haptic/128px/ICO_FRTE_Haptic_HapticOn.png" alt="">
+        <span>HAPTIC</span>
+      </button>
+      <div class="sound-editor">
+        <strong id="soundEditorTitle">KEY 1 효과음</strong>
+        <select id="soundModeSelect" aria-label="선택한 키의 효과음 모드">
+          <option value="random">랜덤 효과음</option>
+          <option value="default">기본 키캡음</option>
+          <option value="custom">등록한 효과음</option>
+        </select>
+        <label class="sound-file-button">효과음 등록<input id="customSoundInput" type="file" accept="audio/*"></label>
+        <span id="customSoundName">등록된 파일 없음</span>
+      </div>
+      <a class="privacy-link" href="https://fruitrabbitgame.vercel.app/privacy.html" target="_blank" rel="noopener">개인정보처리방침</a>
+    </section>
+
+    <section class="tool-panel color-panel" id="colorPanel" aria-label="키캡 컬러 설정">
+      <div class="color-key-grid" id="colorKeyGrid" aria-label="9개 키캡 선택"></div>
+      <div class="color-editor">
+        <span id="colorTargetLabel">KEY 1 COLOR</span>
+        <div class="color-swatches" id="colorSwatches"></div>
+        <label class="custom-color" title="사용자 색상">
+          <input type="color" id="customColor" value="#f3a6bd">
+        </label>
+        <button class="apply-all-color" id="applyAllColor">ALL</button>
+      </div>
+    </section>
+
+    <section class="tool-panel instruction-panel" id="characterPanel">
+      <strong>IMAGE</strong>
+      <span data-i18n="imageHelp">9개 키 중 원하는 키를 눌러 핸드폰 그림 폴더에서 이미지를 교체하세요.</span>
+    </section>
+
+    <section class="tool-panel instruction-panel" id="layoutPanel" hidden></section>
+
+    <section class="hero">
+      <div>
+        <p class="eyebrow">RHYTHM TOUCH DEMO</p>
+        <h1>Touch the <em>Fruit Beat!</em></h1>
+        <p class="subtitle rhythm-only-message" data-i18n="subtitle" hidden>빛나는 키를 박자에 맞춰 터치하세요.</p>
+      </div>
+      <img class="rabbit" src="./assets/fruitrabbit.png" alt="FruitRabbit 딸기토끼 캐릭터">
+    </section>
+
+    <section class="key-deck" aria-label="3 × 3 리듬 키">
+      <div class="deck-glow"></div>
+      <canvas id="key3DCanvas" aria-hidden="true"></canvas>
+      <div class="key-grid" id="keyGrid"></div>
+      <button type="button" class="option-done" id="optionDone">OK</button>
+    </section>
+
+    <section class="status-card bottom-score-card" aria-live="polite">
+      <div><span data-i18n="score">SCORE</span><strong id="score">000000</strong></div>
+      <div><span data-i18n="combo">COMBO</span><strong id="combo">0</strong></div>
+      <div class="judgement" id="judgement" data-i18n="ready">READY</div>
+      <div class="memory-actions" id="memoryActions" hidden>
+        <span class="memory-clock-group"><small>LEVEL</small><b class="memory-clock" id="memoryLevelClock">00:00.00</b></span>
+        <span class="memory-clock-group"><small>TOTAL</small><b class="memory-clock" id="memoryTotalClock">00:00.00</b></span>
+        <button type="button" class="memory-start" id="memoryStartButton">▶ START</button>
+      </div>
+    </section>
+
+    <button id="startButton" type="button" hidden><span id="startLabel">START</span></button>
+
+    <div id="cropModal" class="crop-modal" style="display: none;">
+      <div class="crop-container">
+        <h3 data-i18n="editTitle">캐릭터 편집 및 촬영</h3>
+        <p data-i18n="editHelp">가이드라인 안에 맞게 이미지를 드래그하여 조절하거나, 실시간 사진 촬영을 통해 바로 넣을 수 있습니다.</p>
+        <div class="crop-workspace">
+          <canvas id="cropCanvas"></canvas>
+          <video id="webcamVideo" autoplay playsinline style="display: none; width: 100%; height: 100%; object-fit: cover; position: absolute; inset: 0; z-index: 2; border-radius: 20px;"></video>
+          <div class="crop-guide" style="z-index: 5;"></div>
+        </div>
+        <div class="webcam-actions" style="margin-bottom: 15px; display: flex; justify-content: center; gap: 8px;">
+          <button type="button" id="btnToggleCamera" data-i18n="cameraOn" style="padding: 7px 14px; font-size: 11px; border-radius: 10px; border: 1px solid rgba(255,255,255,0.22); background: rgba(255,255,255,0.06); color: white; font-weight: 800; cursor: pointer;">📷 카메라 켜기</button>
+          <button type="button" id="btnSwitchCamera" style="display: none; padding: 7px 14px; font-size: 11px; border-radius: 10px; border: 1px solid rgba(103,221,255,.45); background: rgba(103,221,255,.14); color: white; font-weight: 800; cursor: pointer;">🔄 전면/후면</button>
+          <button type="button" id="btnCapturePhoto" data-i18n="capture" style="display: none; padding: 7px 14px; font-size: 11px; border-radius: 10px; border: 1px solid #ff79d3; background: rgba(255,121,211,0.25); color: white; font-weight: 800; cursor: pointer;">📸 즉석 사진 찍기</button>
+        </div>
+        <div class="crop-controls">
+          <span>zoom</span>
+          <input type="range" id="cropZoom" min="0.5" max="4" step="0.05" value="1">
+        </div>
+        <div class="crop-actions">
+          <button type="button" class="btn-cancel" id="cropCancel" data-i18n="cancel">취소</button>
+          <button type="button" class="btn-apply" id="cropApply" data-i18n="apply">적용하기</button>
+        </div>
+      </div>
+    </div>
+    <div id="actionSelectModal" class="crop-modal" style="display: none; z-index: 210;">
+      <div class="crop-container" style="max-width: 320px; padding: 28px 20px;">
+        <h3 data-i18n="chooseTitle" style="margin-bottom: 12px; font-size: 19px;">캐릭터 교체 선택</h3>
+        <p data-i18n="chooseHelp" style="margin-bottom: 24px; font-size: 11px;">원하시는 교체 방식을 선택해주세요.</p>
+        <div style="display: grid; grid-template-columns: 1fr; gap: 12px;">
+          <button type="button" id="btnChooseCamera" class="btn-apply" data-i18n="chooseCamera" style="min-height: 52px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px;">📷 실시간 사진 촬영</button>
+          <button type="button" id="btnChooseFolder" class="btn-cancel" data-i18n="chooseFolder" style="min-height: 52px; font-size: 14px; display: flex; align-items: center; justify-content: center; gap: 8px; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15) !important; color: white;">📂 그림 폴더 (갤러리)</button>
+          <button type="button" id="btnSelectCancel" data-i18n="close" style="margin-top: 8px; min-height: 40px; font-size: 12px; background: transparent; border: 0; color: #7f87ae; font-weight: 700; cursor: pointer;">닫기</button>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      <span>FRTE v1.0</span>
+      <span class="online-dot"></span>
+      <span>LOCAL PREVIEW</span>
+    </footer>
+  </main>
+  <script src="./i18n.js?v=20260801-v4"></script>
+  <script src="./vendor/three.min.js"></script>
+  <script src="./three-render.js?v=20260802-v18"></script>
+  <script src="./app.js?v=20260802-v46"></script>
+</body>
+</html>
