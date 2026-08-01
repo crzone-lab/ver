@@ -529,34 +529,47 @@
             flex: 1;
             padding: 10px 0;
             border-radius: 14px;
-            background: rgba(0, 0, 0, 0.25);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            color: rgba(255, 255, 255, 0.75);
             font-size: 0.85rem;
             font-weight: 700;
             text-align: center;
             cursor: pointer;
-            backdrop-filter: blur(10px);
             transition: all 0.2s ease;
         }
 
-        .feel-pill.active {
-            color: #fff;
-            border-color: rgba(255, 255, 255, 0.3);
+        #pill-jelly {
+            background: #7d1c24 !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        #pill-mochi {
+            background: #804a18 !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+        }
+        #pill-slime {
+            background: #085440 !important;
+            color: rgba(255, 255, 255, 0.6) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
         }
 
         #pill-jelly.active {
             background: #ff4757 !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
             box-shadow: 0 4px 15px rgba(255, 71, 87, 0.45);
         }
 
         #pill-mochi.active {
             background: #ff9f43 !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
             box-shadow: 0 4px 15px rgba(255, 159, 67, 0.45);
         }
 
         #pill-slime.active {
             background: #10ac84 !important;
+            color: #fff !important;
+            border: 1px solid rgba(255, 255, 255, 0.3) !important;
             box-shadow: 0 4px 15px rgba(16, 172, 132, 0.45);
         }
 
@@ -1225,8 +1238,8 @@
             points = [];
             springs = [];
 
-            let meshW = 460;
-            let meshH = 307;
+            let meshW = 540;
+            let meshH = 360;
             let startX = (width - meshW) / 2;
             let startY = (height - meshH) / 2;
 
