@@ -1005,6 +1005,7 @@
                     <div class="camera-face-guide-oval"></div>
                     <div class="camera-face-guide-text" data-i18n="cam-guide-text">이 영역 안에 얼굴을 맞춰주세요</div>
                 </div>
+                <canvas id="camera-draw-crop-canvas" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; cursor: crosshair; touch-action: none;"></canvas>
                 <canvas id="camera-canvas" style="display: none;"></canvas>
             </div>
             
@@ -1307,7 +1308,8 @@
                     "cam-save": "저장",
                     "cam-facing-label": "화면전환",
                     "cam-exit-label": "나가기",
-                    "cam-guide-text": "이 영역 안에 얼굴을 맞춰주세요"
+                    "cam-guide-text": "이 영역 안에 얼굴을 맞춰주세요",
+                    "cam-draw-guide-text": "손가락으로 얼굴 외곽선을 그려서 잘라보세요! (안 그리면 기본 타원으로 저장)"
                 },
                 en: {
                     "btn-gamestart": "Game Start",
@@ -1389,7 +1391,8 @@
                     "cam-save": "Save",
                     "cam-facing-label": "Switch Camera",
                     "cam-exit-label": "Exit",
-                    "cam-guide-text": "Align your face inside this area"
+                    "cam-guide-text": "Align your face inside this area",
+                    "cam-draw-guide-text": "Trace your face with your finger! (Or save as oval by default)"
                 },
                 ja: {
                     "btn-gamestart": "ゲーム開始",
@@ -1467,7 +1470,8 @@
                     "cam-save": "保存",
                     "cam-facing-label": "カメラ切替",
                     "cam-exit-label": "終了",
-                    "cam-guide-text": "この枠内に顔を合わせてください"
+                    "cam-guide-text": "この枠内に顔を合わせてください",
+                    "cam-draw-guide-text": "指で顔の輪郭を描いて切り抜けます！(描かない場合は楕円で保存)"
                 },
                 zh: {
                     "btn-gamestart": "开始游戏",
@@ -1545,7 +1549,8 @@
                     "cam-save": "保存",
                     "cam-facing-label": "切换相机",
                     "cam-exit-label": "退出",
-                    "cam-guide-text": "请将脸部对准此区域"
+                    "cam-guide-text": "请将脸部对准此区域",
+                    "cam-draw-guide-text": "用手指画出脸部轮廓进行裁剪！（不画则默认保存为椭圆）"
                 }
             },
             t(key) {
@@ -1826,6 +1831,97 @@
             reader.readAsDataURL(file);
         }
 
+        // ✍️ 손가락 드로잉 오리기(자르기) 상태 변수
+        let drawCropPoints = [];
+        let isDrawingCrop = false;
+
+        function initDrawingCrop() {
+            const drawCanvas = document.getElementById('camera-draw-crop-canvas');
+            if (!drawCanvas) return;
+            
+            drawCropPoints = [];
+            isDrawingCrop = false;
+            
+            // Set drawing canvas size to actual display dimensions
+            drawCanvas.width = drawCanvas.clientWidth;
+            drawCanvas.height = drawCanvas.clientHeight;
+            
+            const ctx = drawCanvas.getContext('2d');
+            ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+            
+            function getPos(e) {
+                const rect = drawCanvas.getBoundingClientRect();
+                const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+                const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+                return {
+                    x: (clientX - rect.left) / rect.width,
+                    y: (clientY - rect.top) / rect.height
+                };
+            }
+            
+            function handleStart(e) {
+                e.preventDefault();
+                isDrawingCrop = true;
+                drawCropPoints = [getPos(e)];
+                drawPath();
+            }
+            
+            function handleMove(e) {
+                if (!isDrawingCrop) return;
+                e.preventDefault();
+                drawCropPoints.push(getPos(e));
+                drawPath();
+            }
+            
+            function handleEnd(e) {
+                if (!isDrawingCrop) return;
+                isDrawingCrop = false;
+                if (drawCropPoints.length > 2) {
+                    drawCropPoints.push({ x: drawCropPoints[0].x, y: drawCropPoints[0].y });
+                }
+                drawPath();
+            }
+            
+            function drawPath() {
+                ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
+                if (drawCropPoints.length < 2) return;
+                
+                // Draw a beautiful semi-transparent neon glow red path line
+                ctx.strokeStyle = '#ff4757';
+                ctx.lineWidth = 5;
+                ctx.lineCap = 'round';
+                ctx.lineJoin = 'round';
+                ctx.shadowColor = '#ff4757';
+                ctx.shadowBlur = 10;
+                
+                ctx.beginPath();
+                ctx.moveTo(drawCropPoints[0].x * drawCanvas.width, drawCropPoints[0].y * drawCanvas.height);
+                for (let i = 1; i < drawCropPoints.length; i++) {
+                    ctx.lineTo(drawCropPoints[i].x * drawCanvas.width, drawCropPoints[i].y * drawCanvas.height);
+                }
+                ctx.stroke();
+                
+                // Draw fill tint to visualize crop area
+                ctx.shadowBlur = 0;
+                ctx.fillStyle = 'rgba(255, 71, 87, 0.15)';
+                ctx.fill();
+            }
+            
+            // Register pointer events for high compatibility on both mobile touch and desktop mouse
+            if (window.PointerEvent) {
+                drawCanvas.onpointerdown = handleStart;
+                drawCanvas.onpointermove = handleMove;
+                drawCanvas.onpointerup = handleEnd;
+            } else {
+                drawCanvas.ontouchstart = handleStart;
+                drawCanvas.ontouchmove = handleMove;
+                drawCanvas.ontouchend = handleEnd;
+                drawCanvas.onmousedown = handleStart;
+                drawCanvas.onmousemove = handleMove;
+                drawCanvas.onmouseup = handleEnd;
+            }
+        }
+
         async function openCustomCamera() {
             stopAutopilot();
             const overlay = document.getElementById('custom-camera-overlay');
@@ -1835,6 +1931,7 @@
             const saveBtn = document.getElementById('cam-btn-save');
             const captureBtn = document.getElementById('cam-btn-capture');
             const guide = document.getElementById('camera-face-guide');
+            const drawCanvas = document.getElementById('camera-draw-crop-canvas');
 
             if (!overlay || !video) return;
 
@@ -1845,6 +1942,7 @@
             if (saveBtn) saveBtn.style.display = 'none';
             if (captureBtn) captureBtn.style.display = 'inline-block';
             if (guide) guide.style.display = 'flex';
+            if (drawCanvas) drawCanvas.style.display = 'none';
 
             overlay.style.display = 'flex';
 
@@ -1878,6 +1976,8 @@
             if (video) video.srcObject = null;
             const guide = document.getElementById('camera-face-guide');
             if (guide) guide.style.display = 'none';
+            const drawCanvas = document.getElementById('camera-draw-crop-canvas');
+            if (drawCanvas) drawCanvas.style.display = 'none';
         }
 
         async function toggleCameraFacing() {
@@ -1893,6 +1993,7 @@
             const retakeBtn = document.getElementById('cam-btn-retake');
             const saveBtn = document.getElementById('cam-btn-save');
             const guide = document.getElementById('camera-face-guide');
+            const drawCanvas = document.getElementById('camera-draw-crop-canvas');
 
             if (!cameraStream || !video) return;
 
@@ -1917,11 +2018,19 @@
             video.style.display = 'none';
             if (guide) guide.style.display = 'none';
 
+            // Show and init finger tracing crop canvas overlay
+            if (drawCanvas) {
+                drawCanvas.style.display = 'block';
+                // Wait for layout update to ensure dimensions are loaded
+                setTimeout(initDrawingCrop, 50);
+            }
+
             // Toggle button states
             if (captureBtn) captureBtn.style.display = 'none';
             if (retakeBtn) retakeBtn.style.display = 'inline-block';
             if (saveBtn) saveBtn.style.display = 'inline-block';
 
+            showNotification(i18n.t('cam-draw-guide-text') || "손가락으로 얼굴을 그려서 잘라보세요!");
             triggerHaptic(40);
         }
 
@@ -1932,6 +2041,7 @@
             const retakeBtn = document.getElementById('cam-btn-retake');
             const saveBtn = document.getElementById('cam-btn-save');
             const guide = document.getElementById('camera-face-guide');
+            const drawCanvas = document.getElementById('camera-draw-crop-canvas');
 
             if (video) video.style.display = 'block';
             if (preview) preview.style.display = 'none';
@@ -1939,6 +2049,10 @@
             if (retakeBtn) retakeBtn.style.display = 'none';
             if (saveBtn) saveBtn.style.display = 'none';
             if (guide) guide.style.display = 'flex';
+            if (drawCanvas) {
+                drawCanvas.style.display = 'none';
+                drawCropPoints = [];
+            }
         }
 
         function savePhotoToGrid() {
@@ -1947,39 +2061,80 @@
 
             const img = new Image();
             img.onload = function() {
-                processImageToJelly(img, true);
+                // Pass drawing path if they drew at least 6 points
+                const path = (drawCropPoints && drawCropPoints.length > 5) ? drawCropPoints : null;
+                processImageToJelly(img, true, path);
                 closeCustomCamera();
             };
             img.src = preview.src;
         }
 
-        function processImageToJelly(img, isCamera = false) {
+        function processImageToJelly(img, isCamera = false, customPath = null) {
             const size = 512;
             
-            // Canvas A: Original Image centered with margin or face cropped
+            // Canvas A: Original Image centered with margin or custom trace cropped
             const imgCanvas = document.createElement('canvas');
             imgCanvas.width = size;
             imgCanvas.height = size;
             const imgCtx = imgCanvas.getContext('2d');
             
             if (isCamera) {
-                // Apply a vertical oval clip path for face snapshot
                 imgCtx.save();
                 imgCtx.beginPath();
-                const cx = size / 2;
-                const cy = size / 2;
-                const rx = 135; // Horizontal radius
-                const ry = 180; // Vertical radius
-                imgCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                if (customPath && customPath.length > 5) {
+                    // Draw user's manual finger crop trace
+                    imgCtx.moveTo(customPath[0].x * size, customPath[0].y * size);
+                    for (let i = 1; i < customPath.length; i++) {
+                        imgCtx.lineTo(customPath[i].x * size, customPath[i].y * size);
+                    }
+                    imgCtx.closePath();
+                } else {
+                    // Default vertical oval clip path for face snapshot
+                    const cx = size / 2;
+                    const cy = size / 2;
+                    const rx = 135; // Horizontal radius
+                    const ry = 180; // Vertical radius
+                    imgCtx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
+                }
                 imgCtx.clip();
 
-                // Scale and draw the image inside the clipped oval (fill the 512x512 canvas area)
+                // Scale and draw the image inside the clipped path (fill the 512x512 canvas area)
                 const scale = Math.max(size / img.naturalWidth, size / img.naturalHeight);
                 const w = img.naturalWidth * scale;
                 const h = img.naturalHeight * scale;
                 const x = (size - w) / 2;
                 const y = (size - h) / 2;
                 imgCtx.drawImage(img, x, y, w, h);
+                imgCtx.restore();
+
+                // Glossy, color-coordinated outline border matching active preset feel
+                imgCtx.save();
+                imgCtx.lineWidth = 14;
+                let activeColor = '#ff4757'; // default jelly pink
+                const jellyPill = document.querySelector('.feel-pill.active');
+                if (jellyPill) {
+                    if (jellyPill.id === 'pill-mochi') activeColor = '#ff9f43'; // Mocho orange
+                    else if (jellyPill.id === 'pill-slime') activeColor = '#10ac84'; // Slime green
+                }
+                imgCtx.strokeStyle = activeColor;
+                imgCtx.shadowColor = activeColor;
+                imgCtx.shadowBlur = 12;
+
+                imgCtx.beginPath();
+                if (customPath && customPath.length > 5) {
+                    imgCtx.moveTo(customPath[0].x * size, customPath[0].y * size);
+                    for (let i = 1; i < customPath.length; i++) {
+                        imgCtx.lineTo(customPath[i].x * size, customPath[i].y * size);
+                    }
+                    imgCtx.closePath();
+                } else {
+                    const cx = size / 2;
+                    const cy = size / 2;
+                    const rx = 135;
+                    const ry = 180;
+                    imgCtx.ellipse(cx, cy, rx + 4, ry + 4, 0, 0, Math.PI * 2);
+                }
+                imgCtx.stroke();
                 imgCtx.restore();
             } else {
                 // Scale down to fit with margin for the gel border
