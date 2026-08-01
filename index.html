@@ -1842,20 +1842,35 @@
             drawCropPoints = [];
             isDrawingCrop = false;
             
-            // Set drawing canvas size to actual display dimensions
-            drawCanvas.width = drawCanvas.clientWidth;
-            drawCanvas.height = drawCanvas.clientHeight;
+            // Unconditionally set canvas size using parent container size to ensure non-zero bounds
+            const container = document.querySelector('.camera-video-container');
+            const w = container ? container.clientWidth : (drawCanvas.clientWidth || window.innerWidth);
+            const h = container ? container.clientHeight : (drawCanvas.clientHeight || window.innerHeight);
+            drawCanvas.width = w || 360;
+            drawCanvas.height = h || 640;
             
             const ctx = drawCanvas.getContext('2d');
             ctx.clearRect(0, 0, drawCanvas.width, drawCanvas.height);
             
             function getPos(e) {
                 const rect = drawCanvas.getBoundingClientRect();
-                const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
-                const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+                let clientX = e.clientX;
+                let clientY = e.clientY;
+                
+                if (e.touches && e.touches.length > 0) {
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else if (e.changedTouches && e.changedTouches.length > 0) {
+                    clientX = e.changedTouches[0].clientX;
+                    clientY = e.changedTouches[0].clientY;
+                }
+                
+                const widthBound = rect.width || 1;
+                const heightBound = rect.height || 1;
+                
                 return {
-                    x: (clientX - rect.left) / rect.width,
-                    y: (clientY - rect.top) / rect.height
+                    x: (clientX - rect.left) / widthBound,
+                    y: (clientY - rect.top) / heightBound
                 };
             }
             
@@ -1907,19 +1922,18 @@
                 ctx.fill();
             }
             
-            // Register pointer events for high compatibility on both mobile touch and desktop mouse
-            if (window.PointerEvent) {
-                drawCanvas.onpointerdown = handleStart;
-                drawCanvas.onpointermove = handleMove;
-                drawCanvas.onpointerup = handleEnd;
-            } else {
-                drawCanvas.ontouchstart = handleStart;
-                drawCanvas.ontouchmove = handleMove;
-                drawCanvas.ontouchend = handleEnd;
-                drawCanvas.onmousedown = handleStart;
-                drawCanvas.onmousemove = handleMove;
-                drawCanvas.onmouseup = handleEnd;
-            }
+            // Register both pointer events AND standard mouse/touch events directly for absolute compatibility
+            drawCanvas.onpointerdown = handleStart;
+            drawCanvas.onpointermove = handleMove;
+            drawCanvas.onpointerup = handleEnd;
+
+            drawCanvas.ontouchstart = handleStart;
+            drawCanvas.ontouchmove = handleMove;
+            drawCanvas.ontouchend = handleEnd;
+            
+            drawCanvas.onmousedown = handleStart;
+            drawCanvas.onmousemove = handleMove;
+            drawCanvas.onmouseup = handleEnd;
         }
 
         async function openCustomCamera() {
@@ -2105,36 +2119,6 @@
                 const x = (size - w) / 2;
                 const y = (size - h) / 2;
                 imgCtx.drawImage(img, x, y, w, h);
-                imgCtx.restore();
-
-                // Glossy, color-coordinated outline border matching active preset feel
-                imgCtx.save();
-                imgCtx.lineWidth = 14;
-                let activeColor = '#ff4757'; // default jelly pink
-                const jellyPill = document.querySelector('.feel-pill.active');
-                if (jellyPill) {
-                    if (jellyPill.id === 'pill-mochi') activeColor = '#ff9f43'; // Mocho orange
-                    else if (jellyPill.id === 'pill-slime') activeColor = '#10ac84'; // Slime green
-                }
-                imgCtx.strokeStyle = activeColor;
-                imgCtx.shadowColor = activeColor;
-                imgCtx.shadowBlur = 12;
-
-                imgCtx.beginPath();
-                if (customPath && customPath.length > 5) {
-                    imgCtx.moveTo(customPath[0].x * size, customPath[0].y * size);
-                    for (let i = 1; i < customPath.length; i++) {
-                        imgCtx.lineTo(customPath[i].x * size, customPath[i].y * size);
-                    }
-                    imgCtx.closePath();
-                } else {
-                    const cx = size / 2;
-                    const cy = size / 2;
-                    const rx = 135;
-                    const ry = 180;
-                    imgCtx.ellipse(cx, cy, rx + 4, ry + 4, 0, 0, Math.PI * 2);
-                }
-                imgCtx.stroke();
                 imgCtx.restore();
             } else {
                 // Scale down to fit with margin for the gel border
@@ -4640,7 +4624,7 @@
                         [174.61, 261.63, 329.63, 440.00]  // Fmaj7 (F2, C3, E3, A3)
                     ],
                     melodyNotes: [523.25, 587.33, 659.25, 783.99, 880.00, 1046.50, 1174.66, 1318.51], // C5, D5, E5, G5, A5, C6, D6, E6
-                    tempo: 3200
+                    tempo: 1600
                 },
                 {
                     name: "Joyful Peach",
@@ -4651,7 +4635,7 @@
                         [164.81, 220.00, 293.66, 329.63]  // E7sus4
                     ],
                     melodyNotes: [554.37, 659.25, 739.99, 880.00, 987.77, 1108.73, 1318.51, 1479.98], // A5, C#5...
-                    tempo: 3200
+                    tempo: 1600
                 },
                 {
                     name: "Sparkling Lemon",
@@ -4662,7 +4646,7 @@
                         [293.66, 329.63, 392.00, 440.00]  // D7
                     ],
                     melodyNotes: [587.33, 659.25, 739.99, 783.99, 880.00, 987.77, 1174.66, 1318.51], // G5, A5...
-                    tempo: 3200
+                    tempo: 1600
                 }
             ],
             
@@ -4718,14 +4702,13 @@
                         let now = audioCtx.currentTime;
                         let duration = track.tempo / 1000;
                         
-                        // Cheerful rhythmic pulsing envelope for chords
+                        // Bouncy plucky envelope for chords
                         gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.04, now + 0.05); // quick fade in
-                        gain.gain.setValueAtTime(0.04, now + duration - 0.4);
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+                        gain.gain.linearRampToValueAtTime(0.04, now + 0.02); // quick pluck attack
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8); // fast decay
                         
                         osc.start(now);
-                        osc.stop(now + duration);
+                        osc.stop(now + 0.8);
                     });
                     
                     this.chordStep++;
@@ -4770,15 +4753,15 @@
                         let now = audioCtx.currentTime;
                         // Crisp music box sound envelope (instant click, fast decay)
                         gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.07, now + 0.006); // plucky attack
-                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35); // fast release
+                        gain.gain.linearRampToValueAtTime(0.07, now + 0.005); // plucky attack
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22); // crisp fast release
                         
                         osc.start(now);
-                        osc.stop(now + 0.35);
+                        osc.stop(now + 0.22);
                     }
                     
-                    // Rhythmic quantized interval: 400ms (eighth notes)
-                    this.melodyTimerId = setTimeout(playMelody, 400);
+                    // Rhythmic quantized interval: 200ms (eighth notes at fast tempo)
+                    this.melodyTimerId = setTimeout(playMelody, 200);
                 };
                 
                 playNextMeasure();
