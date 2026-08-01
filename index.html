@@ -905,9 +905,12 @@
                     <span><span data-i18n="label-bgm">BGM Volume</span> (<span id="bgm-val">50%</span>)</span>
                     <input type="range" id="bgm-volume" min="0" max="100" value="50" oninput="updateBGMVolume()">
                 </div>
-                <div class="advanced-row" style="margin-top: 8px; justify-content: center; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
+                <div class="advanced-row" style="margin-top: 8px; justify-content: center; gap: 12px; border-top: 1px solid rgba(255,255,255,0.08); padding-top: 8px;">
                     <div class="action-circle-btn" onclick="resetSettings()" title="Reset Settings" data-i18n-title="btn-reset-settings" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1);">
                         <img src="reset.png" alt="Reset" style="width: 18px; height: 18px; object-fit: contain;">
+                    </div>
+                    <div class="action-circle-btn" onclick="toggleBrowserFullscreen()" title="Toggle Fullscreen" data-i18n-title="btn-toggle-fullscreen" style="width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.1); font-size: 15px; color: #fff; cursor: pointer; line-height: 1;">
+                        ⛶
                     </div>
                 </div>
             </div>
@@ -982,6 +985,11 @@
 
     <!-- Physics & UI simulation logic -->
     <script>
+        // Escape KakaoTalk in-app browser to default mobile browser for full features and support
+        if (/KAKAOTALK/i.test(navigator.userAgent)) {
+            location.href = 'kakaotalk://web/openExternal?url=' + encodeURIComponent(location.href);
+        }
+
         const canvas = document.getElementById('squishy-canvas');
         const ctx = canvas.getContext('2d');
 
@@ -1059,7 +1067,11 @@
                     "fruit-pear_rabbit": "배",
                     "fruit-tangerine_rabbit": "귤",
                     "fruit-tomato_rabbit": "토마토",
-                    "fruit-carrot_rabbit": "당근"
+                    "fruit-carrot_rabbit": "당근",
+                    "btn-toggle-fullscreen": "전체화면 토글",
+                    "notif-fullscreen-error": "전체화면을 지원하지 않는 브라우저/환경입니다.",
+                    "notif-fullscreen-entered": "🖥️ 전체화면 모드가 활성화되었습니다!",
+                    "notif-fullscreen-exited": "🚪 전체화면 모드가 해제되었습니다."
                 },
                 en: {
                     "btn-gamestart": "Game Start",
@@ -1132,7 +1144,11 @@
                     "fruit-pear_rabbit": "Pear",
                     "fruit-tangerine_rabbit": "Tangerine",
                     "fruit-tomato_rabbit": "Tomato",
-                    "fruit-carrot_rabbit": "Carrot"
+                    "fruit-carrot_rabbit": "Carrot",
+                    "btn-toggle-fullscreen": "Toggle Fullscreen",
+                    "notif-fullscreen-error": "Fullscreen is not supported on this browser/context.",
+                    "notif-fullscreen-entered": "🖥️ Fullscreen mode enabled!",
+                    "notif-fullscreen-exited": "🚪 Fullscreen mode disabled."
                 },
                 ja: {
                     "btn-gamestart": "ゲーム開始",
@@ -4079,6 +4095,24 @@
             updateBGMVolume();
             selectFeelPill('jelly');
             showNotification(i18n.t('notif-reset-settings'));
+        }
+
+        function toggleBrowserFullscreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen()
+                    .then(() => {
+                        showNotification(i18n.t('notif-fullscreen-entered'));
+                    })
+                    .catch(err => {
+                        console.log("Error enabling fullscreen:", err);
+                        showNotification(i18n.t('notif-fullscreen-error'));
+                    });
+            } else {
+                document.exitFullscreen()
+                    .then(() => {
+                        showNotification(i18n.t('notif-fullscreen-exited'));
+                    });
+            }
         }
 
         function handlePhotoZoneGlobal() {
