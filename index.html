@@ -2138,7 +2138,17 @@
 
         function savePhotoToGrid() {
             const preview = document.getElementById('camera-preview');
-            if (!preview || !preview.src || preview.src.startsWith('data:image/svg+xml')) return;
+            const cameraCanvas = document.getElementById('camera-canvas');
+            let imgSrc = (preview && preview.src && !preview.src.startsWith('data:image/svg+xml')) ? preview.src : null;
+            if (!imgSrc && cameraCanvas) {
+                try {
+                    imgSrc = cameraCanvas.toDataURL('image/png');
+                } catch(e) {}
+            }
+            if (!imgSrc) {
+                showNotification("사진을 먼저 캡처해 주세요!");
+                return;
+            }
 
             const guideCenter = getFaceGuideRelativeCenter();
 
@@ -2150,7 +2160,7 @@
                 setScreenMode('playground');
                 showNotification("사진 캐릭터가 성공적으로 등록되었습니다!");
             };
-            img.src = preview.src;
+            img.src = imgSrc;
         }
 
         function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
@@ -4551,7 +4561,7 @@
             plusBubble.style.fontSize = '2rem';
             plusBubble.style.fontWeight = 'bold';
             plusBubble.style.color = 'rgba(255, 255, 255, 0.6)';
-            plusBubble.onclick = () => openCustomCamera();
+            plusBubble.onclick = () => triggerImageImport();
             grid.appendChild(plusBubble);
         }
 
