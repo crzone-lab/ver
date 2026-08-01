@@ -1549,13 +1549,13 @@
                 this.vy = 0;
             }
             update() {
-                // Weak origin spring to allow cohesive whole-body translation
-                let fx = (this.ox - this.x) * (stiffness * 0.003);
-                let fy = (this.oy - this.y) * (stiffness * 0.003);
+                // Origin spring restoration force for snappy 100% shape recovery
+                let fx = (this.ox - this.x) * (stiffness * 0.08);
+                let fy = (this.oy - this.y) * (stiffness * 0.08);
                 this.vx += fx;
                 this.vy += fy;
-                this.vx *= (1 - damping * 0.035);
-                this.vy *= (1 - damping * 0.035);
+                this.vx *= (1 - damping * 0.02);
+                this.vy *= (1 - damping * 0.02);
                 this.x += this.vx * 0.016;
                 this.y += this.vy * 0.016;
             }
@@ -1574,7 +1574,7 @@
                 if (dist < 0.1) return;
 
                 // Hooke's law force between vertices
-                let force = (dist - this.restLength) * (stiffness * 0.035);
+                let force = (dist - this.restLength) * (stiffness * 0.12);
                 let nx = dx / dist;
                 let ny = dy / dist;
 
