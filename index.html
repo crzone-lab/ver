@@ -4736,7 +4736,7 @@
 
         function goBackToLobby() {
             stopAutopilot();
-            setScreenMode('lobby');
+            setScreenMode('playground');
             renderLobbyGrid(); // Refresh lobby
         }
 
@@ -5034,7 +5034,7 @@
         initMesh();
         draw();
         renderLobbyGrid();
-        setScreenMode('lobby');
+        setScreenMode('playground');
 
         // Assign Base64 character artwork dynamically to card selector thumbnail on load
         setTimeout(() => {
