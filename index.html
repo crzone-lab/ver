@@ -980,6 +980,7 @@
 <body>
     <input type="file" id="camera-input" accept="image/*" style="display:none;" onchange="handleCameraUpload(event, true)">
     <input type="file" id="illust-input" accept="image/*" style="display:none;" onchange="handleCameraUpload(event, false)">
+    <input type="file" id="illust-input" accept="image/*" style="display:none;" onchange="handleCameraUpload(event, false)">
 
     <!-- Phone Simulator Frame -->
     <div class="phone-frame">
@@ -2369,29 +2370,7 @@
                     }
                 }
 
-                // Canvas B: Solid Character Mask Canvas
-                const maskCanvas = document.createElement('canvas');
-                maskCanvas.width = size;
-                maskCanvas.height = size;
-                const maskCtx = maskCanvas.getContext('2d');
-                maskCtx.drawImage(imgCanvas, 0, 0);
-                
-                const maskData = maskCtx.getImageData(0, 0, size, size);
-                const mPixels = maskData.data;
-                for (let i = 0; i < mPixels.length; i += 4) {
-                    const alpha = mPixels[i + 3];
-                    if (alpha > 10) {
-                        mPixels[i] = 255;
-                        mPixels[i+1] = 255;
-                        mPixels[i+2] = 255;
-                        mPixels[i+3] = 255;
-                    } else {
-                        mPixels[i+3] = 0;
-                    }
-                }
-                maskCtx.putImageData(maskData, 0, 0);
-
-                // --- 3D VOLUMETRIC GLASS/GUMMY JELLY RENDER ENGINE ---
+                // --- 100% CLEAN PURE GRAPHICS WITH 3D FLOATING DROP SHADOW ---
                 const finalCanvas = document.createElement('canvas');
                 finalCanvas.width = size;
                 finalCanvas.height = size;
@@ -2399,82 +2378,14 @@
 
                 // 1. Soft 3D Floating Drop Shadow
                 finalCtx.save();
-                finalCtx.shadowColor = 'rgba(0, 0, 0, 0.28)';
+                finalCtx.shadowColor = 'rgba(0, 0, 0, 0.32)';
                 finalCtx.shadowBlur = 18;
                 finalCtx.shadowOffsetY = 10;
-                finalCtx.drawImage(maskCanvas, 0, 0);
+                finalCtx.drawImage(imgCanvas, 0, 0);
                 finalCtx.restore();
 
-                // 2. Clear inside of drop shadow
-                finalCtx.globalCompositeOperation = 'destination-out';
-                finalCtx.drawImage(maskCanvas, 0, 0);
-                finalCtx.globalCompositeOperation = 'source-over';
-
-                // 3. Draw original crisp image/photo (100% full original colors)
+                // 2. Draw 100% crisp original artwork/photo on top (NO white mask overlays!)
                 finalCtx.drawImage(imgCanvas, 0, 0);
-
-                // 4. Create 3D Top-Left Glass Bevel Highlight (Glossy Rim)
-                const bevelHighlight = document.createElement('canvas');
-                bevelHighlight.width = size;
-                bevelHighlight.height = size;
-                const bhCtx = bevelHighlight.getContext('2d');
-                bhCtx.shadowColor = 'rgba(255, 255, 255, 0.85)';
-                bhCtx.shadowBlur = 10;
-                bhCtx.shadowOffsetX = 2000 + 6;
-                bhCtx.shadowOffsetY = 2000 + 6;
-                bhCtx.drawImage(maskCanvas, -2000, -2000);
-
-                const clippedHighlight = document.createElement('canvas');
-                clippedHighlight.width = size;
-                clippedHighlight.height = size;
-                const chCtx = clippedHighlight.getContext('2d');
-                chCtx.drawImage(maskCanvas, 0, 0);
-                chCtx.globalCompositeOperation = 'source-in';
-                chCtx.drawImage(bevelHighlight, 0, 0);
-
-                // 5. Create 3D Bottom-Right Gel Depth Shadow
-                const bevelShadow = document.createElement('canvas');
-                bevelShadow.width = size;
-                bevelShadow.height = size;
-                const bsCtx = bevelShadow.getContext('2d');
-                bsCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-                bsCtx.shadowBlur = 12;
-                bsCtx.shadowOffsetX = 2000 - 6;
-                bsCtx.shadowOffsetY = 2000 - 6;
-                bsCtx.drawImage(maskCanvas, -2000, -2000);
-
-                const clippedShadow = document.createElement('canvas');
-                clippedShadow.width = size;
-                clippedShadow.height = size;
-                const csCtx = clippedShadow.getContext('2d');
-                csCtx.drawImage(maskCanvas, 0, 0);
-                csCtx.globalCompositeOperation = 'source-in';
-                csCtx.drawImage(bevelShadow, 0, 0);
-
-                // 6. Create Glossy Specular Glass Reflection Oval
-                const specularCanvas = document.createElement('canvas');
-                specularCanvas.width = size;
-                specularCanvas.height = size;
-                const specCtx = specularCanvas.getContext('2d');
-                specCtx.save();
-                specCtx.fillStyle = 'rgba(255, 255, 255, 0.55)';
-                specCtx.beginPath();
-                specCtx.ellipse(170, 160, 40, 20, -Math.PI / 6, 0, Math.PI * 2);
-                specCtx.fill();
-                specCtx.restore();
-
-                const clippedSpecular = document.createElement('canvas');
-                clippedSpecular.width = size;
-                clippedSpecular.height = size;
-                const specClipCtx = clippedSpecular.getContext('2d');
-                specClipCtx.drawImage(maskCanvas, 0, 0);
-                specClipCtx.globalCompositeOperation = 'source-in';
-                specClipCtx.drawImage(specularCanvas, 0, 0);
-
-                // Overlay 3D Glass Effects onto finalCtx
-                finalCtx.drawImage(clippedShadow, 0, 0);
-                finalCtx.drawImage(clippedHighlight, 0, 0);
-                finalCtx.drawImage(clippedSpecular, 0, 0);
 
                 const finalImgData = finalCanvas.toDataURL('image/png');
                 
@@ -4162,9 +4073,9 @@
                     
                     touchTime = Math.min(touchTime + 1, 120);
                     // Moderate and progressive build up (charged in 45 frames, up to 1.5)
-                    let squishIntensity = Math.min(touchTime / 45, 1.5);
-                    let squishForce = squishIntensity * 5.5; // Slightly boosted multiplier for deeper sink
-                    let maxDist = width * 0.28; // Slightly larger localized radius
+                    let squishIntensity = Math.min(touchTime / 35, 2.0);
+                    let squishForce = squishIntensity * 9.5;
+                    let maxDist = width * 0.42;
                     
                     for (let i = 0; i < points.length; i++) {
                         if (i === grabbedPointIndex) continue;
@@ -4177,17 +4088,17 @@
                             let angle = Math.atan2(dy, dx);
                             
                             // 1. Smooth radial outward push to create touch indentation
-                            let forceX = Math.cos(angle) * squishForce * weight * 45;
-                            let forceY = Math.sin(angle) * squishForce * weight * 40;
+                            let forceX = Math.cos(angle) * squishForce * weight * 65;
+                            let forceY = Math.sin(angle) * squishForce * weight * 55;
                             
-                            // 2. Gentle horizontal expansion (sides bulge slightly)
-                            forceX += (dx / dist) * squishForce * weight * 15;
+                            // 2. Horizontal expansion (sides bulge out nicely)
+                            forceX += (dx / dist) * squishForce * weight * 35;
                             
-                            // 3. Gentle vertical compression (flattens slightly)
-                            forceY -= (dy / dist) * squishForce * weight * 10;
+                            // 3. Vertical compression (flattens)
+                            forceY -= (dy / dist) * squishForce * weight * 20;
                             
-                            // 4. Stable downward sink (deeper moderate push downward)
-                            forceY += squishForce * weight * 65;
+                            // 4. DEEP DOWNWARD SINK FORCE (sinks character deep into background!)
+                            forceY += squishForce * weight * 130;
                             
                             p.vx += forceX;
                             p.vy += forceY;
