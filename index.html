@@ -1238,8 +1238,8 @@
             points = [];
             springs = [];
 
-            let meshW = 630;
-            let meshH = 420;
+            let meshW = 460;
+            let meshH = 307;
             let startX = (width - meshW) / 2;
             let startY = (height - meshH) / 2;
 
@@ -3045,16 +3045,16 @@
         }
 
         function drawWarpedTriangle(ctx, img, p0, p1, p2, imgW, imgH) {
-            let targetW = 630;
-            let targetH = 420;
+            let targetW = 460;
+            let targetH = 307;
             let startX = (width - targetW) / 2;
             let startY = (height - targetH) / 2;
 
-            // Crop transparent padding to zoom in on the central rabbit character
-            let cropX0 = 0.18 * imgW;
-            let cropX1 = 0.82 * imgW;
-            let cropY0 = 0.12 * imgH;
-            let cropY1 = 0.88 * imgH;
+            // Crop 5% left/right and 4% top/bottom margins to give a perfect size
+            let cropX0 = 0.05 * imgW;
+            let cropX1 = 0.95 * imgW;
+            let cropY0 = 0.04 * imgH;
+            let cropY1 = 0.96 * imgH;
 
             let u0 = cropX0 + ((p0.ox - startX) / targetW) * (cropX1 - cropX0);
             let v0 = cropY0 + ((p0.oy - startY) / targetH) * (cropY1 - cropY0);
