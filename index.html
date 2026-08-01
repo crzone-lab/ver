@@ -95,7 +95,7 @@
             top: 40px;
             left: 0;
             width: 100%;
-            padding: 0 24px;
+            padding: 0 16px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -103,8 +103,8 @@
         }
 
         .action-circle-btn {
-            width: 44px;
-            height: 44px;
+            width: 36px;
+            height: 36px;
             background: transparent;
             border: none;
             border-radius: 50%;
@@ -120,6 +120,93 @@
 
         .action-circle-btn:hover {
             transform: scale(1.12);
+        }
+
+        .action-circle-btn img {
+            width: 28px !important;
+            height: 28px !important;
+            object-fit: contain;
+        }
+
+        /* Game Start Splash Screen Style */
+        .start-splash-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(135deg, #fff2f9 0%, #ffe3f1 50%, #ffd6e8 100%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 2500; /* Float over everything */
+            transition: opacity 0.6s cubic-bezier(0.25, 1, 0.5, 1), visibility 0.6s;
+            padding: 24px;
+            box-sizing: border-box;
+        }
+
+        .start-splash-screen.fade-out {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        .start-logo-container {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-bottom: 50px;
+        }
+
+        .start-logo-img {
+            width: 100%;
+            max-width: 320px;
+            height: auto;
+            object-fit: contain;
+            animation: floatLogo 4s ease-in-out infinite;
+        }
+
+        @keyframes floatLogo {
+            0% { transform: translateY(0px) rotate(0deg); }
+            50% { transform: translateY(-12px) rotate(1deg); }
+            100% { transform: translateY(0px) rotate(0deg); }
+        }
+
+        .start-game-btn {
+            background: linear-gradient(135deg, #ff4757, #ff6b81);
+            color: white;
+            border: none;
+            border-radius: 24px;
+            padding: 16px 48px;
+            font-size: 1.35rem;
+            font-weight: 800;
+            box-shadow: 0 8px 24px rgba(255, 71, 87, 0.4), 0 0 0 4px rgba(255, 71, 87, 0.15);
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            animation: pulseBtn 2s infinite;
+            font-family: 'Outfit', 'Inter', sans-serif;
+        }
+
+        .start-game-btn:hover {
+            transform: scale(1.08);
+            background: linear-gradient(135deg, #ff6b81, #ff4757);
+            box-shadow: 0 10px 28px rgba(255, 71, 87, 0.5), 0 0 0 6px rgba(255, 71, 87, 0.25);
+        }
+
+        @keyframes pulseBtn {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.03); }
+            100% { transform: scale(1); }
+        }
+
+        .start-footer-text {
+            position: absolute;
+            bottom: 24px;
+            font-size: 0.8rem;
+            color: rgba(255, 71, 87, 0.6);
+            font-weight: 600;
         }
 
         .recording-pill {
@@ -688,9 +775,18 @@
     <div class="phone-frame">
         <div class="phone-notch"></div>
 
+        <!-- Game Start Splash Screen Stage -->
+        <div id="start-splash-screen" class="start-splash-screen">
+            <div class="start-logo-container">
+                <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
+            </div>
+            <button class="start-game-btn" onclick="startGameSession()" data-i18n="btn-gamestart">게임 시작</button>
+            <div class="start-footer-text">© 2026 Fruitrabbit Malrangi</div>
+        </div>
+
         <!-- Unified Global Top Bar Overlay (Always identical and visible on all pages) -->
         <div class="top-overlay-ui">
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 4px;">
                 <div class="action-circle-btn" id="global-home-exit-btn" onclick="exitGame()" title="Exit Game" data-i18n-title="btn-exit" style="display: flex; align-items: center; justify-content: center;">
                     <img src="out.png" alt="Exit" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
@@ -698,8 +794,13 @@
                     <img src="setting.png" alt="Settings" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
             </div>
+
+            <!-- Central Font-only Logo -->
+            <div style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 4px;">
+                <img src="logo_font.png" alt="Logo" style="height: 28px; max-width: 130px; object-fit: contain;">
+            </div>
             
-            <div style="display: flex; gap: 8px;">
+            <div style="display: flex; gap: 4px;">
                 <div class="action-circle-btn" id="autopilot-btn" onclick="toggleAutopilot()" title="Autopilot Test" data-i18n-title="btn-auto" style="display: flex; align-items: center; justify-content: center;">
                     <img src="auto.png" alt="Autopilot" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
@@ -846,6 +947,7 @@
             lang: 'en',
             dict: {
                 ko: {
+                    "btn-gamestart": "게임 시작",
                     "pill-jelly": "탱글젤리",
                     "pill-mochi": "쫀득모찌",
                     "pill-slime": "슬라임",
@@ -917,6 +1019,7 @@
                     "fruit-carrot_rabbit": "당근"
                 },
                 en: {
+                    "btn-gamestart": "Game Start",
                     "pill-jelly": "Tangle Jelly",
                     "pill-mochi": "Chewy Mochi",
                     "pill-slime": "Slime",
@@ -988,6 +1091,7 @@
                     "fruit-carrot_rabbit": "Carrot"
                 },
                 ja: {
+                    "btn-gamestart": "ゲーム開始",
                     "pill-jelly": "ぷるぷるゼリー",
                     "pill-mochi": "もっちり餅",
                     "pill-slime": "スライム",
@@ -1059,6 +1163,7 @@
                     "fruit-carrot_rabbit": "にんじん"
                 },
                 zh: {
+                    "btn-gamestart": "开始游戏",
                     "pill-jelly": "Q弹果冻",
                     "pill-mochi": "软糯麻薯",
                     "pill-slime": "史莱姆",
@@ -3563,6 +3668,30 @@
             setTimeout(() => {
                 window.location.reload();
             }, 800);
+        }
+
+        function startGameSession() {
+            if (synth) {
+                try {
+                    let osc = synth.ctx.createOscillator();
+                    let gain = synth.ctx.createGain();
+                    osc.connect(gain);
+                    gain.connect(synth.ctx.destination);
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(150, synth.ctx.currentTime);
+                    osc.frequency.exponentialRampToValueAtTime(500, synth.ctx.currentTime + 0.16);
+                    gain.gain.setValueAtTime(0.2, synth.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.001, synth.ctx.currentTime + 0.16);
+                    osc.start();
+                    osc.stop(synth.ctx.currentTime + 0.17);
+                } catch (err) {}
+            }
+            triggerHaptic(40);
+            
+            const splash = document.getElementById('start-splash-screen');
+            if (splash) {
+                splash.classList.add('fade-out');
+            }
         }
 
         function resetLobby() {
