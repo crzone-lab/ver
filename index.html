@@ -3286,6 +3286,9 @@
                         // 3. Extra vertical compression to flatten the center
                         forceY -= Math.sign(dy) * squishForce * weight * 80;
                         
+                        // 4. Downward sink force (sinking along with the press)
+                        forceY += squishForce * weight * 150;
+                        
                         p.vx += forceX;
                         p.vy += forceY;
                     }
