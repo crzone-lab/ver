@@ -3263,8 +3263,8 @@
                 touchTime = Math.min(touchTime + 1, 120);
                 // Moderate and progressive build up (charged in 45 frames, up to 1.5)
                 let squishIntensity = Math.min(touchTime / 45, 1.5);
-                let squishForce = squishIntensity * 4.5; // Toned down multiplier
-                let maxDist = width * 0.26; // Localized radius to preserve boundary and prevent tearing/tangling
+                let squishForce = squishIntensity * 5.5; // Slightly boosted multiplier for deeper sink
+                let maxDist = width * 0.28; // Slightly larger localized radius
                 
                 for (let i = 0; i < points.length; i++) {
                     if (i === grabbedPointIndex) continue;
@@ -3277,8 +3277,8 @@
                         let angle = Math.atan2(dy, dx);
                         
                         // 1. Smooth radial outward push to create touch indentation
-                        let forceX = Math.cos(angle) * squishForce * weight * 35;
-                        let forceY = Math.sin(angle) * squishForce * weight * 30;
+                        let forceX = Math.cos(angle) * squishForce * weight * 45;
+                        let forceY = Math.sin(angle) * squishForce * weight * 40;
                         
                         // 2. Gentle horizontal expansion (sides bulge slightly)
                         forceX += (dx / dist) * squishForce * weight * 15;
@@ -3286,8 +3286,8 @@
                         // 3. Gentle vertical compression (flattens slightly)
                         forceY -= (dy / dist) * squishForce * weight * 10;
                         
-                        // 4. Stable downward sink (moderate push downward)
-                        forceY += squishForce * weight * 40;
+                        // 4. Stable downward sink (deeper moderate push downward)
+                        forceY += squishForce * weight * 65;
                         
                         p.vx += forceX;
                         p.vy += forceY;
