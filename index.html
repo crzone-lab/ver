@@ -1267,6 +1267,25 @@
                 canvas.width = size;
                 canvas.height = size;
                 const ctx = canvas.getContext('2d');
+let width = window.innerWidth || 412;
+        let height = window.innerHeight || 840;
+
+        function resizeCanvas() {
+            try {
+                const rect = canvas.getBoundingClientRect();
+                width = rect.width || window.innerWidth || 412;
+                height = rect.height || window.innerHeight || 840;
+                canvas.width = width;
+                canvas.height = height;
+                if (typeof initMesh === 'function') {
+                    initMesh();
+                }
+            } catch(e) {
+                console.error("resizeCanvas error:", e);
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
 
                 // 1. Draw base 3D glass jelly
                 ctx.drawImage(baseImg, 0, 0, size, size);
@@ -1318,6 +1337,25 @@
             canvas.width = size;
             canvas.height = size;
             const ctx = canvas.getContext('2d');
+width = window.innerWidth || 412;
+        height = window.innerHeight || 840;
+
+        function resizeCanvas() {
+            try {
+                const rect = canvas.getBoundingClientRect();
+                width = rect.width || window.innerWidth || 412;
+                height = rect.height || window.innerHeight || 840;
+                canvas.width = width;
+                canvas.height = height;
+                if (typeof initMesh === 'function') {
+                    initMesh();
+                }
+            } catch(e) {
+                console.error("resizeCanvas error:", e);
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
             const cx = size / 2;
             const cy = size / 2 + 35;
             const hue = char.hue || 350;
@@ -1441,6 +1479,25 @@
 
         const canvas = document.getElementById('squishy-canvas');
         const ctx = canvas.getContext('2d');
+width = window.innerWidth || 412;
+        height = window.innerHeight || 840;
+
+        function resizeCanvas() {
+            try {
+                const rect = canvas.getBoundingClientRect();
+                width = rect.width || window.innerWidth || 412;
+                height = rect.height || window.innerHeight || 840;
+                canvas.width = width;
+                canvas.height = height;
+                if (typeof initMesh === 'function') {
+                    initMesh();
+                }
+            } catch(e) {
+                console.error("resizeCanvas error:", e);
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
 
         // Handle page visibility change (exit/suspend/pause game & sounds)
         document.addEventListener('visibilitychange', () => {
@@ -1828,8 +1885,8 @@
             return `${char.emoji}${space}${fruitName}${space}${rabbitWord}`;
         }
 
-        let width = 388; // Phone inner width
-        let height = 816; // Phone inner height
+        width = 388; // Phone inner width
+        height = 816; // Phone inner height
         canvas.width = width;
         canvas.height = height;
 
@@ -1860,6 +1917,25 @@
                 canvas.width = img.naturalWidth || 512;
                 canvas.height = img.naturalHeight || 512;
                 const ctx = canvas.getContext('2d');
+width = window.innerWidth || 412;
+        height = window.innerHeight || 840;
+
+        function resizeCanvas() {
+            try {
+                const rect = canvas.getBoundingClientRect();
+                width = rect.width || window.innerWidth || 412;
+                height = rect.height || window.innerHeight || 840;
+                canvas.width = width;
+                canvas.height = height;
+                if (typeof initMesh === 'function') {
+                    initMesh();
+                }
+            } catch(e) {
+                console.error("resizeCanvas error:", e);
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
                 const w = canvas.width;
                 const h = canvas.height;
                 
@@ -1937,6 +2013,25 @@
             canvas.width = 512;
             canvas.height = 512;
             const ctx = canvas.getContext('2d');
+width = window.innerWidth || 412;
+        height = window.innerHeight || 840;
+
+        function resizeCanvas() {
+            try {
+                const rect = canvas.getBoundingClientRect();
+                width = rect.width || window.innerWidth || 412;
+                height = rect.height || window.innerHeight || 840;
+                canvas.width = width;
+                canvas.height = height;
+                if (typeof initMesh === 'function') {
+                    initMesh();
+                }
+            } catch(e) {
+                console.error("resizeCanvas error:", e);
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
             const w = 512;
             const h = 512;
             const cx = 256;
@@ -2711,6 +2806,25 @@
                 canvas.width = viewWidth;
                 canvas.height = viewHeight;
                 const ctx = canvas.getContext('2d');
+width = window.innerWidth || 412;
+        height = window.innerHeight || 840;
+
+        function resizeCanvas() {
+            try {
+                const rect = canvas.getBoundingClientRect();
+                width = rect.width || window.innerWidth || 412;
+                height = rect.height || window.innerHeight || 840;
+                canvas.width = width;
+                canvas.height = height;
+                if (typeof initMesh === 'function') {
+                    initMesh();
+                }
+            } catch(e) {
+                console.error("resizeCanvas error:", e);
+            }
+        }
+
+        window.addEventListener('resize', resizeCanvas);
 
                 let attempt = 0;
                 function tryCapture() {
@@ -5684,17 +5798,7 @@
         }
 
 
-        if (window.location.hash.includes('test-delay-1s')) {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    window.startGameSession();
-                    setTimeout(() => {
-                        initMesh();
-                        draw();
-                    }, 500);
-                }, 300);
-            });
-        }
+
 
 </script>
 </body>
