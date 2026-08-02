@@ -5514,37 +5514,7 @@
         }, 100);
 
 
-        if (window.location.hash.includes('test-playground')) {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    const splash = document.getElementById('start-splash-screen');
-                    if (splash) splash.style.display = 'none';
-                    setScreenMode('playground');
-                }, 300);
-            });
-        } else if (window.location.hash.includes('test-lemon')) {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    selectLobbyCharacter(1, null); // Select Lemon Rabbit
-                }, 300);
-            });
-        }
-
-
-        if (window.location.hash.includes('test-strawberry-perfect-ears')) {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    const splash = document.getElementById('start-splash-screen');
-                    if (splash) splash.style.display = 'none';
-                    setScreenMode('playground');
-                }, 300);
-            });
-        }
-
-}
-
-
-        // Enable instant game start on tap anywhere on splash screen
+                        // Enable instant game start on tap anywhere on splash screen
         window.addEventListener('load', () => {
             const splashEl = document.getElementById('start-splash-screen');
             if (splashEl) {
@@ -5562,31 +5532,7 @@
         
 
 
-        if (window.location.hash.includes('test-wait-render')) {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    initMesh();
-                    draw();
-                }, 500);
-            });
-        }
-
-
-        if (window.location.hash.includes('test-sync-render')) {
-            window.addEventListener('load', () => {
-                initDefaultStrawberryJelly();
-                initMesh();
-                draw();
-            });
-        }
-
-
-        if (window.location.hash.includes('test-delay-1s')) {
-            // Delay screenshot test
-        }
-
-
-        // Guaranteed 60 FPS continuous main render loop
+                                // Guaranteed 60 FPS continuous main render loop
         let isMainLoopRunning = false;
         function startMainRenderLoop() {
             if (isMainLoopRunning) return;
@@ -5617,28 +5563,16 @@
         });
 
 
-        if (window.location.hash.includes('test-inspect-straw')) {
-            window.addEventListener('load', () => {
-                const strawTex = generateStrawberryMasterTexture();
-                console.log('STRAW_TEX_LENGTH:', strawTex ? strawTex.length : 0);
-            });
-        }
-
-
-        if (window.location.hash.includes('test-deep-sink')) {
-            window.addEventListener('load', () => {
-                setTimeout(() => {
-                    const canvas = document.getElementById('squishy-canvas');
-                    const rect = canvas.getBoundingClientRect();
-                    const evt = new MouseEvent('mousedown', {
-                        clientX: rect.left + rect.width / 2,
-                        clientY: rect.top + rect.height / 2,
-                        bubbles: true
-                    });
-                    canvas.dispatchEvent(evt);
-                }, 300);
-            });
-        }
+                        }
+    
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                const splash = document.getElementById('start-splash-screen');
+                if (splash) {
+                    splash.click();
+                }
+            }, 200);
+        });
 
 </script>
 </body>
