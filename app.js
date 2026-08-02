@@ -1378,7 +1378,7 @@ function removeCameraPhotoBackground(context, width, height) {
     const red = pixels[dataIndex];
     const green = pixels[dataIndex + 1];
     const blue = pixels[dataIndex + 2];
-    const toleranceSquared = 64 * 64;
+    const toleranceSquared = 30 * 30;
     for (const color of borderColors) {
       const redDelta = red - color[0];
       const greenDelta = green - color[1];
@@ -1467,12 +1467,12 @@ cropApply.addEventListener("click", () => {
   
   // Crop the 240x240 guided area and export as 512x512
   resultCtx.drawImage(cropCanvas, 20, 20, 240, 240, 0, 0, 512, 512);
-  if (cropSourceKind !== "camera") {
+  if (cropSourceKind === "camera") {
+    removeCameraPhotoBackground(resultCtx, 512, 512);
+  } else {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
-  const croppedDataUrl = cropSourceKind === "camera"
-    ? cropImage.src
-    : resultCanvas.toDataURL("image/png");
+  const croppedDataUrl = resultCanvas.toDataURL("image/png");
   const capturedPhotoDataUrl = cropSourceKind === "camera" ? cropImage.src : null;
   const targetKeyIndex = photoTargetKeyIndex >= 0
     ? photoTargetKeyIndex
