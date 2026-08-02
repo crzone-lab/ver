@@ -1470,7 +1470,9 @@ cropApply.addEventListener("click", () => {
   if (cropSourceKind !== "camera") {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
-  const croppedDataUrl = resultCanvas.toDataURL("image/png");
+  const croppedDataUrl = cropSourceKind === "camera"
+    ? cropImage.src
+    : resultCanvas.toDataURL("image/png");
   const capturedPhotoDataUrl = cropSourceKind === "camera" ? cropImage.src : null;
   const targetKeyIndex = photoTargetKeyIndex >= 0
     ? photoTargetKeyIndex
