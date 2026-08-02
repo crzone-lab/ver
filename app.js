@@ -130,6 +130,28 @@ let layoutDragGhost = null;
 const mobileStartScreen = document.querySelector("#mobileStartScreen");
 const enterGameButton = document.querySelector("#enterGameButton");
 
+function openImageFileInCropper(file, sourceKind, scaleBoost = 1) {
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = event => {
+    cropSourceKind = sourceKind;
+    cropImage = new Image();
+    cropImage.onload = () => {
+      if (sourceKind === "camera") stopWebcam();
+      cropModal.style.display = "flex";
+      cropScale = (240 / Math.min(cropImage.width, cropImage.height)) * scaleBoost;
+      cropZoom.min = String(cropScale * 0.4);
+      cropZoom.max = String(cropScale * 4.0);
+      cropZoom.value = String(cropScale);
+      cropX = 140;
+      cropY = 140;
+      drawCropImage();
+    };
+    cropImage.src = event.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
 colors.forEach(([color, dark], index) => {
   const key = document.createElement("div");
   key.className = "key";
@@ -164,27 +186,7 @@ colors.forEach(([color, dark], index) => {
     if (!file) return;
     activeCropKeyIndex = index;
     photoTargetKeyIndex = -1;
-    
-    const reader = new FileReader();
-    reader.onload = e => {
-      cropSourceKind = "file";
-      cropImage = new Image();
-      cropImage.onload = () => {
-        cropModal.style.display = "flex";
-        
-        // Auto scale to fill the crop guide box
-        cropScale = 240 / Math.min(cropImage.width, cropImage.height);
-        cropZoom.min = String(cropScale * 0.4);
-        cropZoom.max = String(cropScale * 4.0);
-        cropZoom.value = String(cropScale);
-        cropX = 140;
-        cropY = 140;
-        
-        drawCropImage();
-      };
-      cropImage.src = e.target.result;
-    };
-    reader.readAsDataURL(file);
+    openImageFileInCropper(file, "file");
   });
   key.draggable = true;
   key.addEventListener("dragstart", event => {
@@ -1227,25 +1229,10 @@ btnCapturePhoto.addEventListener("click", () => {
   }
   tempCtx.drawImage(webcamVideo, 0, 0, tempCanvas.width, tempCanvas.height);
   
-  const photoDataUrl = tempCanvas.toDataURL("image/png");
-  
-  // Load photo into the cropper
-  cropImage = new Image();
-  cropImage.onload = () => {
-    // Stop camera stream once captured
-    stopWebcam();
-    
-    cropSourceKind = "camera";
-    cropScale = (240 / Math.min(cropImage.width, cropImage.height)) * 1.65 * cameraZoom;
-    cropZoom.min = String(cropScale * 0.4);
-    cropZoom.max = String(cropScale * 4.0);
-    cropZoom.value = String(cropScale);
-    cropX = 140;
-    cropY = 140;
-    
-    drawCropImage();
-  };
-  cropImage.src = photoDataUrl;
+  tempCanvas.toBlob(blob => {
+    if (!blob) return;
+    openImageFileInCropper(blob, "camera", 1.65 * cameraZoom);
+  }, "image/png");
 });
 
 cropCancel.addEventListener("click", () => {
