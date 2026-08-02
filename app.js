@@ -104,7 +104,6 @@ const webcamVideo = document.querySelector("#webcamVideo");
 const btnToggleCamera = document.querySelector("#btnToggleCamera");
 const btnSwitchCamera = document.querySelector("#btnSwitchCamera");
 const btnCapturePhoto = document.querySelector("#btnCapturePhoto");
-const nativeCameraInput = document.querySelector("#nativeCameraInput");
 let score = 0;
 let combo = 0;
 let target = -1;
@@ -1103,34 +1102,6 @@ function drawCropImage() {
   cropCtx.drawImage(cropImage, cropX - w / 2, cropY - h / 2, w, h);
 }
 
-function loadImageIntoCropper(source, sourceKind, nativeCapture = false) {
-  cropSourceKind = sourceKind;
-  cropImage = new Image();
-  cropImage.onload = () => {
-    cropModal.classList.toggle("native-capture", nativeCapture);
-    cropModal.style.display = "flex";
-    cropScale = 240 / Math.min(cropImage.width, cropImage.height);
-    cropZoom.min = String(cropScale * 0.4);
-    cropZoom.max = String(cropScale * 4.0);
-    cropZoom.value = String(cropScale);
-    cropX = 140;
-    cropY = 140;
-    drawCropImage();
-  };
-  cropImage.src = source;
-}
-
-nativeCameraInput?.addEventListener("change", event => {
-  const file = event.target.files?.[0];
-  if (!file) return;
-  if (activeCropKeyIndex < 0) activeCropKeyIndex = selectedKeyIndex;
-  photoTargetKeyIndex = activeCropKeyIndex;
-  const reader = new FileReader();
-  reader.onload = loadEvent => loadImageIntoCropper(loadEvent.target.result, "camera", true);
-  reader.readAsDataURL(file);
-  event.target.value = "";
-});
-
 function getEventPos(e) {
   const rect = cropCanvas.getBoundingClientRect();
   const clientX = e.touches ? e.touches[0].clientX : e.clientX;
@@ -1573,6 +1544,12 @@ cropApply.addEventListener("click", () => {
   
   // Crop the 240x240 guided area and export as 512x512
   resultCtx.drawImage(cropCanvas, 20, 20, 240, 240, 0, 0, 512, 512);
+  if (!hasVisiblePhotoSubject(resultCtx, 512, 512) && cropImage.complete && cropImage.naturalWidth > 0) {
+    const sourceSize = Math.min(cropImage.naturalWidth, cropImage.naturalHeight);
+    const sourceX = (cropImage.naturalWidth - sourceSize) / 2;
+    const sourceY = (cropImage.naturalHeight - sourceSize) / 2;
+    resultCtx.drawImage(cropImage, sourceX, sourceY, sourceSize, sourceSize, 0, 0, 512, 512);
+  }
   const croppedImageBackup = resultCtx.getImageData(0, 0, 512, 512);
   if (cropSourceKind === "camera") {
     removeCameraPhotoBackground(resultCtx, 512, 512);
@@ -1589,6 +1566,17 @@ cropApply.addEventListener("click", () => {
   const key = grid.children[targetKeyIndex];
   if (key) {
     const rabbitArt = key.querySelector(".rabbit-art");
+    let customArtLayer = key.querySelector(".custom-art-layer");
+    if (!customArtLayer) {
+      customArtLayer = document.createElement("span");
+      customArtLayer.className = "custom-art-layer";
+      customArtLayer.setAttribute("aria-hidden", "true");
+      key.appendChild(customArtLayer);
+    }
+    customArtLayer.style.backgroundImage = `url("${croppedDataUrl}")`;
+    key.classList.add("custom-art");
+    customSlots.add(targetKeyIndex);
+    selectKey(targetKeyIndex);
     const processedImage = new Image();
     processedImage.onload = () => {
       processedImage.className = "rabbit-art";
@@ -1597,9 +1585,6 @@ cropApply.addEventListener("click", () => {
       processedImage.style.visibility = "visible";
       processedImage.style.opacity = "0.98";
       rabbitArt.replaceWith(processedImage);
-      key.classList.add("custom-art");
-      customSlots.add(targetKeyIndex);
-      selectKey(targetKeyIndex);
       window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, processedImage);
     };
     processedImage.src = croppedDataUrl;
@@ -1615,10 +1600,6 @@ cropApply.addEventListener("click", () => {
 // Action Select Modal Event Listeners
 btnChooseCamera.addEventListener("click", () => {
   actionSelectModal.style.display = "none";
-  if (window.matchMedia("(pointer: coarse)").matches && nativeCameraInput) {
-    nativeCameraInput.click();
-    return;
-  }
   cropModal.style.display = "flex";
   // Trigger camera start directly
   btnToggleCamera.click();
@@ -1634,10 +1615,6 @@ photoCaptureToggle?.addEventListener("click", () => {
   activeFileInput = grid.children[selectedKeyIndex]?.querySelector("input") || null;
   feedbackPanel.classList.remove("open");
   settingsToggle.setAttribute("aria-expanded", "false");
-  if (window.matchMedia("(pointer: coarse)").matches && nativeCameraInput) {
-    nativeCameraInput.click();
-    return;
-  }
   cropModal.style.display = "flex";
   if (!webcamStream) btnToggleCamera.click();
 });

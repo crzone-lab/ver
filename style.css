@@ -86,7 +86,6 @@ button { font: inherit; }
   visibility: hidden;
   pointer-events: none;
 }
-.crop-modal.native-capture .webcam-actions { display: none !important; }
 .mobile-start-screen > img {
   width: clamp(360px, 118vw, 560px);
   max-width: none;
@@ -512,6 +511,18 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   visibility: visible;
   opacity: .98;
 }
+.custom-art-layer {
+  display: none;
+  position: absolute;
+  z-index: 45;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: contain;
+  pointer-events: none;
+  filter: drop-shadow(0 4px 4px rgba(48, 30, 68, .28));
+}
+.key.custom-art .custom-art-layer { display: block; }
 .key-deck.webgl-ready .key:nth-child(-n+6) .rabbit-art {
   transform: translateY(-7%);
 }
