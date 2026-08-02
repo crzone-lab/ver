@@ -1048,7 +1048,7 @@
         </div>
 
         <!-- 3. Game Start Splash Screen Stage (Bypassed) -->
-        <div id="start-splash-screen" class="start-splash-screen">
+        <div id="start-splash-screen" class="start-splash-screen" style="display: none !important;">
             <div class="start-logo-container">
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
@@ -5111,6 +5111,21 @@
         }
 
         function startGameSession() {
+            // 1. Instantly hide splash screen first with 100% guarantee
+            try {
+                const splash = document.getElementById('start-splash-screen');
+                if (splash) {
+                    splash.classList.add('fade-out');
+                    splash.style.setProperty('display', 'none', 'important');
+                    splash.style.setProperty('opacity', '0', 'important');
+                    splash.style.setProperty('visibility', 'hidden', 'important');
+                    splash.style.pointerEvents = 'none';
+                }
+            } catch(e) {}
+
+            try { setScreenMode('playground'); } catch(e) {}
+
+            // 2. Safe Audio Context Initialization
             try {
                 if (!audioCtx) {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -5132,28 +5147,18 @@
             } catch (err) {
                 console.log("AudioContext start error:", err);
             }
-            triggerHaptic(40);
-            
-            try { bgmPlayer.start(); } catch(e) {}
-            
-            if (document.documentElement.requestFullscreen) {
-                document.documentElement.requestFullscreen().catch(err => {
-                    console.log("Auto-fullscreen blocked:", err);
-                });
-            }
-            
-            const splash = document.getElementById('start-splash-screen');
-            if (splash) {
-                splash.classList.add('fade-out');
-                splash.style.setProperty('display', 'none', 'important');
-                splash.style.setProperty('opacity', '0', 'important');
-                splash.style.setProperty('visibility', 'hidden', 'important');
-                splash.style.pointerEvents = 'none';
-            }
 
-            // Transition from splash to playground stage!
-            setScreenMode('playground');
-            showNotification(i18n.t('notif-game-started') || "게임이 시작되었습니다!");
+            try { triggerHaptic(40); } catch(e) {}
+            try { if (bgmPlayer && bgmPlayer.start) bgmPlayer.start(); } catch(e) {}
+            
+            // 3. iOS-Safe Fullscreen Request
+            try {
+                if (document.documentElement && typeof document.documentElement.requestFullscreen === 'function') {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } catch(e) {}
+
+            try { showNotification(i18n.t('notif-game-started') || "게임이 시작되었습니다!"); } catch(e) {}
         }
 
         function resetLobby() {
@@ -5219,7 +5224,7 @@
         initMesh();
         draw();
         renderLobbyGrid();
-        setScreenMode('splash');
+        setScreenMode('playground');
 
         // Assign Base64 character artwork dynamically to card selector thumbnail on load
         setTimeout(() => {
