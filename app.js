@@ -1477,6 +1477,18 @@ function normalizeImageForKeycap(sourceCanvas, size = 512) {
   return outputCanvas;
 }
 
+function hasVisiblePhotoSubject(context, width, height) {
+  const pixels = context.getImageData(0, 0, width, height).data;
+  let visiblePixels = 0;
+  const minimumVisiblePixels = Math.round(width * height * 0.035);
+  for (let index = 3; index < pixels.length; index += 4) {
+    if (pixels[index] < 20) continue;
+    visiblePixels += 1;
+    if (visiblePixels >= minimumVisiblePixels) return true;
+  }
+  return false;
+}
+
 async function saveCapturedPhotoToGallery(photoDataUrl) {
   if (!photoDataUrl) return;
   const capacitor = window.Capacitor;
@@ -1507,7 +1519,11 @@ cropApply.addEventListener("click", () => {
   // Crop the 240x240 guided area and export as 512x512
   resultCtx.drawImage(cropCanvas, 20, 20, 240, 240, 0, 0, 512, 512);
   if (cropSourceKind === "camera") {
+    const croppedPhotoBackup = resultCtx.getImageData(0, 0, 512, 512);
     removeCameraPhotoBackground(resultCtx, 512, 512);
+    if (!hasVisiblePhotoSubject(resultCtx, 512, 512)) {
+      resultCtx.putImageData(croppedPhotoBackup, 0, 0);
+    }
   } else {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
