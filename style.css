@@ -560,29 +560,29 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   display: none;
   position: absolute;
   z-index: 55;
-  top: 3%;
-  right: 11%;
-  width: clamp(24px, 7vw, 34px);
-  height: clamp(24px, 7vw, 34px);
+  top: 1%;
+  right: 1%;
+  width: auto;
+  height: auto;
   align-items: center;
   justify-content: center;
-  border: 2px solid #ffe477;
-  border-radius: 50%;
-  color: #fffbe8;
-  background: linear-gradient(145deg, #6b2b88, #291744);
-  box-shadow: inset 0 2px 2px #ffffff55, 0 3px 0 #160a29, 0 5px 10px #0008;
-  font-size: clamp(13px, 4vw, 18px);
+  border: 0;
+  border-radius: 0;
+  color: #321546;
+  background: transparent;
+  box-shadow: none;
+  font-size: clamp(16px, 4.8vw, 23px);
   font-weight: 950;
   line-height: 1;
-  text-shadow: 0 2px 2px #0008;
+  text-shadow: 0 1px 0 rgba(255,255,255,.65), 0 2px 3px rgba(255,255,255,.34);
   pointer-events: none;
   transition: transform 90ms ease, filter 90ms ease;
 }
 .phone-shell.number-view .number-badge { display: flex; }
 .phone-shell.number-view .key.pressed .number-badge { transform: translateY(3px) scale(.94); filter: brightness(1.15); }
-.phone-shell.number-view .key.number-selected .number-badge { border-color: #66efff; filter: brightness(1.3); box-shadow: 0 0 18px #57eaff; }
-.phone-shell.number-view .key.number-correct .number-badge { border-color: #eaff9a; background: #4f9f2f; box-shadow: 0 0 22px #aaff66; }
-.phone-shell.number-view .key.number-wrong .number-badge { border-color: #ff9bad; background: #9b294d; box-shadow: 0 0 22px #ff4f82; }
+.phone-shell.number-view .key.number-selected .number-badge { color: #075d78; filter: brightness(1.15); text-shadow: 0 0 7px #8ff3ff; }
+.phone-shell.number-view .key.number-correct .number-badge { color: #24670f; text-shadow: 0 0 8px #baff7b; }
+.phone-shell.number-view .key.number-wrong .number-badge { color: #8f1638; text-shadow: 0 0 8px #ff9eb5; }
 .key-deck.webgl-ready .key:nth-child(-n+6) .rabbit-art {
   transform: translateY(-7%);
 }
