@@ -129,29 +129,12 @@ let moveSource = null;
 let layoutDragGhost = null;
 const mobileStartScreen = document.querySelector("#mobileStartScreen");
 const enterGameButton = document.querySelector("#enterGameButton");
-const photoDebugStatus = document.querySelector("#photoDebugStatus");
-let photoDebugTimer = 0;
-
-function showPhotoDebug(message, hold = 5000) {
-  console.info(`[PHOTO] ${message}`);
-  if (!photoDebugStatus) return;
-  clearTimeout(photoDebugTimer);
-  photoDebugStatus.textContent = message;
-  photoDebugStatus.hidden = false;
-  photoDebugTimer = setTimeout(() => {
-    photoDebugStatus.hidden = true;
-  }, hold);
-}
-
 function openImageFileInCropper(file, sourceKind, scaleBoost = 1) {
   if (!file) return;
-  showPhotoDebug(`FILE ${sourceKind} ${file.size || 0}`);
   const reader = new FileReader();
-  reader.onerror = () => showPhotoDebug("ERROR FILE_READ", 10000);
   reader.onload = event => {
     cropSourceKind = sourceKind;
     cropImage = new Image();
-    cropImage.onerror = () => showPhotoDebug("ERROR IMAGE_DECODE", 10000);
     cropImage.onload = () => {
       if (sourceKind === "camera") stopWebcam();
       cropModal.style.display = "flex";
@@ -162,7 +145,6 @@ function openImageFileInCropper(file, sourceKind, scaleBoost = 1) {
       cropX = 140;
       cropY = 140;
       drawCropImage();
-      showPhotoDebug(`CROP ${cropImage.width}x${cropImage.height}`);
     };
     cropImage.src = event.target.result;
   };
@@ -1226,7 +1208,6 @@ btnSwitchCamera.addEventListener("click", async () => {
 // Capture Photo click
 btnCapturePhoto.addEventListener("click", () => {
   if (!webcamStream || webcamVideo.readyState < 2) {
-    showPhotoDebug("ERROR CAMERA_NOT_READY", 10000);
     return;
   }
   if (activeCropKeyIndex < 0) activeCropKeyIndex = selectedKeyIndex;
@@ -1239,23 +1220,26 @@ btnCapturePhoto.addEventListener("click", () => {
   
   // Draw the current video frame into a temp canvas
   const tempCanvas = document.createElement("canvas");
-  tempCanvas.width = webcamVideo.videoWidth;
-  tempCanvas.height = webcamVideo.videoHeight;
+  tempCanvas.width = 512;
+  tempCanvas.height = 512;
   const tempCtx = tempCanvas.getContext("2d");
-  
+  const guideRatio = 240 / 280;
+  const sourceSize = (Math.min(webcamVideo.videoWidth, webcamVideo.videoHeight) / cameraZoom) * guideRatio;
+  const sourceX = (webcamVideo.videoWidth - sourceSize) / 2;
+  const sourceY = (webcamVideo.videoHeight - sourceSize) / 2;
   if (cameraFacingMode === "user") {
     tempCtx.translate(tempCanvas.width, 0);
     tempCtx.scale(-1, 1);
   }
-  tempCtx.drawImage(webcamVideo, 0, 0, tempCanvas.width, tempCanvas.height);
-  showPhotoDebug(`CAPTURE ${tempCanvas.width}x${tempCanvas.height}`);
+  tempCtx.drawImage(
+    webcamVideo,
+    sourceX, sourceY, sourceSize, sourceSize,
+    0, 0, tempCanvas.width, tempCanvas.height
+  );
   
   tempCanvas.toBlob(blob => {
-    if (!blob) {
-      showPhotoDebug("ERROR BLOB_EMPTY", 10000);
-      return;
-    }
-    openImageFileInCropper(blob, "camera", 1.65 * cameraZoom);
+    if (!blob) return;
+    openImageFileInCropper(blob, "camera");
   }, "image/png");
 });
 
@@ -1497,7 +1481,7 @@ function normalizeImageForKeycap(sourceCanvas, size = 512) {
 
   const subjectWidth = right - left + 1;
   const subjectHeight = bottom - top + 1;
-  const padding = Math.round(size * 0.09);
+  const padding = Math.round(size * 0.04);
   const availableSize = size - padding * 2;
   const scale = Math.min(availableSize / subjectWidth, availableSize / subjectHeight);
   const outputWidth = subjectWidth * scale;
@@ -1574,7 +1558,6 @@ cropApply.addEventListener("click", () => {
   const targetKeyIndex = photoTargetKeyIndex >= 0
     ? photoTargetKeyIndex
     : (activeCropKeyIndex >= 0 ? activeCropKeyIndex : selectedKeyIndex);
-  showPhotoDebug(`OUTPUT ${croppedDataUrl.length} KEY ${targetKeyIndex + 1}`);
   const key = grid.children[targetKeyIndex];
   if (key) {
     const rabbitArt = key.querySelector(".rabbit-art");
@@ -1589,7 +1572,6 @@ cropApply.addEventListener("click", () => {
     key.classList.add("custom-art");
     customSlots.add(targetKeyIndex);
     selectKey(targetKeyIndex);
-    showPhotoDebug(`APPLIED KEY ${targetKeyIndex + 1}`, 10000);
     const processedImage = new Image();
     processedImage.onload = () => {
       processedImage.className = "rabbit-art";
@@ -1600,7 +1582,6 @@ cropApply.addEventListener("click", () => {
       rabbitArt.replaceWith(processedImage);
       window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, processedImage);
     };
-    processedImage.onerror = () => showPhotoDebug("ERROR OUTPUT_DECODE", 10000);
     processedImage.src = croppedDataUrl;
   }
   photoTargetKeyIndex = -1;
