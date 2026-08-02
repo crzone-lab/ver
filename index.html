@@ -2417,44 +2417,7 @@
                 // Step 3: Draw original crisp image/photo (100% crisp original artwork/photo)
                 finalCtx.drawImage(imgCanvas, 0, 0);
 
-                // Draw rounded 3D strawberry ear caps to smooth off any flat top cuts
-                if (isInitializingDefaultJelly || (activeBase === 'strawberry_rabbit' && !isCamera)) {
-                    const cx = size / 2;
-                    const cy = size / 2;
-                    
-                    // Left Ear Round Cap
-                    finalCtx.save();
-                    const leftGrad = finalCtx.createRadialGradient(cx - 62, cy - 142, 5, cx - 62, cy - 142, 55);
-                    leftGrad.addColorStop(0, '#ff6b81');
-                    leftGrad.addColorStop(0.6, '#ff4757');
-                    leftGrad.addColorStop(1, '#d63031');
-                    finalCtx.fillStyle = leftGrad;
-                    finalCtx.beginPath();
-                    finalCtx.ellipse(cx - 62, cy - 138, 46, 38, 0, 0, Math.PI * 2);
-                    finalCtx.fill();
-
-                    // Right Ear Round Cap
-                    const rightGrad = finalCtx.createRadialGradient(cx + 62, cy - 142, 5, cx + 62, cy - 142, 55);
-                    rightGrad.addColorStop(0, '#ff6b81');
-                    rightGrad.addColorStop(0.6, '#ff4757');
-                    rightGrad.addColorStop(1, '#d63031');
-                    finalCtx.fillStyle = rightGrad;
-                    finalCtx.beginPath();
-                    finalCtx.ellipse(cx + 62, cy - 138, 46, 38, 0, 0, Math.PI * 2);
-                    finalCtx.fill();
-
-                    // Gloss Highlights on Ear Caps
-                    finalCtx.fillStyle = 'rgba(255, 255, 255, 0.65)';
-                    finalCtx.beginPath();
-                    finalCtx.ellipse(cx - 72, cy - 152, 14, 8, -Math.PI / 6, 0, Math.PI * 2);
-                    finalCtx.fill();
-
-                    finalCtx.beginPath();
-                    finalCtx.ellipse(cx + 52, cy - 152, 14, 8, Math.PI / 6, 0, Math.PI * 2);
-                    finalCtx.fill();
-
-                    finalCtx.restore();
-                }
+                
 
 
                 
@@ -4169,9 +4132,9 @@
                             weight = weight * weight;
                             let angle = Math.atan2(dy, dx);
                             
-                            let pushForce = squishIntensity * weight * 1.8;
+                            let pushForce = 3.2 * weight;
                             p.vx += Math.cos(angle) * pushForce;
-                            p.vy += Math.sin(angle) * pushForce + pushForce * 0.4;
+                            p.vy += Math.sin(angle) * pushForce + pushForce * 0.5;
                         }
                     }
                 } else {
@@ -5224,6 +5187,17 @@
             window.addEventListener('load', () => {
                 setTimeout(() => {
                     selectLobbyCharacter(1, null); // Select Lemon Rabbit
+                }, 300);
+            });
+        }
+
+
+        if (window.location.hash.includes('test-strawberry-perfect-ears')) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const splash = document.getElementById('start-splash-screen');
+                    if (splash) splash.style.display = 'none';
+                    setScreenMode('playground');
                 }, 300);
             });
         }
