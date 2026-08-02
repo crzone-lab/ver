@@ -1,7 +1,7 @@
 {
   "product": "FruitRabbit KeycapLab",
-  "version": "1.1.0",
-  "build": "2026.08.01-v3",
+  "version": "1.1.1",
+  "build": "2026.08.02-v4",
   "scope": "Interactive mobile preview",
   "offline": true
 }

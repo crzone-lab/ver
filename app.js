@@ -1564,6 +1564,51 @@ async function saveCapturedPhotoToGallery(photoDataUrl) {
   downloadLink.remove();
 }
 
+function getTargetKeyIndex() {
+  if (photoTargetKeyIndex >= 0) return photoTargetKeyIndex;
+  if (activeCropKeyIndex >= 0) return activeCropKeyIndex;
+  return selectedKeyIndex;
+}
+
+function applyCustomImageToKey(targetKeyIndex, imageDataUrl) {
+  const key = grid.children[targetKeyIndex];
+  if (!key) return;
+
+  const rabbitArt = key.querySelector(".rabbit-art");
+  let customArtLayer = key.querySelector(".custom-art-layer");
+  if (!customArtLayer) {
+    customArtLayer = document.createElement("span");
+    customArtLayer.className = "custom-art-layer";
+    customArtLayer.setAttribute("aria-hidden", "true");
+    key.appendChild(customArtLayer);
+  }
+
+  customArtLayer.style.backgroundImage = `url("${imageDataUrl}")`;
+  key.classList.add("custom-art");
+  customSlots.add(targetKeyIndex);
+  selectKey(targetKeyIndex);
+
+  const processedImage = new Image();
+  processedImage.onload = () => {
+    processedImage.className = "rabbit-art";
+    processedImage.alt = rabbitArt?.alt || "FruitRabbit";
+    processedImage.style.display = "block";
+    processedImage.style.visibility = "visible";
+    processedImage.style.opacity = "0";
+    rabbitArt?.replaceWith(processedImage);
+  };
+  processedImage.src = imageDataUrl;
+}
+
+function closeCropEditor() {
+  photoTargetKeyIndex = -1;
+  activeCropKeyIndex = -1;
+  activeFileInput = null;
+  cropModal.classList.remove("native-capture");
+  cropModal.style.display = "none";
+  requestAppFullscreen();
+}
+
 cropApply.addEventListener("click", () => {
   stopWebcam();
   const resultCanvas = document.createElement("canvas");
@@ -1589,40 +1634,8 @@ cropApply.addEventListener("click", () => {
     resultCtx.putImageData(croppedImageBackup, 0, 0);
   }
   const croppedDataUrl = normalizeImageForKeycap(resultCanvas).toDataURL("image/png");
-  const targetKeyIndex = photoTargetKeyIndex >= 0
-    ? photoTargetKeyIndex
-    : (activeCropKeyIndex >= 0 ? activeCropKeyIndex : selectedKeyIndex);
-  const key = grid.children[targetKeyIndex];
-  if (key) {
-    const rabbitArt = key.querySelector(".rabbit-art");
-    let customArtLayer = key.querySelector(".custom-art-layer");
-    if (!customArtLayer) {
-      customArtLayer = document.createElement("span");
-      customArtLayer.className = "custom-art-layer";
-      customArtLayer.setAttribute("aria-hidden", "true");
-      key.appendChild(customArtLayer);
-    }
-    customArtLayer.style.backgroundImage = `url("${croppedDataUrl}")`;
-    key.classList.add("custom-art");
-    customSlots.add(targetKeyIndex);
-    selectKey(targetKeyIndex);
-    const processedImage = new Image();
-    processedImage.onload = () => {
-      processedImage.className = "rabbit-art";
-      processedImage.alt = rabbitArt.alt || "FruitRabbit";
-      processedImage.style.display = "block";
-      processedImage.style.visibility = "visible";
-      processedImage.style.opacity = "0";
-      rabbitArt.replaceWith(processedImage);
-    };
-    processedImage.src = croppedDataUrl;
-  }
-  photoTargetKeyIndex = -1;
-  activeCropKeyIndex = -1;
-  activeFileInput = null;
-  cropModal.classList.remove("native-capture");
-  cropModal.style.display = "none";
-  requestAppFullscreen();
+  applyCustomImageToKey(getTargetKeyIndex(), croppedDataUrl);
+  closeCropEditor();
 });
 
 // Action Select Modal Event Listeners
