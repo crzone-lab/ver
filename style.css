@@ -506,10 +506,11 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   pointer-events: none;
   filter: drop-shadow(0 4px 4px rgba(48, 30, 68, .28));
 }
+.key.custom-art .rabbit-art,
 .key-deck.webgl-ready .key.custom-art .rabbit-art {
   display: block;
   visibility: visible;
-  opacity: .98;
+  opacity: 0;
 }
 .custom-art-layer {
   display: none;

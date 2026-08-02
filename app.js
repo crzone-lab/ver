@@ -1261,6 +1261,38 @@ function removeConnectedWhiteBackground(context, width, height) {
   let head = 0;
   let tail = 0;
 
+  const borderColors = [];
+  function sampleBorderPixel(x, y) {
+    const dataIndex = (y * width + x) * 4;
+    if (pixels[dataIndex + 3] < 16) return;
+    borderColors.push([pixels[dataIndex], pixels[dataIndex + 1], pixels[dataIndex + 2]]);
+  }
+
+  const sampleStep = Math.max(6, Math.round(Math.min(width, height) / 24));
+  for (let x = 0; x < width; x += sampleStep) {
+    sampleBorderPixel(x, 0);
+    sampleBorderPixel(x, height - 1);
+  }
+  for (let y = sampleStep; y < height - sampleStep; y += sampleStep) {
+    sampleBorderPixel(0, y);
+    sampleBorderPixel(width - 1, y);
+  }
+
+  function isSimilarToBorder(dataIndex) {
+    const red = pixels[dataIndex];
+    const green = pixels[dataIndex + 1];
+    const blue = pixels[dataIndex + 2];
+    const toleranceSquared = 36 * 36;
+    return borderColors.some(([borderRed, borderGreen, borderBlue]) => {
+      const redDifference = red - borderRed;
+      const greenDifference = green - borderGreen;
+      const blueDifference = blue - borderBlue;
+      return redDifference * redDifference
+        + greenDifference * greenDifference
+        + blueDifference * blueDifference <= toleranceSquared;
+    });
+  }
+
   function isBrightNeutral(dataIndex) {
     const red = pixels[dataIndex];
     const green = pixels[dataIndex + 1];
@@ -1272,6 +1304,7 @@ function removeConnectedWhiteBackground(context, width, height) {
 
   function isOutlineOrColored(dataIndex) {
     if (pixels[dataIndex + 3] < 16) return false;
+    if (isSimilarToBorder(dataIndex)) return false;
     const red = pixels[dataIndex];
     const green = pixels[dataIndex + 1];
     const blue = pixels[dataIndex + 2];
@@ -1337,7 +1370,8 @@ function removeConnectedWhiteBackground(context, width, height) {
     const alpha = pixels[dataIndex + 3];
     const isTransparentOutside = alpha < 16;
     const isBrightNeutralBackground = isBrightNeutral(dataIndex);
-    if (!isTransparentOutside && !isBrightNeutralBackground) return;
+    const isConnectedBorderBackground = isSimilarToBorder(dataIndex);
+    if (!isTransparentOutside && !isBrightNeutralBackground && !isConnectedBorderBackground) return;
     visited[pixelIndex] = 1;
     queue[tail] = pixelIndex;
     tail += 1;
@@ -1549,7 +1583,7 @@ cropApply.addEventListener("click", () => {
   if (cropSourceKind === "camera") {
     removeCameraPhotoBackground(resultCtx, 512, 512);
   } else {
-    removeCameraPhotoBackground(resultCtx, 512, 512);
+    removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
   if (!hasVisiblePhotoSubject(resultCtx, 512, 512)) {
     resultCtx.putImageData(croppedImageBackup, 0, 0);
@@ -1578,9 +1612,8 @@ cropApply.addEventListener("click", () => {
       processedImage.alt = rabbitArt.alt || "FruitRabbit";
       processedImage.style.display = "block";
       processedImage.style.visibility = "visible";
-      processedImage.style.opacity = "0.98";
+      processedImage.style.opacity = "0";
       rabbitArt.replaceWith(processedImage);
-      window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, processedImage);
     };
     processedImage.src = croppedDataUrl;
   }
