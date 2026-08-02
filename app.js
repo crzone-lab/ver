@@ -120,6 +120,7 @@ cameraShutterAudio.preload = "auto";
 let lastPressSoundStyle = -1;
 const keySoundModes = Array(9).fill("random");
 const customKeySounds = new Map();
+const heldHapticTimers = new Map();
 let ledEnabled = true;
 let hapticEnabled = true;
 let selectedKeyIndex = 0;
@@ -458,6 +459,7 @@ characterCategory.addEventListener("click", () => openCategory(characterCategory
 layoutCategory.addEventListener("click", () => openCategory(layoutCategory, layoutPanel, "layout-mode"));
 
 function releaseKey(index, key, pointerId) {
+  stopHeldHaptic(index);
   key.classList.remove("pressed");
   window.FRTE3D?.setPressed(index, false);
   playKeySound(false, index);
@@ -475,6 +477,7 @@ function releaseAllPressedKeys(pointerId) {
       window.FRTE3D?.setPressed(index, false);
     }
   });
+  stopAllHeldHaptics();
 }
 
 window.addEventListener("pointercancel", event => releaseAllPressedKeys(event.pointerId));
@@ -652,6 +655,27 @@ function playCustomKeySound(keyIndex) {
 
 function triggerHaptic(duration) {
   if (hapticEnabled && "vibrate" in navigator) navigator.vibrate(duration);
+}
+
+function startHeldHaptic(keyIndex) {
+  if (!hapticEnabled || !("vibrate" in navigator) || heldHapticTimers.has(keyIndex)) return;
+  navigator.vibrate(44);
+  heldHapticTimers.set(keyIndex, setInterval(() => {
+    if (hapticEnabled) navigator.vibrate(44);
+  }, 66));
+}
+
+function stopHeldHaptic(keyIndex) {
+  const timer = heldHapticTimers.get(keyIndex);
+  if (timer) clearInterval(timer);
+  heldHapticTimers.delete(keyIndex);
+  if (!heldHapticTimers.size && "vibrate" in navigator) navigator.vibrate(0);
+}
+
+function stopAllHeldHaptics() {
+  heldHapticTimers.forEach(timer => clearInterval(timer));
+  heldHapticTimers.clear();
+  if ("vibrate" in navigator) navigator.vibrate(0);
 }
 
 function setFeature(button, enabled) {
@@ -941,6 +965,7 @@ ledToggle.addEventListener("click", () => {
 hapticToggle.addEventListener("click", () => {
   hapticEnabled = !hapticEnabled;
   setFeature(hapticToggle, hapticEnabled);
+  if (!hapticEnabled) stopAllHeldHaptics();
   if (hapticEnabled) triggerHaptic(18);
 });
 
@@ -988,7 +1013,7 @@ function press(index, key) {
   window.FRTE3D?.setPressed(index, true);
   const simultaneousPress = grid.querySelectorAll(".key.pressed").length > 1;
   playKeySound(true, index, simultaneousPress);
-  triggerHaptic([4, 5, 7, 4, 14]);
+  startHeldHaptic(index);
   if (currentMode === "memory" && memoryActive) {
     handleMemoryInput(index);
     return;
@@ -1528,7 +1553,6 @@ cropApply.addEventListener("click", () => {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
   const croppedDataUrl = normalizeImageForKeycap(resultCanvas).toDataURL("image/png");
-  const capturedPhotoDataUrl = cropSourceKind === "camera" ? cropImage.src : null;
   const targetKeyIndex = photoTargetKeyIndex >= 0
     ? photoTargetKeyIndex
     : (activeCropKeyIndex >= 0 ? activeCropKeyIndex : selectedKeyIndex);
@@ -1539,9 +1563,6 @@ cropApply.addEventListener("click", () => {
     rabbitArt.style.visibility = "visible";
     rabbitArt.onload = () => {
       window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, rabbitArt);
-      if (capturedPhotoDataUrl) {
-        saveCapturedPhotoToGallery(capturedPhotoDataUrl).catch(error => console.error("Gallery save failed", error));
-      }
     };
     rabbitArt.src = croppedDataUrl;
     key.classList.add("custom-art");
