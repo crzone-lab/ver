@@ -25,6 +25,12 @@ const memoryActions = document.querySelector("#memoryActions");
 const memoryLevelClock = document.querySelector("#memoryLevelClock");
 const memoryTotalClock = document.querySelector("#memoryTotalClock");
 const memoryStartButton = document.querySelector("#memoryStartButton");
+const numberActions = document.querySelector("#numberActions");
+const numberTarget = document.querySelector("#numberTarget");
+const numberTime = document.querySelector("#numberTime");
+const numberStartButton = document.querySelector("#numberStartButton");
+const heroEyebrow = document.querySelector("#heroEyebrow");
+const heroTitle = document.querySelector("#heroTitle");
 const feedbackPanel = document.querySelector("#feedbackPanel");
 const audioToggle = document.querySelector("#audioToggle");
 const panelAudioToggle = document.querySelector("#panelAudioToggle");
@@ -74,6 +80,13 @@ let memoryStartTime = 0;
 let memoryElapsed = 0;
 let memoryLevelElapsed = 0;
 let memoryStartCueTimer = 0;
+let numberActive = false;
+let numberTimer = 0;
+let numberDeadline = 0;
+let numberCorrectCount = 0;
+let numberRequiredCount = 1;
+let numberRoundLocked = false;
+let numberSelectedKeys = [];
 
 // Image Cropper & Select Option Modal Global State
 let activeCropKeyIndex = -1;
@@ -429,6 +442,10 @@ function openCategory(button, panel, modeClass) {
     stopRhythmPlayback();
     setMode("free");
   }
+  if (shouldOpen && numberActive) {
+    stopNumberGame();
+    setMode("free");
+  }
   [colorCategory, characterCategory, layoutCategory].forEach(item => item.classList.remove("active"));
   [colorPanel, characterPanel, layoutPanel].forEach(item => item.classList.remove("open"));
   colorPanel.classList.remove("editor-open");
@@ -698,6 +715,10 @@ settingsToggle.addEventListener("click", () => {
     stopRhythmPlayback();
     setMode("free");
   }
+  if (numberActive) {
+    stopNumberGame();
+    setMode("free");
+  }
   const isOpen = feedbackPanel.classList.toggle("open");
   settingsToggle.setAttribute("aria-expanded", String(isOpen));
   selectKey(selectedKeyIndex);
@@ -719,6 +740,7 @@ menuToggle?.addEventListener("click", () => {
   feedbackPanel.classList.remove("open");
   settingsToggle.setAttribute("aria-expanded", "false");
   stopMemoryGame();
+  stopNumberGame();
   if (running) startButton.click();
   setMode("free");
   mobileStartScreen.classList.remove("hidden");
@@ -730,6 +752,12 @@ gameResetButton?.addEventListener("click", () => {
     stopMemoryGame();
     setMode("memory");
     prepareMemoryGame();
+    return;
+  }
+  if (currentMode === "number") {
+    stopNumberGame();
+    setMode("number");
+    prepareNumberGame();
     return;
   }
   if (running) startButton.click();
@@ -757,7 +785,10 @@ function setMode(mode) {
   memoryModeButton.setAttribute("aria-pressed", String(isMemory));
   numberModeButton.setAttribute("aria-pressed", String(isNumber));
   memoryActions.hidden = !isMemory;
+  numberActions.hidden = !isNumber;
   document.querySelector(".rhythm-only-message").hidden = !isRhythm;
+  heroEyebrow.textContent = isNumber ? "FRUIT NUMBER CHALLENGE" : "RHYTHM TOUCH DEMO";
+  heroTitle.innerHTML = isNumber ? "Make the <em>Number Pop!</em>" : "Touch the <em>Fruit Beat!</em>";
 }
 
 function stopRhythmPlayback() {
@@ -773,12 +804,14 @@ function stopRhythmPlayback() {
 
 freeModeButton.addEventListener("click", () => {
   stopMemoryGame();
+  stopNumberGame();
   if (running) startButton.click();
   setMode("free");
 });
 
 rhythmModeButton.addEventListener("click", () => {
   stopMemoryGame();
+  stopNumberGame();
   if (!running) startButton.click();
   setMode("rhythm");
 });
@@ -786,22 +819,143 @@ rhythmModeButton.addEventListener("click", () => {
 memoryModeButton.addEventListener("click", () => {
   if (running) startButton.click();
   stopMemoryGame();
+  stopNumberGame();
   setMode("memory");
   prepareMemoryGame();
 });
 
 numberModeButton.addEventListener("click", () => {
   stopMemoryGame();
+  stopNumberGame();
   if (running) startButton.click();
   setMode("number");
-  score = 0;
-  combo = 0;
-  renderScore();
-  judgementView.style.color = "#b8ff70";
-  judgementView.textContent = "NUMBER POP READY";
+  prepareNumberGame();
 });
 
 memoryStartButton.addEventListener("click", startMemoryGame);
+numberStartButton.addEventListener("click", startNumberGame);
+
+function prepareNumberGame() {
+  score = 0;
+  combo = 0;
+  numberCorrectCount = 0;
+  numberTarget.textContent = "--";
+  numberTime.textContent = "60";
+  numberStartButton.hidden = false;
+  numberStartButton.disabled = false;
+  numberStartButton.textContent = "▶ START";
+  clearNumberSelection();
+  renderScore();
+  judgementView.style.color = "#b8ff70";
+  judgementView.textContent = "NUMBER POP READY";
+}
+
+function startNumberGame() {
+  stopNumberGame();
+  score = 0;
+  combo = 0;
+  numberCorrectCount = 0;
+  numberActive = true;
+  numberDeadline = performance.now() + 60000;
+  numberStartButton.hidden = true;
+  renderScore();
+  beginNumberRound();
+  updateNumberTimer();
+  numberTimer = setInterval(updateNumberTimer, 100);
+}
+
+function stopNumberGame() {
+  clearInterval(numberTimer);
+  numberTimer = 0;
+  numberActive = false;
+  numberRoundLocked = false;
+  numberSelectedKeys = [];
+  [...grid.children].forEach(key => key.classList.remove("number-selected", "number-correct", "number-wrong"));
+}
+
+function updateNumberTimer() {
+  if (!numberActive) return;
+  const remaining = Math.max(0, numberDeadline - performance.now());
+  numberTime.textContent = String(Math.ceil(remaining / 1000));
+  if (remaining > 0) return;
+  stopNumberGame();
+  numberTarget.textContent = "--";
+  numberStartButton.hidden = false;
+  numberStartButton.textContent = "▶ AGAIN";
+  judgementView.style.color = "#ffe36e";
+  judgementView.textContent = `TIME UP · ${score} PTS`;
+}
+
+function shuffledNumberValues() {
+  const values = [1, 2, 3, 4, 5, 6, 7, 8, 9];
+  for (let index = values.length - 1; index > 0; index -= 1) {
+    const randomIndex = Math.floor(Math.random() * (index + 1));
+    [values[index], values[randomIndex]] = [values[randomIndex], values[index]];
+  }
+  return values;
+}
+
+function beginNumberRound() {
+  if (!numberActive || currentMode !== "number") return;
+  clearNumberSelection();
+  numberRoundLocked = false;
+  numberRequiredCount = numberCorrectCount < 4 ? 1 : (numberCorrectCount < 10 ? 2 : 3);
+  const values = shuffledNumberValues();
+  [...grid.children].forEach((key, index) => {
+    key.dataset.numberValue = String(values[index]);
+    key.querySelector(".number-badge").textContent = String(values[index]);
+  });
+  const targetIndices = shuffledNumberValues().slice(0, numberRequiredCount).map(value => value - 1);
+  const targetValue = targetIndices.reduce((sum, index) => sum + values[index], 0);
+  numberTarget.textContent = String(targetValue);
+  const level = numberRequiredCount;
+  judgementView.style.color = "#b8ff70";
+  judgementView.textContent = level === 1 ? "숫자를 찾아 터치!" : `${level}개 숫자의 합을 만드세요!`;
+}
+
+function clearNumberSelection() {
+  numberSelectedKeys = [];
+  [...grid.children].forEach(key => key.classList.remove("number-selected", "number-correct", "number-wrong"));
+}
+
+function handleNumberInput(index) {
+  if (!numberActive || numberRoundLocked || numberSelectedKeys.includes(index)) return;
+  const key = grid.children[index];
+  numberSelectedKeys.push(index);
+  key.classList.add("number-selected");
+  const selectedValues = numberSelectedKeys.map(keyIndex => Number(grid.children[keyIndex].dataset.numberValue));
+  judgementView.textContent = selectedValues.join(" + ");
+  if (numberSelectedKeys.length < numberRequiredCount) return;
+
+  numberRoundLocked = true;
+  const selectedTotal = selectedValues.reduce((sum, value) => sum + value, 0);
+  const isCorrect = selectedTotal === Number(numberTarget.textContent);
+  numberSelectedKeys.forEach(keyIndex => grid.children[keyIndex].classList.add(isCorrect ? "number-correct" : "number-wrong"));
+  if (isCorrect) {
+    combo += 1;
+    score += numberRequiredCount * 100 + Math.min(combo, 10) * 20;
+    numberCorrectCount += 1;
+    judgementView.style.color = "#b8ff70";
+    judgementView.textContent = `POP! +${numberRequiredCount * 100 + Math.min(combo, 10) * 20}`;
+    triggerHaptic([20, 25, 35]);
+  } else {
+    combo = 0;
+    judgementView.style.color = "#ff6b91";
+    judgementView.textContent = `${selectedTotal} · TRY AGAIN`;
+    triggerHaptic([45, 30, 70]);
+  }
+  renderScore();
+  setTimeout(() => {
+    if (!numberActive || currentMode !== "number") return;
+    if (isCorrect) beginNumberRound();
+    else {
+      clearNumberSelection();
+      numberRoundLocked = false;
+      judgementView.style.color = "#b8ff70";
+      judgementView.textContent = numberRequiredCount === 1 ? "숫자를 찾아 터치!" : `${numberRequiredCount}개 숫자의 합을 만드세요!`;
+    }
+  }, isCorrect ? 420 : 520);
+}
 
 function prepareMemoryGame() {
   score = 0;
@@ -1034,6 +1188,10 @@ function press(index, key) {
   startHeldHaptic(index);
   if (currentMode === "memory" && memoryActive) {
     handleMemoryInput(index);
+    return;
+  }
+  if (currentMode === "number" && numberActive) {
+    handleNumberInput(index);
     return;
   }
   if (!running) return;

@@ -421,6 +421,32 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   border-top: 1px solid rgba(255,255,255,.11);
 }
 .status-card .memory-actions[hidden] { display: none; }
+.status-card .number-actions {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  align-items: center;
+  gap: 10px;
+  margin-top: 9px;
+  padding-top: 9px;
+  border-top: 1px solid rgba(255,255,255,.11);
+}
+.status-card .number-actions[hidden] { display: none; }
+.number-status { display: flex !important; flex-direction: column !important; align-items: center; gap: 2px; }
+.number-status small { color: #929bc7; font-size: 7px; letter-spacing: .14em; }
+.number-status b { color: #b8ff70; font-size: 23px; line-height: 1; text-shadow: 0 0 12px #8dff55; }
+.number-start {
+  min-width: 96px;
+  min-height: 42px;
+  border: 1px solid #b8ff70;
+  border-radius: 14px;
+  color: #152319;
+  background: linear-gradient(180deg, #d9ff9b, #83e448);
+  box-shadow: 0 0 18px #9cff6288;
+  font-weight: 1000;
+  animation: memoryStartPulse 680ms ease-in-out infinite alternate;
+}
+.phone-shell.number-view .bottom-score-card { margin-top: 8px; }
 .memory-clock-group { display: flex !important; flex-direction: column !important; gap: 2px; }
 .memory-clock-group small { color: #929bc7; font-size: 7px; letter-spacing: .14em; }
 .memory-clock { color: #77efff !important; font-size: 14px !important; font-weight: 900; letter-spacing: .04em !important; font-variant-numeric: tabular-nums; }
@@ -554,6 +580,9 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
 }
 .phone-shell.number-view .number-badge { display: flex; }
 .phone-shell.number-view .key.pressed .number-badge { transform: translateY(3px) scale(.94); filter: brightness(1.15); }
+.phone-shell.number-view .key.number-selected .number-badge { border-color: #66efff; filter: brightness(1.3); box-shadow: 0 0 18px #57eaff; }
+.phone-shell.number-view .key.number-correct .number-badge { border-color: #eaff9a; background: #4f9f2f; box-shadow: 0 0 22px #aaff66; }
+.phone-shell.number-view .key.number-wrong .number-badge { border-color: #ff9bad; background: #9b294d; box-shadow: 0 0 22px #ff4f82; }
 .key-deck.webgl-ready .key:nth-child(-n+6) .rabbit-art {
   transform: translateY(-7%);
 }

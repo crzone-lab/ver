@@ -120,8 +120,8 @@
 
     <section class="hero">
       <div>
-        <p class="eyebrow">RHYTHM TOUCH DEMO</p>
-        <h1>Touch the <em>Fruit Beat!</em></h1>
+        <p class="eyebrow" id="heroEyebrow">RHYTHM TOUCH DEMO</p>
+        <h1 id="heroTitle">Touch the <em>Fruit Beat!</em></h1>
         <p class="subtitle rhythm-only-message" data-i18n="subtitle" hidden>빛나는 키를 박자에 맞춰 터치하세요.</p>
       </div>
       <img class="rabbit" src="./assets/fruitrabbit.png" alt="FruitRabbit 딸기토끼 캐릭터">
@@ -142,6 +142,11 @@
         <span class="memory-clock-group"><small>LEVEL</small><b class="memory-clock" id="memoryLevelClock">00:00.00</b></span>
         <span class="memory-clock-group"><small>TOTAL</small><b class="memory-clock" id="memoryTotalClock">00:00.00</b></span>
         <button type="button" class="memory-start" id="memoryStartButton">▶ START</button>
+      </div>
+      <div class="number-actions" id="numberActions" hidden>
+        <span class="number-status"><small>TARGET</small><b id="numberTarget">--</b></span>
+        <span class="number-status"><small>TIME</small><b id="numberTime">60</b></span>
+        <button type="button" class="number-start" id="numberStartButton">▶ START</button>
       </div>
     </section>
 
@@ -192,6 +197,6 @@
   <script src="./i18n.js?v=20260801-v4"></script>
   <script src="./vendor/three.min.js"></script>
   <script src="./three-render.js?v=20260802-v19"></script>
-  <script src="./app.js?v=20260802-v64"></script>
+  <script src="./app.js?v=20260802-v65"></script>
 </body>
 </html>
