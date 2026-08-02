@@ -721,6 +721,20 @@
     key.decal.visible = false;
   }
 
+  function setCustomCharacterImage(index, image) {
+    const key = keys[index];
+    if (!key || !image || !image.complete || image.naturalWidth === 0) return;
+    const texture = new THREE.Texture(image);
+    texture.encoding = THREE.sRGBEncoding;
+    texture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+    texture.needsUpdate = true;
+    if (key.texture) key.texture.dispose();
+    key.texture = texture;
+    key.decal.material.map = texture;
+    key.decal.material.needsUpdate = true;
+    key.decal.visible = true;
+  }
+
   function setLedEnabled(enabled) {
     keys.forEach(function (key) {
       key.ledEnabled = enabled;
@@ -1005,6 +1019,7 @@
     setColor,
     setCharacter,
     setCharacterImage,
+    setCustomCharacterImage,
     setLedEnabled,
     setLedTarget,
     setLedPattern,

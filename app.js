@@ -1461,7 +1461,7 @@ cropApply.addEventListener("click", () => {
     rabbitArt.style.display = "block";
     rabbitArt.style.visibility = "visible";
     rabbitArt.onload = () => {
-      window.FRTE3D?.setCharacterImage(targetKeyIndex, rabbitArt);
+      window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, rabbitArt);
       if (capturedPhotoDataUrl) {
         saveCapturedPhotoToGallery(capturedPhotoDataUrl).catch(error => console.error("Gallery save failed", error));
       }

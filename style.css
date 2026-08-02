@@ -33,6 +33,11 @@ button { font: inherit; }
   padding: max(18px, env(safe-area-inset-top)) 20px max(18px, env(safe-area-inset-bottom));
   isolation: isolate;
   overflow: hidden;
+  background:
+    radial-gradient(circle at 15% 5%, #3d1e70 0, transparent 34%),
+    radial-gradient(circle at 90% 28%, #053f88 0, transparent 38%),
+    linear-gradient(155deg, #060717, #0a0b23 58%, #160520);
+  box-shadow: 0 -120px 0 120px #060717;
 }
 .phone-shell:fullscreen { width: 100%; max-width: 520px; min-height: 100dvh; }
 .phone-shell::before {
@@ -499,6 +504,7 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   pointer-events: none;
   filter: drop-shadow(0 4px 4px rgba(48, 30, 68, .28));
 }
+.key-deck.webgl-ready .key.custom-art .rabbit-art { opacity: 0; }
 .key-deck.webgl-ready .key:nth-child(-n+6) .rabbit-art {
   transform: translateY(-7%);
 }
