@@ -168,17 +168,17 @@ button { font: inherit; }
 .feature-top-button.active { box-shadow: inset 0 0 13px #52d9ff66, 0 0 14px #52d9ff55; }
 .mode-switcher {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 5px;
   margin: 3px 5px 0;
 }
 .mode-button {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 9px;
+  gap: 5px;
   min-height: 48px;
-  padding: 7px 12px;
+  padding: 7px 5px;
   border: 1px solid rgba(145,157,208,.38);
   border-radius: 15px;
   color: #929bc6;
@@ -201,11 +201,14 @@ button { font: inherit; }
 .mode-button:nth-child(1) { border-color: #55dfff88; background: linear-gradient(145deg, #183f72, #17254e); }
 .mode-button:nth-child(2) { border-color: #ff71cf88; background: linear-gradient(145deg, #572451, #2d1c50); }
 .mode-button:nth-child(3) { border-color: #ffe36e88; background: linear-gradient(145deg, #5d481d, #35294c); }
+.mode-button:nth-child(4) { border-color: #a8ff7188; background: linear-gradient(145deg, #31572b, #23304b); }
 .mode-button:nth-child(1).active { border-color: #62ddff; background: linear-gradient(145deg, #245b9d, #293878); box-shadow: inset 0 2px 2px #ffffff33, inset 0 -4px 7px #07163499, 0 5px 0 #10234f, 0 8px 16px #50dfff55; }
 .mode-button:nth-child(2).active { border-color: #ff71cf; background: linear-gradient(145deg, #7d286f, #422164); box-shadow: inset 0 2px 2px #ffffff33, inset 0 -4px 7px #2c0b3199, 0 5px 0 #32133e, 0 8px 16px #ff71cf55; }
 .mode-button:nth-child(3).active { border-color: #ffe36e; background: linear-gradient(145deg, #76591c, #49385f); box-shadow: inset 0 2px 2px #ffffff33, inset 0 -4px 7px #2b211199, 0 5px 0 #3d3016, 0 8px 16px #ffe36e55; }
+.mode-button:nth-child(4).active { border-color: #b8ff70; background: linear-gradient(145deg, #47752d, #29465a); box-shadow: inset 0 2px 2px #ffffff33, inset 0 -4px 7px #172b18aa, 0 5px 0 #18331c, 0 8px 16px #9cff6255; }
 .mode-button.rhythm-mode.active { border-color: #ff71cf; background: linear-gradient(145deg, #7d286f, #422164); box-shadow: inset 0 0 15px #ff71cf33, 0 0 13px #ff71cf44; }
 .mode-button.memory-mode.active { border-color: #ffe36e; background: linear-gradient(145deg, #76591c, #49385f); box-shadow: inset 0 0 15px #ffe36e33, 0 0 13px #ffe36e44; }
+.mode-button.number-mode.active { border-color: #b8ff70; background: linear-gradient(145deg, #47752d, #29465a); box-shadow: inset 0 0 15px #b8ff7033, 0 0 13px #9cff6244; }
 .app-menu {
   display: none;
   position: absolute;
@@ -527,6 +530,30 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   filter: drop-shadow(0 4px 4px rgba(48, 30, 68, .28));
 }
 .key.custom-art .custom-art-layer { display: block; }
+.number-badge {
+  display: none;
+  position: absolute;
+  z-index: 55;
+  top: 3%;
+  right: 11%;
+  width: clamp(24px, 7vw, 34px);
+  height: clamp(24px, 7vw, 34px);
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #ffe477;
+  border-radius: 50%;
+  color: #fffbe8;
+  background: linear-gradient(145deg, #6b2b88, #291744);
+  box-shadow: inset 0 2px 2px #ffffff55, 0 3px 0 #160a29, 0 5px 10px #0008;
+  font-size: clamp(13px, 4vw, 18px);
+  font-weight: 950;
+  line-height: 1;
+  text-shadow: 0 2px 2px #0008;
+  pointer-events: none;
+  transition: transform 90ms ease, filter 90ms ease;
+}
+.phone-shell.number-view .number-badge { display: flex; }
+.phone-shell.number-view .key.pressed .number-badge { transform: translateY(3px) scale(.94); filter: brightness(1.15); }
 .key-deck.webgl-ready .key:nth-child(-n+6) .rabbit-art {
   transform: translateY(-7%);
 }
@@ -818,8 +845,8 @@ footer { display: flex; justify-content: center; gap: 8px; align-items: center; 
   .home-button, .reset-button, #photoCaptureToggle, #settingsToggle { width: 44px; height: 44px; padding: 1px; }
   .edit-categories { gap: 4px; margin-top: 5px; }
   .mode-switcher { gap: 5px; margin-top: 2px; }
-  .mode-button { min-height: 43px; gap: 6px; padding-inline: 7px; font-size: 9px; }
-  .mode-button svg { width: 23px; height: 23px; }
+  .mode-button { min-height: 43px; gap: 3px; padding-inline: 3px; font-size: 8px; }
+  .mode-button svg { width: 21px; height: 21px; }
   .edit-category { min-height: 33px; font-size: 10px; }
   .hero { min-height: 91px; padding-top: 1px; }
   h1 { font-size: clamp(20px, 6.5vw, 27px); }

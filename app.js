@@ -20,6 +20,7 @@ const gameResetButton = document.querySelector("#gameResetButton");
 const freeModeButton = document.querySelector("#freeModeButton");
 const rhythmModeButton = document.querySelector("#rhythmModeButton");
 const memoryModeButton = document.querySelector("#memoryModeButton");
+const numberModeButton = document.querySelector("#numberModeButton");
 const memoryActions = document.querySelector("#memoryActions");
 const memoryLevelClock = document.querySelector("#memoryLevelClock");
 const memoryTotalClock = document.querySelector("#memoryTotalClock");
@@ -166,6 +167,7 @@ colors.forEach(([color, dark], index) => {
     <span class="led-module" aria-hidden="true"></span>
     <span class="target-cue" aria-hidden="true"></span>
     <img class="rabbit-art" src="${rabbitSource}" alt="FruitRabbit">
+    <span class="number-badge" aria-hidden="true">${index + 1}</span>
     <span class="character-move-outline" aria-hidden="true"></span>
     <label class="art-upload" title="이 키의 캐릭터 교체">
       <input type="file" accept="image/*" aria-label="${t("chooseImage")} ${index + 1}">
@@ -741,15 +743,19 @@ gameResetButton?.addEventListener("click", () => {
 function setMode(mode) {
   const isRhythm = mode === "rhythm";
   const isMemory = mode === "memory";
+  const isNumber = mode === "number";
   if (!isRhythm && running) stopRhythmPlayback();
   currentMode = mode;
   phoneShell.classList.toggle("memory-view", isMemory);
+  phoneShell.classList.toggle("number-view", isNumber);
   freeModeButton.classList.toggle("active", mode === "free");
   rhythmModeButton.classList.toggle("active", isRhythm);
   memoryModeButton.classList.toggle("active", isMemory);
+  numberModeButton.classList.toggle("active", isNumber);
   freeModeButton.setAttribute("aria-pressed", String(mode === "free"));
   rhythmModeButton.setAttribute("aria-pressed", String(isRhythm));
   memoryModeButton.setAttribute("aria-pressed", String(isMemory));
+  numberModeButton.setAttribute("aria-pressed", String(isNumber));
   memoryActions.hidden = !isMemory;
   document.querySelector(".rhythm-only-message").hidden = !isRhythm;
 }
@@ -782,6 +788,17 @@ memoryModeButton.addEventListener("click", () => {
   stopMemoryGame();
   setMode("memory");
   prepareMemoryGame();
+});
+
+numberModeButton.addEventListener("click", () => {
+  stopMemoryGame();
+  if (running) startButton.click();
+  setMode("number");
+  score = 0;
+  combo = 0;
+  renderScore();
+  judgementView.style.color = "#b8ff70";
+  judgementView.textContent = "NUMBER POP READY";
 });
 
 memoryStartButton.addEventListener("click", startMemoryGame);
