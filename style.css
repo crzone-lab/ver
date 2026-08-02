@@ -451,9 +451,9 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   animation: memoryStartPulse 680ms ease-in-out infinite alternate;
 }
 .phone-shell.number-view .bottom-score-card {
-  grid-template-columns: .9fr .62fr .62fr auto;
+  grid-template-columns: .78fr 1fr 1fr auto;
   gap: 6px;
-  margin: 5px;
+  margin: 7px 5px 5px;
   padding: 7px 10px;
 }
 .phone-shell.number-view .bottom-score-card strong { font-size: 18px; }
@@ -464,11 +464,15 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
 .phone-shell.number-view .number-status { min-width: 0; }
 .phone-shell.number-view .number-status b { font-size: 19px; }
 .phone-shell.number-view .number-start {
-  min-width: 70px;
-  min-height: 36px;
+  grid-column: 1 / -1;
+  justify-self: center;
+  width: min(82%, 270px);
+  min-width: 0;
+  min-height: 48px;
+  margin: 8px auto 2px;
   padding-inline: 7px;
-  border-radius: 12px;
-  font-size: 10px;
+  border-radius: 17px;
+  font-size: 15px;
 }
 .memory-clock-group { display: flex !important; flex-direction: column !important; gap: 2px; }
 .memory-clock-group small { color: #929bc7; font-size: 7px; letter-spacing: .14em; }
