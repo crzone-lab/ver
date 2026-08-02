@@ -2471,7 +2471,7 @@
 
                 // Step 3: Draw original crisp image/photo (100% crisp original artwork/photo)
                 finalCtx.drawImage(imgCanvas, 0, 0);
-                if (typeof render3DEarCaps === 'function') { render3DEarCaps(finalCtx); }
+                if (typeof applyTopBottomDomeCaps === 'function') { applyTopBottomDomeCaps(finalCtx); }
 
                 
 
@@ -4838,7 +4838,7 @@
             };
 
             if (char.base === 'strawberry_rabbit' && defaultStrawberrySrc) {
-                jellyImage.src = defaultStrawberrySrc;
+                initDefaultStrawberryJelly();
             } else if (char.imgData) {
                 // Load character fruit rabbit image asset
                 const charImg = new Image();
@@ -4846,7 +4846,7 @@
                     processImageToJelly(charImg, false);
                 };
                 charImg.src = char.imgData;
-                jellyImage.src = char.imgData;
+                const selectedCharImg = new Image(); selectedCharImg.onload = function() { processImageToJelly(selectedCharImg, false); }; selectedCharImg.src = char.imgData;
             } else {
                 // Generate 3D fruit jelly texture matching selected fruit character!
                 const fruitTex = generateFruitJellyTexture(char);
