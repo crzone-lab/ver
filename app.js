@@ -421,6 +421,10 @@ function endLayoutDrag() {
 
 function openCategory(button, panel, modeClass) {
   const shouldOpen = !button.classList.contains("active");
+  if (shouldOpen && running) {
+    stopRhythmPlayback();
+    setMode("free");
+  }
   [colorCategory, characterCategory, layoutCategory].forEach(item => item.classList.remove("active"));
   [colorPanel, characterPanel, layoutPanel].forEach(item => item.classList.remove("open"));
   colorPanel.classList.remove("editor-open");
@@ -474,9 +478,21 @@ function releaseAllPressedKeys(pointerId) {
 }
 
 window.addEventListener("pointercancel", event => releaseAllPressedKeys(event.pointerId));
-window.addEventListener("blur", () => releaseAllPressedKeys());
+window.addEventListener("blur", () => {
+  releaseAllPressedKeys();
+  if (running) {
+    stopRhythmPlayback();
+    setMode("free");
+  }
+});
 document.addEventListener("visibilitychange", () => {
-  if (document.hidden) releaseAllPressedKeys();
+  if (document.hidden) {
+    releaseAllPressedKeys();
+    if (running) {
+      stopRhythmPlayback();
+      setMode("free");
+    }
+  }
 });
 
 function playKeySound(isPress, keyIndex = 0, useSemitone = false) {
@@ -651,6 +667,10 @@ function setSoundEnabled(enabled) {
 }
 
 settingsToggle.addEventListener("click", () => {
+  if (running) {
+    stopRhythmPlayback();
+    setMode("free");
+  }
   const isOpen = feedbackPanel.classList.toggle("open");
   settingsToggle.setAttribute("aria-expanded", String(isOpen));
   selectKey(selectedKeyIndex);
