@@ -834,7 +834,7 @@ footer { display: flex; justify-content: center; gap: 8px; align-items: center; 
 
 @media (max-width: 699px) {
   html, body {
-    background-color: #241044;
+    background-color: #1f1f1f;
     overscroll-behavior-y: none;
   }
   body { display: block; place-items: initial; }
@@ -843,7 +843,8 @@ footer { display: flex; justify-content: center; gap: 8px; align-items: center; 
     min-height: 100svh;
     padding-top: max(6px, env(safe-area-inset-top));
     background:
-      radial-gradient(circle at 15% 0%, #542184 0, transparent 42%),
+      linear-gradient(to bottom, #1f1f1f 0, #17151f 14px, rgba(20, 13, 38, .72) 54px, transparent 128px),
+      radial-gradient(circle at 15% 5%, #542184 0, transparent 42%),
       radial-gradient(circle at 90% 28%, #053f88 0, transparent 38%),
       linear-gradient(155deg, #241044, #0a0b23 58%, #160520);
   }
