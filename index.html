@@ -1128,11 +1128,11 @@
             } catch(e) {}
 
             try {
-                if (typeof initDefaultStrawberryJelly === 'function') initDefaultStrawberryJelly();
-                if (typeof initMesh === 'function') initMesh();
-                if (typeof setScreenMode === 'function') setScreenMode('playground');
-                if (typeof startMainRenderLoop === 'function') startMainRenderLoop();
-                if (typeof draw === 'function') draw();
+                initDefaultStrawberryJelly();
+                initMesh();
+                setScreenMode('playground');
+                startMainRenderLoop();
+                draw();
             } catch(e) {
                 console.error("startGameSession execution error:", e);
             }
@@ -1910,20 +1910,28 @@
 
         function initDefaultStrawberryJelly() {
             try {
-                if (!defaultStrawberrySrc) {
-                    defaultStrawberrySrc = userFruitRabbitAssets[1] || generateStrawberryMasterTexture();
-                }
+                const targetSrc = userFruitRabbitAssets[1] || defaultStrawberrySrc;
+                if (!targetSrc) return;
+                
                 const img = new Image();
                 img.onload = function() {
                     processImageToJelly(img, false);
                 };
-                img.src = defaultStrawberrySrc;
+                img.src = targetSrc;
+
+                // Immediate fall-through assignment for instant 1st frame rendering
+                jellyImage.onload = function() {
+                    initMesh();
+                    draw();
+                };
+                jellyImage.src = targetSrc;
+                initMesh();
+                draw();
             } catch (err) {
                 console.error("initDefaultStrawberryJelly error:", err);
             }
         }
 
-        
         function generateStrawberryMasterTexture() {
             const canvas = document.createElement('canvas');
             canvas.width = 512;
@@ -4738,43 +4746,36 @@
 
                 // Dynamic theme-matched background gradient
                 let bgGrad = ctx.createLinearGradient(0, 0, 0, height);
-                bgGrad.addColorStop(0, `hsla(${activeHue}, 75%, 90%, 1)`); // soft pastel top
-                bgGrad.addColorStop(1, `hsla(${activeHue}, 65%, 78%, 1)`); // slightly richer bottom
+                bgGrad.addColorStop(0, `hsla(${activeHue}, 75%, 90%, 1)`);
+                bgGrad.addColorStop(1, `hsla(${activeHue}, 65%, 78%, 1)`);
                 ctx.fillStyle = bgGrad;
                 ctx.fillRect(0, 0, width, height);
+
+                // Guarantee mesh points are initialized
+                if (!points || points.length === 0) {
+                    initMesh();
+                }
 
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                // 1. Solve springs (3 substeps for smooth elasticity and high numerical stability)
+                // 1. Solve springs
                 for (let step = 0; step < 3; step++) {
                     for (let i = 0; i < springs.length; i++) {
                         springs[i].solve();
                     }
                 }
 
-                // 2. Pin grabbed point and apply continuous gentle touch squish forces
+                // 2. Pin grabbed point and apply touch squish forces
                 if (isTouching) {
                     if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                         points[grabbedPointIndex].x = touchX;
                         points[grabbedPointIndex].y = touchY;
                         points[grabbedPointIndex].vx = 0;
                         points[grabbedPointIndex].vy = 0;
-                        
-                        touchHapticFrame++;
-                        if (touchHapticFrame % 12 === 0) {
-                            const isStrong = (Math.floor(touchHapticFrame / 12) % 2 === 0);
-                            const duration = isStrong ? 35 : 12;
-                            if (navigator.vibrate) {
-                                navigator.vibrate(duration);
-                            }
-                        }
-                    } else {
-                        touchHapticFrame = 0;
                     }
                     
                     touchTime = Math.min(touchTime + 1, 120);
-                    let squishIntensity = Math.min(touchTime / 30, 1.0);
                     let maxDist = width * 0.35;
                     
                     for (let i = 0; i < points.length; i++) {
@@ -4787,14 +4788,11 @@
                             let weight = (1 - (dist / maxDist));
                             weight = weight * weight;
                             let angle = Math.atan2(dy, dx);
-                            
                             let pushForce = 3.2 * weight;
                             p.vx += Math.cos(angle) * pushForce;
                             p.vy += Math.sin(angle) * pushForce + pushForce * 0.5;
                         }
                     }
-                } else {
-                    touchHapticFrame = 0;
                 }
 
                 // 3. Update mesh points
@@ -4802,61 +4800,48 @@
                     points[i].update();
                 }
 
-                // Draw a realistic 3D contact ambient occlusion shadow underneath the main character
+                // 4. Draw 3D contact shadow underneath center
                 let centerIndex = Math.floor(rows / 2) * cols + Math.floor(cols / 2);
-                if (points.length > centerIndex && points[centerIndex]) {
-                    let center = points[centerIndex];
-                    
-                    ctx.save();
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-                    ctx.filter = 'blur(12px)';
-                    ctx.beginPath();
-                    ctx.ellipse(center.x, center.y + 120, 180, 45, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
+                let center = (points.length > centerIndex && points[centerIndex]) ? points[centerIndex] : { x: width / 2, y: height / 2 };
+                
+                ctx.save();
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
+                ctx.filter = 'blur(12px)';
+                ctx.beginPath();
+                ctx.ellipse(center.x, center.y + 120, 180, 45, 0, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
 
-                    // Draw jelly mesh body
-                    
-            if (jellyImage.complete && jellyImage.naturalWidth > 0) {
-                // Jelly image ready
-            } else {
-                console.log('JellyImage NOT READY! complete:', jellyImage.complete, 'width:', jellyImage.naturalWidth, 'src_len:', (jellyImage.src || '').length);
-            }
+                // 5. Draw main 3D Jelly Character Mesh
+                if (jellyImage && jellyImage.complete && jellyImage.naturalWidth > 0) {
+                    for (let r = 0; r < rows - 1; r++) {
+                        for (let c = 0; c < cols - 1; c++) {
+                            let pTL = points[r * cols + c];
+                            let pTR = points[r * cols + (c + 1)];
+                            let pBL = points[(r + 1) * cols + c];
+                            let pBR = points[(r + 1) * cols + (c + 1)];
 
-            if (jellyImage.complete && jellyImage.naturalWidth > 0) {
-                        for (let r = 0; r < rows - 1; r++) {
-                            for (let c = 0; c < cols - 1; c++) {
-                                let pTL = points[r * cols + c];
-                                let pTR = points[r * cols + (c + 1)];
-                                let pBL = points[(r + 1) * cols + c];
-                                let pBR = points[(r + 1) * cols + (c + 1)];
-
-                                if (pTL && pTR && pBL && pBR) {
-                                    drawWarpedTriangle(ctx, jellyImage, pTL, pTR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
-                                    drawWarpedTriangle(ctx, jellyImage, pTR, pBR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
-                                }
+                            if (pTL && pTR && pBL && pBR) {
+                                drawWarpedTriangle(ctx, jellyImage, pTL, pTR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
+                                drawWarpedTriangle(ctx, jellyImage, pTR, pBR, pBL, jellyImage.naturalWidth, jellyImage.naturalHeight);
                             }
                         }
-                    } else {
-                        ctx.fillStyle = '#ffffff';
-                        ctx.beginPath();
-                        ctx.arc(center.x, center.y, 135, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        ctx.fillStyle = '#000';
-                        ctx.font = '5.5rem Inter';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(activeEmoji, center.x, center.y);
                     }
+                } else {
+                    // Fallback visual emoji if texture image is loading
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.arc(center.x, center.y, 135, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.fillStyle = '#000';
+                    ctx.font = '5.5rem Inter';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(activeEmoji || '🍓', center.x, center.y);
                 }
             } catch (err) {
                 console.error("Draw loop error:", err);
-                const nowTime = Date.now();
-                if (nowTime - lastDrawErrorTime > 10000) { // Throttle notifications
-                    showNotification("Draw Error: " + err.message);
-                    lastDrawErrorTime = nowTime;
-                }
             }
 
             requestAnimationFrame(draw);
@@ -5686,6 +5671,31 @@
         }
         window.addEventListener('load', setupSplashEventListeners);
             }
-    </script>
+    
+
+
+
+        if (window.location.hash.includes('test-final-stage-check')) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    window.startGameSession();
+                }, 300);
+            });
+        }
+
+
+        if (window.location.hash.includes('test-delay-1s')) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    window.startGameSession();
+                    setTimeout(() => {
+                        initMesh();
+                        draw();
+                    }, 500);
+                }, 300);
+            });
+        }
+
+</script>
 </body>
 </html>
