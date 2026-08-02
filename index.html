@@ -208,11 +208,10 @@
 
         function initCanvasSize() {
             const rect = canvas.getBoundingClientRect();
-            width = canvas.width = rect.width || 412;
-            height = canvas.height = rect.height || 816;
-            if (points.length === 0) {
-                initMesh();
-            }
+            width = canvas.width = (rect.width > 50 ? rect.width : (window.innerWidth || 412));
+            height = canvas.height = (rect.height > 50 ? rect.height : (window.innerHeight || 816));
+            initMesh();
+        }
         }
 
         // ----------------------------------------------------
