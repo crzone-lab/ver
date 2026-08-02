@@ -152,9 +152,10 @@
         }
 
         .start-splash-screen.fade-out {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            display: none !important;
         }
 
         .start-logo-container {
@@ -5403,13 +5404,20 @@
                 const splash = document.getElementById('start-splash-screen');
                 if (splash) {
                     splash.classList.add('fade-out');
-                    setTimeout(() => {
-                        splash.style.display = 'none';
-                    }, 300);
+                    splash.style.setProperty('display', 'none', 'important');
+                    splash.style.setProperty('opacity', '0', 'important');
+                    splash.style.setProperty('visibility', 'hidden', 'important');
+                    splash.style.pointerEvents = 'none';
                 }
             } catch(e) {}
 
-            try { setScreenMode('playground'); } catch(e) {}
+            try {
+                initDefaultStrawberryJelly();
+                initMesh();
+                setScreenMode('playground');
+                startMainRenderLoop();
+                draw();
+            } catch(e) {}
 
             try {
                 if (!audioCtx) {
@@ -5430,37 +5438,10 @@
                 osc.start();
                 osc.stop(audioCtx.currentTime + 0.21);
             } catch (err) {}
-        }
-
-            try { setScreenMode('playground'); } catch(e) {}
-
-            // 2. Safe Audio Context Initialization
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.type = 'sine';
-                osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(500, audioCtx.currentTime + 0.16);
-                gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.16);
-                osc.start();
-                osc.stop(audioCtx.currentTime + 0.17);
-            } catch (err) {
-                console.log("AudioContext start error:", err);
-            }
 
             try { triggerHaptic(40); } catch(e) {}
             try { if (bgmPlayer && bgmPlayer.start) bgmPlayer.start(); } catch(e) {}
             
-            // 3. iOS-Safe Fullscreen Request
             try {
                 if (document.documentElement && typeof document.documentElement.requestFullscreen === 'function') {
                     document.documentElement.requestFullscreen().catch(() => {});
@@ -5576,6 +5557,44 @@
             renderLobbyGrid();
             startMainRenderLoop();
         });
+
+
+
+        // Enable instant game start on tap/click anywhere on splash screen
+        function setupSplashEventListeners() {
+            const splashEl = document.getElementById('start-splash-screen');
+            const startBtn = document.querySelector('.start-game-btn');
+            
+            const handleStartTrigger = (e) => {
+                if (e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+                startGameSession();
+            };
+
+            if (startBtn) {
+                startBtn.addEventListener('pointerdown', handleStartTrigger);
+                startBtn.addEventListener('touchstart', handleStartTrigger, { passive: false });
+                startBtn.addEventListener('click', handleStartTrigger);
+            }
+
+            if (splashEl) {
+                splashEl.addEventListener('pointerdown', handleStartTrigger);
+                splashEl.addEventListener('touchstart', handleStartTrigger, { passive: false });
+                splashEl.addEventListener('click', handleStartTrigger);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupSplashEventListeners);
+        } else {
+            setupSplashEventListeners();
+        }
+        window.addEventListener('load', setupSplashEventListeners);
+
+        }
+    
 
 
 </script>
