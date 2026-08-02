@@ -981,6 +981,29 @@
             background: linear-gradient(135deg, #ff6b81, #ff4757);
         }
     </style>
+<script>
+        window.startGameSession = function() {
+            console.log("startGameSession clicked!");
+            try {
+                var splash = document.getElementById('start-splash-screen');
+                if (splash) {
+                    splash.style.setProperty('display', 'none', 'important');
+                    splash.style.setProperty('opacity', '0', 'important');
+                    splash.style.setProperty('visibility', 'hidden', 'important');
+                    splash.style.pointerEvents = 'none';
+                }
+            } catch(e) {}
+
+            try {
+                if (typeof initDefaultStrawberryJelly === 'function') initDefaultStrawberryJelly();
+                if (typeof initMesh === 'function') initMesh();
+                if (typeof setScreenMode === 'function') setScreenMode('playground');
+                if (typeof startMainRenderLoop === 'function') startMainRenderLoop();
+                if (typeof draw === 'function') draw();
+            } catch(e) {}
+        };
+        function startGameSession() { window.startGameSession(); }
+    </script>
 </head>
 <body>
     <input type="file" id="camera-input" accept="image/*" style="display:none;" onchange="handleCameraUpload(event, true)">
