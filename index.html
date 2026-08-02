@@ -1858,6 +1858,85 @@
         }
 
 
+        
+        
+
+        
+
+        
+
+        
+
+        function drawPrecisionDomes(targetCtx, w, h, baseHue) {
+            w = w || 512;
+            h = h || 512;
+            baseHue = baseHue || 350;
+            let cx = w / 2;
+            let cy = h / 2;
+            
+            targetCtx.save();
+            
+            // Ear Dome Highlight L
+            let earGradL = targetCtx.createRadialGradient(cx - 75, cy - 140, 5, cx - 75, cy - 140, 70);
+            earGradL.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+            earGradL.addColorStop(0.5, 'hsla(' + baseHue + ', 80%, 65%, 0.3)');
+            earGradL.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            targetCtx.fillStyle = earGradL;
+            targetCtx.beginPath();
+            targetCtx.ellipse(cx - 75, cy - 140, 55, 75, -0.15, 0, Math.PI * 2);
+            targetCtx.fill();
+            
+            // Ear Dome Highlight R
+            let earGradR = targetCtx.createRadialGradient(cx + 75, cy - 140, 5, cx + 75, cy - 140, 70);
+            earGradR.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
+            earGradR.addColorStop(0.5, 'hsla(' + baseHue + ', 80%, 65%, 0.3)');
+            earGradR.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            targetCtx.fillStyle = earGradR;
+            targetCtx.beginPath();
+            targetCtx.ellipse(cx + 75, cy - 140, 55, 75, 0.15, 0, Math.PI * 2);
+            targetCtx.fill();
+            
+            // Glass Body Gloss Rim
+            let bodyHighlight = targetCtx.createRadialGradient(cx - 50, cy - 50, 10, cx, cy, 180);
+            bodyHighlight.addColorStop(0, 'rgba(255, 255, 255, 0.6)');
+            bodyHighlight.addColorStop(0.3, 'rgba(255, 255, 255, 0.15)');
+            bodyHighlight.addColorStop(1, 'rgba(0, 0, 0, 0)');
+            targetCtx.fillStyle = bodyHighlight;
+            targetCtx.beginPath();
+            targetCtx.ellipse(cx, cy, 165, 140, 0, 0, Math.PI * 2);
+            targetCtx.fill();
+            
+            targetCtx.restore();
+        }
+
+        function processImageToJelly(img, isUserCustom) {
+            const procCanvas = document.createElement('canvas');
+            procCanvas.width = 512;
+            procCanvas.height = 512;
+            const procCtx = procCanvas.getContext('2d');
+            
+            procCtx.clearRect(0, 0, 512, 512);
+            
+            let scale = Math.min(420 / (img.naturalWidth || 512), 420 / (img.naturalHeight || 512));
+            let drawW = (img.naturalWidth || 512) * scale;
+            let drawH = (img.naturalHeight || 512) * scale;
+            let drawX = (512 - drawW) / 2;
+            let drawY = (512 - drawH) / 2;
+            
+            procCtx.drawImage(img, drawX, drawY, drawW, drawH);
+            drawPrecisionDomes(procCtx, 512, 512, activeHue);
+            
+            let processedDataUrl = procCanvas.toDataURL('image/png');
+            jellyImage.onload = function() {
+                initMesh();
+                draw();
+            };
+            jellyImage.src = processedDataUrl;
+            initMesh();
+            draw();
+        }
+
+
         function initMesh() {
             points = [];
             springs = [];
@@ -4492,10 +4571,20 @@
             }
 
             // Grab point if user clicked close enough
+// Deep downward sink push on press (젤리토끼 누르면 밑으로 쑥 내려감)
             if (minDist < width * 0.35) {
                 grabbedPointIndex = closestIdx;
                 playSquishSound(false);
                 triggerHaptic(15);
+
+                for (let i = 0; i < points.length; i++) {
+                    let d = Math.sqrt(Math.pow(points[i].x - mx, 2) + Math.pow(points[i].y - my, 2));
+                    if (d < 160) {
+                        let factor = Math.cos((d / 160) * (Math.PI / 2));
+                        points[i].vy += 22 * factor;
+                        points[i].y += 18 * factor;
+                    }
+                }
             }
             
             isTouching = true;
@@ -4627,10 +4716,20 @@
                     closestIdx = i;
                 }
             }
+// Deep downward sink push on press (젤리토끼 누르면 밑으로 쑥 내려감)
             if (minDist < width * 0.35) {
                 grabbedPointIndex = closestIdx;
                 playSquishSound(false);
                 triggerHaptic(15);
+
+                for (let i = 0; i < points.length; i++) {
+                    let d = Math.sqrt(Math.pow(points[i].x - mx, 2) + Math.pow(points[i].y - my, 2));
+                    if (d < 160) {
+                        let factor = Math.cos((d / 160) * (Math.PI / 2));
+                        points[i].vy += 22 * factor;
+                        points[i].y += 18 * factor;
+                    }
+                }
             }
             
             isTouching = true;
@@ -4824,9 +4923,11 @@
                 const bubble = document.createElement('div');
                 bubble.className = `grid-char-bubble ${idx === activeLobbyIndex ? 'active' : ''}`;
                 
-                if (char.base.startsWith('custom_photo_') && char.imgData) {
-                    bubble.style.backgroundImage = `url(${char.imgData})`;
-                    bubble.style.backgroundSize = 'cover';
+                let thumbSrc = userFruitRabbitAssets[idx + 1] || char.imgData;
+                if (thumbSrc) {
+                    bubble.style.backgroundImage = `url(${thumbSrc})`;
+                    bubble.style.backgroundSize = 'contain';
+                    bubble.style.backgroundRepeat = 'no-repeat';
                     bubble.style.backgroundPosition = 'center';
                     bubble.innerText = '';
                 } else {
@@ -5017,23 +5118,15 @@
                 splash.style.pointerEvents = 'none';
             }
 
-            jellyImage.onload = function() { console.log('JELLY LOADED SUCCESSFULLY! W:', jellyImage.naturalWidth, 'H:', jellyImage.naturalHeight);
-                initMesh();
-                draw();
-            };
-
-            if (char.base === 'strawberry_rabbit' && defaultStrawberrySrc) {
-                initDefaultStrawberryJelly();
-            } else if (char.imgData && char.base.startsWith('custom_photo_')) {
-                const selectedCharImg = new Image();
-                selectedCharImg.onload = function() {
-                    processImageToJelly(selectedCharImg, false);
+            const targetAsset = userFruitRabbitAssets[index + 1] || char.imgData || defaultStrawberrySrc;
+            if (targetAsset) {
+                const charImg = new Image();
+                charImg.onload = function() {
+                    processImageToJelly(charImg, false);
                 };
-                selectedCharImg.src = char.imgData;
+                charImg.src = targetAsset;
             } else {
-                // Generate 3D glass gummy rabbit matching selected fruit character (Lemon, Peach, Grape, Kiwi, Watermelon, Orange, Cherry, Apple, etc.)
-                const fruitTex = generateFruitJellyTexture(char);
-                jellyImage.src = fruitTex;
+                initDefaultStrawberryJelly();
             }
             
             initMesh();
@@ -5042,16 +5135,6 @@
             setScreenMode('playground');
             showNotification(`${char.name} ${i18n.t('notif-selected') || '선택되었습니다!'}`);
 
-            // Highlight selected bubble
-            document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
-            if (element) {
-                element.classList.add('active');
-            } else {
-                const bubbles = document.querySelectorAll('.grid-char-bubble');
-                if (bubbles[index]) {
-                    bubbles[index].classList.add('active');
-                }
-            }
 
         function selectFeelPill(feel) {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
@@ -5538,6 +5621,22 @@
             window.addEventListener('load', () => {
                 const strawTex = generateStrawberryMasterTexture();
                 console.log('STRAW_TEX_LENGTH:', strawTex ? strawTex.length : 0);
+            });
+        }
+
+
+        if (window.location.hash.includes('test-deep-sink')) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const canvas = document.getElementById('squishy-canvas');
+                    const rect = canvas.getBoundingClientRect();
+                    const evt = new MouseEvent('mousedown', {
+                        clientX: rect.left + rect.width / 2,
+                        clientY: rect.top + rect.height / 2,
+                        bubbles: true
+                    });
+                    canvas.dispatchEvent(evt);
+                }, 300);
             });
         }
 
