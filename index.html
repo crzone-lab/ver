@@ -1048,7 +1048,7 @@
         </div>
 
         <!-- 3. Game Start Splash Screen Stage (Bypassed) -->
-        <div id="start-splash-screen" class="start-splash-screen" style="display: none !important;">
+        <div id="start-splash-screen" class="start-splash-screen">
             <div class="start-logo-container">
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
@@ -1587,7 +1587,22 @@
             img.src = src;
         }
 
-        let defaultStrawberrySrc = '';
+        let defaultStrawberrySrc = userFruitRabbitAssets[1];
+
+        function initDefaultStrawberryJelly() {
+            try {
+                if (!defaultStrawberrySrc) {
+                    defaultStrawberrySrc = userFruitRabbitAssets[1] || generateStrawberryMasterTexture();
+                }
+                const img = new Image();
+                img.onload = function() {
+                    processImageToJelly(img, false);
+                };
+                img.src = defaultStrawberrySrc;
+            } catch (err) {
+                console.error("initDefaultStrawberryJelly error:", err);
+            }
+        }
 
         
         function generateStrawberryMasterTexture() {
@@ -5384,17 +5399,38 @@
         }
 
         function startGameSession() {
-            // 1. Instantly hide splash screen first with 100% guarantee
             try {
                 const splash = document.getElementById('start-splash-screen');
                 if (splash) {
                     splash.classList.add('fade-out');
-                    splash.style.setProperty('display', 'none', 'important');
-                    splash.style.setProperty('opacity', '0', 'important');
-                    splash.style.setProperty('visibility', 'hidden', 'important');
-                    splash.style.pointerEvents = 'none';
+                    setTimeout(() => {
+                        splash.style.display = 'none';
+                    }, 300);
                 }
             } catch(e) {}
+
+            try { setScreenMode('playground'); } catch(e) {}
+
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.21);
+            } catch (err) {}
+        }
 
             try { setScreenMode('playground'); } catch(e) {}
 
@@ -5515,18 +5551,7 @@
 
 
                         // Enable instant game start on tap anywhere on splash screen
-        window.addEventListener('load', () => {
-            const splashEl = document.getElementById('start-splash-screen');
-            if (splashEl) {
-                const triggerStart = (e) => {
-                    if (splashEl.style.display !== 'none' && !splashEl.classList.contains('fade-out')) {
-                        startGameSession();
-                    }
-                };
-                splashEl.addEventListener('touchstart', triggerStart, { passive: true });
-                splashEl.addEventListener('click', triggerStart);
-            }
-        });
+        
 
 
         
@@ -5549,30 +5574,9 @@
             initDefaultStrawberryJelly();
             initMesh();
             renderLobbyGrid();
-            setScreenMode('playground');
             startMainRenderLoop();
         });
 
-        window.addEventListener('load', () => {
-            resizeCanvas();
-            initDefaultStrawberryJelly();
-            initMesh();
-            renderLobbyGrid();
-            setScreenMode('playground');
-            startMainRenderLoop();
-        });
-
-
-                        }
-    
-        window.addEventListener('load', () => {
-            setTimeout(() => {
-                const splash = document.getElementById('start-splash-screen');
-                if (splash) {
-                    splash.click();
-                }
-            }, 200);
-        });
 
 </script>
 </body>
