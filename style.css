@@ -488,9 +488,9 @@ h1 em { color: #ff6de1; font-family: "Snell Roundhand", cursive; font-weight: 50
   font-weight: 1000;
   animation: memoryStartPulse 680ms ease-in-out infinite alternate;
 }
-.phone-shell.memory-view .hero { min-height: 76px; padding-top: 0; }
-.phone-shell.memory-view .key-deck.webgl-ready { min-height: clamp(310px, 88vw, 360px); margin-top: -5px; margin-bottom: 0; }
-.phone-shell.game-status-top.memory-view .key-deck.webgl-ready { margin-top: 7px; }
+.phone-shell:is(.memory-view, .number-view) .hero { min-height: 76px; padding-top: 0; }
+.phone-shell:is(.memory-view, .number-view) .key-deck.webgl-ready { min-height: clamp(310px, 88vw, 360px); margin-top: -5px; margin-bottom: 0; }
+.phone-shell.game-status-top:is(.memory-view, .number-view) .key-deck.webgl-ready { margin-top: 7px; }
 .phone-shell.memory-view .bottom-score-card { margin: 7px 5px 5px; padding: 7px 10px; }
 .phone-shell.memory-view .bottom-score-card strong { font-size: 18px; }
 .phone-shell.memory-view .bottom-score-card { grid-template-columns: .78fr 1fr 1fr auto; gap: 6px; }
@@ -932,25 +932,25 @@ footer { display: flex; justify-content: center; gap: 8px; align-items: center; 
       radial-gradient(circle at 90% 28%, #053f88 0, transparent 38%),
       linear-gradient(155deg, #241044, #0a0b23 58%, #160520);
   }
-  .phone-shell.memory-view .topbar { margin-top: 0; }
-  .phone-shell.memory-view .mode-switcher { margin-top: 0; }
-  .phone-shell.memory-view .edit-categories { margin-top: 4px; }
+  .phone-shell:is(.memory-view, .number-view) .topbar { margin-top: 0; }
+  .phone-shell:is(.memory-view, .number-view) .mode-switcher { margin-top: 0; }
+  .phone-shell:is(.memory-view, .number-view) .edit-categories { margin-top: 4px; }
 }
 
 @media (max-width: 699px) and (max-height: 760px) {
-  .phone-shell.memory-view { padding-bottom: max(5px, env(safe-area-inset-bottom)); }
-  .phone-shell.memory-view .topbar { min-height: 42px; }
-  .phone-shell.memory-view .home-button,
-  .phone-shell.memory-view .reset-button,
-  .phone-shell.memory-view #photoCaptureToggle,
-  .phone-shell.memory-view #settingsToggle { width: 42px; height: 42px; }
-  .phone-shell.memory-view .brand { height: 42px; }
-  .phone-shell.memory-view .mode-button { min-height: 40px; padding-block: 4px; }
-  .phone-shell.memory-view .edit-category { min-height: 30px; padding-block: 4px; }
-  .phone-shell.memory-view .hero { min-height: 58px; }
-  .phone-shell.memory-view .hero .rabbit { max-width: 66px; }
-  .phone-shell.memory-view .key-deck.webgl-ready { min-height: clamp(300px, 86vw, 342px); }
-  .phone-shell.memory-view .bottom-score-card { margin-top: 4px; padding-block: 5px; }
+  .phone-shell:is(.memory-view, .number-view) { padding-bottom: max(5px, env(safe-area-inset-bottom)); }
+  .phone-shell:is(.memory-view, .number-view) .topbar { min-height: 42px; }
+  .phone-shell:is(.memory-view, .number-view) .home-button,
+  .phone-shell:is(.memory-view, .number-view) .reset-button,
+  .phone-shell:is(.memory-view, .number-view) #photoCaptureToggle,
+  .phone-shell:is(.memory-view, .number-view) #settingsToggle { width: 42px; height: 42px; }
+  .phone-shell:is(.memory-view, .number-view) .brand { height: 42px; }
+  .phone-shell:is(.memory-view, .number-view) .mode-button { min-height: 40px; padding-block: 4px; }
+  .phone-shell:is(.memory-view, .number-view) .edit-category { min-height: 30px; padding-block: 4px; }
+  .phone-shell:is(.memory-view, .number-view) .hero { min-height: 58px; }
+  .phone-shell:is(.memory-view, .number-view) .hero .rabbit { max-width: 66px; }
+  .phone-shell:is(.memory-view, .number-view) .key-deck.webgl-ready { min-height: clamp(300px, 86vw, 342px); }
+  .phone-shell:is(.memory-view, .number-view) .bottom-score-card { margin-top: 4px; padding-block: 5px; }
   .phone-shell.memory-view .status-card .memory-actions { margin-top: 4px; padding-top: 4px; }
 }
 
