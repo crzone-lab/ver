@@ -87,7 +87,8 @@ button { font: inherit; }
   pointer-events: none;
 }
 .mobile-start-screen > img {
-  width: clamp(245px, 78vw, 385px);
+  width: clamp(360px, 118vw, 560px);
+  max-width: none;
   max-height: 54svh;
   aspect-ratio: 1.5;
   object-fit: contain;
