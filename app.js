@@ -107,9 +107,12 @@ const btnCapturePhoto = document.querySelector("#btnCapturePhoto");
 let score = 0;
 let combo = 0;
 let target = -1;
+let previousTarget = -1;
+let previousTargetExpiresAt = 0;
 let beatTimer = 0;
 let rhythmStep = 0;
-const RHYTHM_BEAT_MS = 480;
+const RHYTHM_BEAT_MS = 700;
+const RHYTHM_TOUCH_GRACE_MS = 220;
 let audioContext = null;
 let soundEnabled = true;
 const cameraShutterAudio = new Audio("./assets/camera_shutter.mp3");
@@ -971,12 +974,16 @@ function press(index, key) {
     return;
   }
   if (!running) return;
-  if (index === target) {
+  const hitCurrentTarget = index === target;
+  const hitRecentTarget = index === previousTarget && performance.now() <= previousTargetExpiresAt;
+  if (hitCurrentTarget || hitRecentTarget) {
     score += 100;
     combo += 1;
     judgementView.textContent = combo > 5 ? t("perfect") : t("great");
     judgementView.style.color = "#67f4ff";
-    clearTarget();
+    if (hitCurrentTarget) clearTarget();
+    previousTarget = -1;
+    previousTargetExpiresAt = 0;
   } else {
     combo = 0;
     judgementView.textContent = t("miss");
@@ -1003,6 +1010,8 @@ function scheduleBeat(delay = RHYTHM_BEAT_MS) {
   beatTimer = setTimeout(function rhythmTick() {
     if (!running) return;
     if (target >= 0) {
+      previousTarget = target;
+      previousTargetExpiresAt = performance.now() + RHYTHM_TOUCH_GRACE_MS;
       combo = 0;
       judgementView.textContent = t("miss");
       judgementView.style.color = "#ff5b8f";
@@ -1442,10 +1451,7 @@ cropApply.addEventListener("click", () => {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
   const croppedDataUrl = resultCanvas.toDataURL("image/png");
-  if (cropSourceKind === "camera") {
-    saveCapturedPhotoToGallery(cropImage.src).catch(error => console.error("Gallery save failed", error));
-  }
-  
+  const capturedPhotoDataUrl = cropSourceKind === "camera" ? cropImage.src : null;
   const targetKeyIndex = photoTargetKeyIndex >= 0
     ? photoTargetKeyIndex
     : (activeCropKeyIndex >= 0 ? activeCropKeyIndex : selectedKeyIndex);
@@ -1454,8 +1460,13 @@ cropApply.addEventListener("click", () => {
     const rabbitArt = key.querySelector(".rabbit-art");
     rabbitArt.style.display = "block";
     rabbitArt.style.visibility = "visible";
+    rabbitArt.onload = () => {
+      window.FRTE3D?.setCharacterImage(targetKeyIndex, rabbitArt);
+      if (capturedPhotoDataUrl) {
+        saveCapturedPhotoToGallery(capturedPhotoDataUrl).catch(error => console.error("Gallery save failed", error));
+      }
+    };
     rabbitArt.src = croppedDataUrl;
-    window.FRTE3D?.setCharacter(targetKeyIndex, croppedDataUrl);
     key.classList.add("custom-art");
     customSlots.add(targetKeyIndex);
     selectKey(targetKeyIndex);
