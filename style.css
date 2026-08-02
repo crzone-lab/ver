@@ -86,6 +86,7 @@ button { font: inherit; }
   visibility: hidden;
   pointer-events: none;
 }
+.crop-modal.native-capture .webcam-actions { display: none !important; }
 .mobile-start-screen > img {
   width: clamp(360px, 118vw, 560px);
   max-width: none;

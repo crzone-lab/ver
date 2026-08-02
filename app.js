@@ -1103,10 +1103,11 @@ function drawCropImage() {
   cropCtx.drawImage(cropImage, cropX - w / 2, cropY - h / 2, w, h);
 }
 
-function loadImageIntoCropper(source, sourceKind) {
+function loadImageIntoCropper(source, sourceKind, nativeCapture = false) {
   cropSourceKind = sourceKind;
   cropImage = new Image();
   cropImage.onload = () => {
+    cropModal.classList.toggle("native-capture", nativeCapture);
     cropModal.style.display = "flex";
     cropScale = 240 / Math.min(cropImage.width, cropImage.height);
     cropZoom.min = String(cropScale * 0.4);
@@ -1125,7 +1126,7 @@ nativeCameraInput?.addEventListener("change", event => {
   if (activeCropKeyIndex < 0) activeCropKeyIndex = selectedKeyIndex;
   photoTargetKeyIndex = activeCropKeyIndex;
   const reader = new FileReader();
-  reader.onload = loadEvent => loadImageIntoCropper(loadEvent.target.result, "camera");
+  reader.onload = loadEvent => loadImageIntoCropper(loadEvent.target.result, "camera", true);
   reader.readAsDataURL(file);
   event.target.value = "";
 });
@@ -1279,6 +1280,7 @@ btnCapturePhoto.addEventListener("click", () => {
 cropCancel.addEventListener("click", () => {
   stopWebcam();
   photoTargetKeyIndex = -1;
+  cropModal.classList.remove("native-capture");
   cropModal.style.display = "none";
   requestAppFullscreen();
 });
@@ -1589,22 +1591,23 @@ cropApply.addEventListener("click", () => {
     const rabbitArt = key.querySelector(".rabbit-art");
     const processedImage = new Image();
     processedImage.onload = () => {
-      rabbitArt.onload = () => {
-        window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, rabbitArt);
-      };
-      rabbitArt.src = processedImage.src;
-      rabbitArt.style.display = "block";
-      rabbitArt.style.visibility = "visible";
-      rabbitArt.style.opacity = "0.98";
+      processedImage.className = "rabbit-art";
+      processedImage.alt = rabbitArt.alt || "FruitRabbit";
+      processedImage.style.display = "block";
+      processedImage.style.visibility = "visible";
+      processedImage.style.opacity = "0.98";
+      rabbitArt.replaceWith(processedImage);
       key.classList.add("custom-art");
       customSlots.add(targetKeyIndex);
       selectKey(targetKeyIndex);
+      window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, processedImage);
     };
     processedImage.src = croppedDataUrl;
   }
   photoTargetKeyIndex = -1;
   activeCropKeyIndex = -1;
   activeFileInput = null;
+  cropModal.classList.remove("native-capture");
   cropModal.style.display = "none";
   requestAppFullscreen();
 });
