@@ -12,6 +12,7 @@ const judgementView = document.querySelector("#judgement");
 const startButton = document.querySelector("#startButton");
 const startLabel = document.querySelector("#startLabel");
 const keyDeck = document.querySelector(".key-deck");
+const scoreCard = document.querySelector(".bottom-score-card");
 const phoneShell = document.querySelector(".phone-shell");
 const settingsToggle = document.querySelector("#settingsToggle");
 const photoCaptureToggle = document.querySelector("#photoCaptureToggle");
@@ -776,6 +777,9 @@ function setMode(mode) {
   currentMode = mode;
   phoneShell.classList.toggle("memory-view", isMemory);
   phoneShell.classList.toggle("number-view", isNumber);
+  phoneShell.classList.toggle("game-status-top", mode !== "free");
+  if (mode === "free") keyDeck.after(scoreCard);
+  else keyDeck.before(scoreCard);
   freeModeButton.classList.toggle("active", mode === "free");
   rhythmModeButton.classList.toggle("active", isRhythm);
   memoryModeButton.classList.toggle("active", isMemory);
