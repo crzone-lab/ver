@@ -1438,9 +1438,7 @@ cropApply.addEventListener("click", () => {
   
   // Crop the 240x240 guided area and export as 512x512
   resultCtx.drawImage(cropCanvas, 20, 20, 240, 240, 0, 0, 512, 512);
-  if (cropSourceKind === "camera") {
-    removeCameraPhotoBackground(resultCtx, 512, 512);
-  } else {
+  if (cropSourceKind !== "camera") {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
   const croppedDataUrl = resultCanvas.toDataURL("image/png");
