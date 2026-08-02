@@ -1438,6 +1438,45 @@ function removeCameraPhotoBackground(context, width, height) {
   context.putImageData(imageData, 0, 0);
 }
 
+function normalizeImageForKeycap(sourceCanvas, size = 512) {
+  const sourceContext = sourceCanvas.getContext("2d");
+  const pixels = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height).data;
+  let left = sourceCanvas.width;
+  let top = sourceCanvas.height;
+  let right = -1;
+  let bottom = -1;
+
+  for (let y = 0; y < sourceCanvas.height; y += 1) {
+    for (let x = 0; x < sourceCanvas.width; x += 1) {
+      if (pixels[(y * sourceCanvas.width + x) * 4 + 3] < 20) continue;
+      left = Math.min(left, x);
+      top = Math.min(top, y);
+      right = Math.max(right, x);
+      bottom = Math.max(bottom, y);
+    }
+  }
+
+  if (right < left || bottom < top) return sourceCanvas;
+
+  const subjectWidth = right - left + 1;
+  const subjectHeight = bottom - top + 1;
+  const padding = Math.round(size * 0.09);
+  const availableSize = size - padding * 2;
+  const scale = Math.min(availableSize / subjectWidth, availableSize / subjectHeight);
+  const outputWidth = subjectWidth * scale;
+  const outputHeight = subjectHeight * scale;
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = size;
+  outputCanvas.height = size;
+  outputCanvas.getContext("2d").drawImage(
+    sourceCanvas,
+    left, top, subjectWidth, subjectHeight,
+    (size - outputWidth) / 2, (size - outputHeight) / 2,
+    outputWidth, outputHeight
+  );
+  return outputCanvas;
+}
+
 async function saveCapturedPhotoToGallery(photoDataUrl) {
   if (!photoDataUrl) return;
   const capacitor = window.Capacitor;
@@ -1472,7 +1511,7 @@ cropApply.addEventListener("click", () => {
   } else {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
   }
-  const croppedDataUrl = resultCanvas.toDataURL("image/png");
+  const croppedDataUrl = normalizeImageForKeycap(resultCanvas).toDataURL("image/png");
   const capturedPhotoDataUrl = cropSourceKind === "camera" ? cropImage.src : null;
   const targetKeyIndex = photoTargetKeyIndex >= 0
     ? photoTargetKeyIndex
