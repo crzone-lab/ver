@@ -2193,6 +2193,8 @@
                 if (splash) {
                     splash.classList.add('fade-out');
                     splash.style.display = 'none';
+                    splash.style.opacity = '0';
+                    splash.style.visibility = 'hidden';
                 }
                 const path = (drawCropPoints && drawCropPoints.length > 5) ? drawCropPoints : null;
                 processImageToJelly(img, true, path, guideCenter);
@@ -2249,10 +2251,10 @@
                         }
                         imgCtx.closePath();
                     } else {
-                        const gc = guideCenter || { cx: 0.5, cy: 0.35, rx: 0.26, ry: 0.35 };
+                        const gc = guideCenter || { cx: 0.5, cy: 0.40, rx: 0.35, ry: 0.45 };
                         const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
-                        const rx = size * 0.40;
-                        const ry = size * 0.40;
+                        const rx = size * 0.45;
+                        const ry = size * 0.48;
                         
                         let finalRx = isNaN(rx) ? 133 : rx;
                         let finalRy = isNaN(ry) ? 179 : ry;
@@ -2414,6 +2416,55 @@
 
                 // Step 3: Draw original crisp image/photo (100% crisp original artwork/photo)
                 finalCtx.drawImage(imgCanvas, 0, 0);
+
+                // Draw rounded 3D strawberry ear caps to smooth off any flat top cuts
+                if (isInitializingDefaultJelly || (activeBase === 'strawberry_rabbit' && !isCamera)) {
+                    const cx = size / 2;
+                    const cy = size / 2;
+                    
+                    // Left Ear Round Cap
+                    finalCtx.save();
+                    const leftGrad = finalCtx.createRadialGradient(cx - 62, cy - 142, 5, cx - 62, cy - 142, 55);
+                    leftGrad.addColorStop(0, '#ff6b81');
+                    leftGrad.addColorStop(0.6, '#ff4757');
+                    leftGrad.addColorStop(1, '#d63031');
+                    finalCtx.fillStyle = leftGrad;
+                    finalCtx.beginPath();
+                    finalCtx.ellipse(cx - 62, cy - 138, 46, 38, 0, 0, Math.PI * 2);
+                    finalCtx.fill();
+
+                    // Right Ear Round Cap
+                    const rightGrad = finalCtx.createRadialGradient(cx + 62, cy - 142, 5, cx + 62, cy - 142, 55);
+                    rightGrad.addColorStop(0, '#ff6b81');
+                    rightGrad.addColorStop(0.6, '#ff4757');
+                    rightGrad.addColorStop(1, '#d63031');
+                    finalCtx.fillStyle = rightGrad;
+                    finalCtx.beginPath();
+                    finalCtx.ellipse(cx + 62, cy - 138, 46, 38, 0, 0, Math.PI * 2);
+                    finalCtx.fill();
+
+                    // Gloss Highlights on Ear Caps
+                    finalCtx.fillStyle = 'rgba(255, 255, 255, 0.65)';
+                    finalCtx.beginPath();
+                    finalCtx.ellipse(cx - 72, cy - 152, 14, 8, -Math.PI / 6, 0, Math.PI * 2);
+                    finalCtx.fill();
+
+                    finalCtx.beginPath();
+                    finalCtx.ellipse(cx + 52, cy - 152, 14, 8, Math.PI / 6, 0, Math.PI * 2);
+                    finalCtx.fill();
+
+                    finalCtx.restore();
+                }
+
+
+                
+                // Round off any flat top edge on rabbit ears with smooth dome mask
+                imgCtx.save();
+                imgCtx.globalCompositeOperation = 'destination-in';
+                imgCtx.beginPath();
+                imgCtx.ellipse(size / 2, size / 2 + 15, size * 0.48, size * 0.46, 0, 0, Math.PI * 2);
+                imgCtx.fill();
+                imgCtx.restore();
 
                 const finalImgData = finalCanvas.toDataURL('image/png');
                 
@@ -4650,24 +4701,130 @@
             }
         }
     
+        
+        function generateFruitJellyTexture(char) {
+            const size = 512;
+            const canvas = document.createElement('canvas');
+            canvas.width = size;
+            canvas.height = size;
+            const ctx = canvas.getContext('2d');
+            const cx = size / 2;
+            const cy = size / 2 + 35;
+            const hue = char.hue || 350;
+
+            // 1. Outer 3D Glass Gummy Body Gradient
+            const grad = ctx.createRadialGradient(cx - 50, cy - 60, 20, cx, cy, 210);
+            grad.addColorStop(0, `hsla(${hue}, 100%, 82%, 0.96)`);
+            grad.addColorStop(0.5, `hsla(${hue}, 95%, 62%, 0.92)`);
+            grad.addColorStop(0.85, `hsla(${hue}, 90%, 46%, 0.88)`);
+            grad.addColorStop(1, `hsla(${hue}, 85%, 34%, 0.82)`);
+
+            ctx.save();
+            ctx.shadowColor = `hsla(${hue}, 90%, 25%, 0.45)`;
+            ctx.shadowBlur = 24;
+            ctx.shadowOffsetY = 12;
+
+            // 2. Draw Left & Right 3D Bunny Ears on Top
+            const earGrad = ctx.createRadialGradient(cx, cy - 140, 10, cx, cy - 140, 90);
+            earGrad.addColorStop(0, `hsla(${hue}, 100%, 85%, 0.96)`);
+            earGrad.addColorStop(1, `hsla(${hue}, 90%, 45%, 0.88)`);
+
+            ctx.fillStyle = earGrad;
+
+            // Left Bunny Ear
+            ctx.save();
+            ctx.translate(cx - 75, cy - 145);
+            ctx.rotate(-0.25);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 48, 95, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Right Bunny Ear
+            ctx.save();
+            ctx.translate(cx + 75, cy - 145);
+            ctx.rotate(0.25);
+            ctx.beginPath();
+            ctx.ellipse(0, 0, 48, 95, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // 3. Draw Main 3D Round Gummy Body
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 168, 160, 0, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // 4. Inner Glass Rim & Gloss Highlights
+            ctx.save();
+            ctx.lineWidth = 12;
+            ctx.strokeStyle = `hsla(${hue}, 100%, 92%, 0.45)`;
+            ctx.beginPath();
+            ctx.ellipse(cx, cy, 156, 148, 0, 0, Math.PI * 2);
+            ctx.stroke();
+
+            // Specular Highlights on Body
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.78)';
+            ctx.beginPath();
+            ctx.ellipse(cx - 65, cy - 70, 36, 18, -Math.PI / 6, 0, Math.PI * 2);
+            ctx.fill();
+
+            // Specular Highlights on Ears
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.70)';
+            ctx.beginPath();
+            ctx.ellipse(cx - 82, cy - 170, 16, 32, -0.25, 0, Math.PI * 2);
+            ctx.fill();
+
+            ctx.beginPath();
+            ctx.ellipse(cx + 82, cy - 170, 16, 32, 0.25, 0, Math.PI * 2);
+            ctx.fill();
+
+            // 5. Center Cute Emoji
+            ctx.fillStyle = '#ffffff';
+            ctx.font = 'bold 9.5rem "Outfit", "Inter", sans-serif';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.shadowColor = 'rgba(0, 0, 0, 0.3)';
+            ctx.shadowBlur = 12;
+            ctx.fillText(char.emoji, cx, cy + 5);
+            ctx.restore();
+
+            return canvas.toDataURL('image/png');
+        }
+
         function selectLobbyCharacter(index, element) {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             activeLobbyIndex = index;
             const char = lobbyCharacters[index];
+            if (!char) return;
             
             // Set character base, emoji, and theme hue in the simulation
             activeEmoji = char.emoji;
             activeBase = char.base;
             activeHue = char.hue;
 
-            // If selecting Strawberry Rabbit, restore default strawberry drawing in jellyImage
+            // Hide splash screen if open
+            const splash = document.getElementById('start-splash-screen');
+            if (splash) {
+                splash.classList.add('fade-out');
+                splash.style.display = 'none';
+            }
+
+            jellyImage.onload = function() {
+                initMesh();
+                draw();
+            };
+
             if (char.base === 'strawberry_rabbit' && defaultStrawberrySrc) {
-                if (jellyImage.src !== defaultStrawberrySrc) {
-                    jellyImage.src = defaultStrawberrySrc;
-                }
+                jellyImage.src = defaultStrawberrySrc;
             } else if (char.base.startsWith('custom_photo_') && char.imgData) {
                 // Load saved custom photo jelly texture
                 jellyImage.src = char.imgData;
+            } else {
+                // Generate 3D fruit jelly texture matching selected fruit character!
+                const fruitTex = generateFruitJellyTexture(char);
+                jellyImage.src = fruitTex;
             }
             
             // Reinitialize mesh to sync correctly
@@ -4676,8 +4833,8 @@
             // Generate themed background jellies matching this character
             generateDecoJellies(char.hue);
             
-            // Visual transition: Go to playground
-            setScreenMode('splash');
+            // Visual transition: Go to playground screen!
+            setScreenMode('playground');
             showNotification(getRabbitName(char) + ` ` + i18n.t('notif-char-loaded-play'));
 
             // Highlight selected bubble
@@ -5053,6 +5210,23 @@
                 thumb.style.backgroundImage = `url(${jellyImage.src})`;
             }
         }, 100);
+
+
+        if (window.location.hash.includes('test-playground')) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    const splash = document.getElementById('start-splash-screen');
+                    if (splash) splash.style.display = 'none';
+                    setScreenMode('playground');
+                }, 300);
+            });
+        } else if (window.location.hash.includes('test-lemon')) {
+            window.addEventListener('load', () => {
+                setTimeout(() => {
+                    selectLobbyCharacter(1, null); // Select Lemon Rabbit
+                }, 300);
+            });
+        }
 
 </script>
 </body>
