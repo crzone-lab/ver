@@ -129,13 +129,29 @@ let moveSource = null;
 let layoutDragGhost = null;
 const mobileStartScreen = document.querySelector("#mobileStartScreen");
 const enterGameButton = document.querySelector("#enterGameButton");
+const photoDebugStatus = document.querySelector("#photoDebugStatus");
+let photoDebugTimer = 0;
+
+function showPhotoDebug(message, hold = 5000) {
+  console.info(`[PHOTO] ${message}`);
+  if (!photoDebugStatus) return;
+  clearTimeout(photoDebugTimer);
+  photoDebugStatus.textContent = message;
+  photoDebugStatus.hidden = false;
+  photoDebugTimer = setTimeout(() => {
+    photoDebugStatus.hidden = true;
+  }, hold);
+}
 
 function openImageFileInCropper(file, sourceKind, scaleBoost = 1) {
   if (!file) return;
+  showPhotoDebug(`FILE ${sourceKind} ${file.size || 0}`);
   const reader = new FileReader();
+  reader.onerror = () => showPhotoDebug("ERROR FILE_READ", 10000);
   reader.onload = event => {
     cropSourceKind = sourceKind;
     cropImage = new Image();
+    cropImage.onerror = () => showPhotoDebug("ERROR IMAGE_DECODE", 10000);
     cropImage.onload = () => {
       if (sourceKind === "camera") stopWebcam();
       cropModal.style.display = "flex";
@@ -146,6 +162,7 @@ function openImageFileInCropper(file, sourceKind, scaleBoost = 1) {
       cropX = 140;
       cropY = 140;
       drawCropImage();
+      showPhotoDebug(`CROP ${cropImage.width}x${cropImage.height}`);
     };
     cropImage.src = event.target.result;
   };
@@ -1208,7 +1225,10 @@ btnSwitchCamera.addEventListener("click", async () => {
 
 // Capture Photo click
 btnCapturePhoto.addEventListener("click", () => {
-  if (!webcamStream || webcamVideo.readyState < 2) return;
+  if (!webcamStream || webcamVideo.readyState < 2) {
+    showPhotoDebug("ERROR CAMERA_NOT_READY", 10000);
+    return;
+  }
   if (activeCropKeyIndex < 0) activeCropKeyIndex = selectedKeyIndex;
   photoTargetKeyIndex = activeCropKeyIndex;
 
@@ -1228,9 +1248,13 @@ btnCapturePhoto.addEventListener("click", () => {
     tempCtx.scale(-1, 1);
   }
   tempCtx.drawImage(webcamVideo, 0, 0, tempCanvas.width, tempCanvas.height);
+  showPhotoDebug(`CAPTURE ${tempCanvas.width}x${tempCanvas.height}`);
   
   tempCanvas.toBlob(blob => {
-    if (!blob) return;
+    if (!blob) {
+      showPhotoDebug("ERROR BLOB_EMPTY", 10000);
+      return;
+    }
     openImageFileInCropper(blob, "camera", 1.65 * cameraZoom);
   }, "image/png");
 });
@@ -1550,6 +1574,7 @@ cropApply.addEventListener("click", () => {
   const targetKeyIndex = photoTargetKeyIndex >= 0
     ? photoTargetKeyIndex
     : (activeCropKeyIndex >= 0 ? activeCropKeyIndex : selectedKeyIndex);
+  showPhotoDebug(`OUTPUT ${croppedDataUrl.length} KEY ${targetKeyIndex + 1}`);
   const key = grid.children[targetKeyIndex];
   if (key) {
     const rabbitArt = key.querySelector(".rabbit-art");
@@ -1564,6 +1589,7 @@ cropApply.addEventListener("click", () => {
     key.classList.add("custom-art");
     customSlots.add(targetKeyIndex);
     selectKey(targetKeyIndex);
+    showPhotoDebug(`APPLIED KEY ${targetKeyIndex + 1}`, 10000);
     const processedImage = new Image();
     processedImage.onload = () => {
       processedImage.className = "rabbit-art";
@@ -1574,6 +1600,7 @@ cropApply.addEventListener("click", () => {
       rabbitArt.replaceWith(processedImage);
       window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, processedImage);
     };
+    processedImage.onerror = () => showPhotoDebug("ERROR OUTPUT_DECODE", 10000);
     processedImage.src = croppedDataUrl;
   }
   photoTargetKeyIndex = -1;

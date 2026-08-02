@@ -25,6 +25,23 @@ body {
 }
 
 button { font: inherit; }
+.photo-debug-status {
+  position: fixed;
+  z-index: 9999;
+  left: 50%;
+  top: max(14px, env(safe-area-inset-top));
+  transform: translateX(-50%);
+  max-width: calc(100vw - 24px);
+  padding: 8px 12px;
+  border: 1px solid #67e8ff;
+  border-radius: 10px;
+  color: #fff;
+  background: rgba(7, 10, 30, .94);
+  font-size: 12px;
+  font-weight: 900;
+  white-space: nowrap;
+  box-shadow: 0 4px 18px #000a;
+}
 .phone-shell {
   position: relative;
   width: min(100%, 520px);
