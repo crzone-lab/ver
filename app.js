@@ -1543,14 +1543,14 @@ cropApply.addEventListener("click", () => {
   
   // Crop the 240x240 guided area and export as 512x512
   resultCtx.drawImage(cropCanvas, 20, 20, 240, 240, 0, 0, 512, 512);
+  const croppedImageBackup = resultCtx.getImageData(0, 0, 512, 512);
   if (cropSourceKind === "camera") {
-    const croppedPhotoBackup = resultCtx.getImageData(0, 0, 512, 512);
     removeCameraPhotoBackground(resultCtx, 512, 512);
-    if (!hasVisiblePhotoSubject(resultCtx, 512, 512)) {
-      resultCtx.putImageData(croppedPhotoBackup, 0, 0);
-    }
   } else {
     removeConnectedWhiteBackground(resultCtx, 512, 512);
+  }
+  if (!hasVisiblePhotoSubject(resultCtx, 512, 512)) {
+    resultCtx.putImageData(croppedImageBackup, 0, 0);
   }
   const croppedDataUrl = normalizeImageForKeycap(resultCanvas).toDataURL("image/png");
   const targetKeyIndex = photoTargetKeyIndex >= 0
@@ -1559,15 +1559,20 @@ cropApply.addEventListener("click", () => {
   const key = grid.children[targetKeyIndex];
   if (key) {
     const rabbitArt = key.querySelector(".rabbit-art");
-    rabbitArt.style.display = "block";
-    rabbitArt.style.visibility = "visible";
-    rabbitArt.onload = () => {
-      window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, rabbitArt);
+    const processedImage = new Image();
+    processedImage.onload = () => {
+      rabbitArt.onload = () => {
+        window.FRTE3D?.setCustomCharacterImage(targetKeyIndex, rabbitArt);
+      };
+      rabbitArt.src = processedImage.src;
+      rabbitArt.style.display = "block";
+      rabbitArt.style.visibility = "visible";
+      rabbitArt.style.opacity = "0.98";
+      key.classList.add("custom-art");
+      customSlots.add(targetKeyIndex);
+      selectKey(targetKeyIndex);
     };
-    rabbitArt.src = croppedDataUrl;
-    key.classList.add("custom-art");
-    customSlots.add(targetKeyIndex);
-    selectKey(targetKeyIndex);
+    processedImage.src = croppedDataUrl;
   }
   photoTargetKeyIndex = -1;
   activeCropKeyIndex = -1;
