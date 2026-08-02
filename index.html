@@ -1057,12 +1057,12 @@
         </div>
 
         <!-- 4. Unified Global Top Bar Overlay -->
-        <div class="top-overlay-ui" style="z-index: 1010;">
+        <div class="top-overlay-ui" style="z-index: 1010; pointer-events: none;">
             <div style="display: flex; gap: 4px;">
-                <div class="action-circle-btn" id="global-home-exit-btn" onclick="exitGame()" title="Exit Game" data-i18n-title="btn-exit" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto;" id="global-home-exit-btn" onclick="exitGame()" title="Exit Game" data-i18n-title="btn-exit" style="display: flex; align-items: center; justify-content: center;">
                     <img src="out.png" alt="Exit" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
-                <div class="action-circle-btn" id="settings-toggle-btn" onclick="toggleAdvancedSettings()" title="Settings" data-i18n-title="btn-setting" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto;" id="settings-toggle-btn" onclick="toggleAdvancedSettings()" title="Settings" data-i18n-title="btn-setting" style="display: flex; align-items: center; justify-content: center;">
                     <img src="setting.png" alt="Settings" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
             </div>
@@ -1072,23 +1072,23 @@
             </div>
             
             <div style="display: flex; gap: 4px;">
-                <div class="action-circle-btn" id="autopilot-btn" onclick="toggleAutopilot()" title="Autopilot Test" data-i18n-title="btn-auto" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto;" id="autopilot-btn" onclick="toggleAutopilot()" title="Autopilot Test" data-i18n-title="btn-auto" style="display: flex; align-items: center; justify-content: center;">
                     <img src="auto.png" alt="Autopilot" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
-                <div class="action-circle-btn" onclick="handlePhotoZoneGlobal()" title="Capture Snapshot" data-i18n-title="btn-photo" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto;" onclick="handlePhotoZoneGlobal()" title="Capture Snapshot" data-i18n-title="btn-photo" style="display: flex; align-items: center; justify-content: center;">
                     <img src="photo.png" alt="Snapshot" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
-                <div class="action-circle-btn" id="global-rec-btn" onclick="handleRecordToggle()" title="Record Video" data-i18n-title="btn-rec" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto;" id="global-rec-btn" onclick="handleRecordToggle()" title="Record Video" data-i18n-title="btn-rec" style="display: flex; align-items: center; justify-content: center;">
                     <img src="movie.png" alt="Record" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
             </div>
         </div>
 
         <!-- 5. Unified Global Feel Selector pills -->
-        <div class="lobby-feel-selector" style="z-index: 1010;">
-            <div class="feel-pill active" id="pill-jelly" onclick="selectFeelPill('jelly')" data-i18n="pill-jelly">탱글젤리</div>
-            <div class="feel-pill" id="pill-mochi" onclick="selectFeelPill('mochi')" data-i18n="pill-mochi">쫀득모찌</div>
-            <div class="feel-pill" id="pill-slime" onclick="selectFeelPill('slime')" data-i18n="pill-slime">슬라임</div>
+        <div class="lobby-feel-selector" style="z-index: 1010; pointer-events: none;">
+            <div style="pointer-events: auto;" class="feel-pill active" id="pill-jelly" onclick="selectFeelPill('jelly')" data-i18n="pill-jelly">탱글젤리</div>
+            <div style="pointer-events: auto;" class="feel-pill" id="pill-mochi" onclick="selectFeelPill('mochi')" data-i18n="pill-mochi">쫀득모찌</div>
+            <div style="pointer-events: auto;" class="feel-pill" id="pill-slime" onclick="selectFeelPill('slime')" data-i18n="pill-slime">슬라임</div>
         </div>
 
         <!-- 6. Lobby / Main Selection Screen (Foreground Overlay) -->
@@ -2471,6 +2471,7 @@
 
                 // Step 3: Draw original crisp image/photo (100% crisp original artwork/photo)
                 finalCtx.drawImage(imgCanvas, 0, 0);
+                if (typeof render3DEarCaps === 'function') { render3DEarCaps(finalCtx); }
 
                 
 
