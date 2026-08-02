@@ -1112,6 +1112,94 @@
     </div>
 
     <script>
+
+        // Guaranteed top-level startGameSession & touch event handlers
+        window.startGameSession = function() {
+            console.log("startGameSession executed!");
+            try {
+                const splash = document.getElementById('start-splash-screen');
+                if (splash) {
+                    splash.classList.add('fade-out');
+                    splash.style.setProperty('display', 'none', 'important');
+                    splash.style.setProperty('opacity', '0', 'important');
+                    splash.style.setProperty('visibility', 'hidden', 'important');
+                    splash.style.pointerEvents = 'none';
+                }
+            } catch(e) {}
+
+            try {
+                if (typeof initDefaultStrawberryJelly === 'function') initDefaultStrawberryJelly();
+                if (typeof initMesh === 'function') initMesh();
+                if (typeof setScreenMode === 'function') setScreenMode('playground');
+                if (typeof startMainRenderLoop === 'function') startMainRenderLoop();
+                if (typeof draw === 'function') draw();
+            } catch(e) {
+                console.error("startGameSession execution error:", e);
+            }
+
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(660, audioCtx.currentTime + 0.2);
+                gain.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.2);
+                osc.start();
+                osc.stop(audioCtx.currentTime + 0.21);
+            } catch (err) {}
+
+            try { if (typeof triggerHaptic === 'function') triggerHaptic(40); } catch(e) {}
+            try { if (typeof bgmPlayer !== 'undefined' && bgmPlayer && bgmPlayer.start) bgmPlayer.start(); } catch(e) {}
+            
+            try {
+                if (document.documentElement && typeof document.documentElement.requestFullscreen === 'function') {
+                    document.documentElement.requestFullscreen().catch(() => {});
+                }
+            } catch(e) {}
+        };
+        function startGameSession() { window.startGameSession(); }
+
+        function setupSplashEventListeners() {
+            const splashEl = document.getElementById('start-splash-screen');
+            const startBtn = document.querySelector('.start-game-btn');
+            
+            const handleStartTrigger = (e) => {
+                if (e) {
+                    try { e.preventDefault(); } catch(err) {}
+                    try { e.stopPropagation(); } catch(err) {}
+                }
+                window.startGameSession();
+            };
+
+            if (startBtn) {
+                startBtn.addEventListener('pointerdown', handleStartTrigger);
+                startBtn.addEventListener('touchstart', handleStartTrigger, { passive: false });
+                startBtn.addEventListener('click', handleStartTrigger);
+            }
+
+            if (splashEl) {
+                splashEl.addEventListener('pointerdown', handleStartTrigger);
+                splashEl.addEventListener('touchstart', handleStartTrigger, { passive: false });
+                splashEl.addEventListener('click', handleStartTrigger);
+            }
+        }
+
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', setupSplashEventListeners);
+        } else {
+            setupSplashEventListeners();
+        }
+        window.addEventListener('load', setupSplashEventListeners);
+
         let isAutopilotActive = false;
         let autopilotTimer = null;
 
