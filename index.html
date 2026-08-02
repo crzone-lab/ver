@@ -1827,10 +1827,13 @@
                 const img = new Image();
                 img.onload = function() {
                     const splash = document.getElementById('start-splash-screen');
-                    if (splash) {
-                        splash.classList.add('fade-out');
-                        splash.style.display = 'none';
-                    }
+            if (splash) {
+                splash.classList.add('fade-out');
+                splash.style.setProperty('display', 'none', 'important');
+                splash.style.setProperty('opacity', '0', 'important');
+                splash.style.setProperty('visibility', 'hidden', 'important');
+                splash.style.pointerEvents = 'none';
+            }
                     processImageToJelly(img, false);
                     setScreenMode('playground');
                     showNotification(i18n.t('notif-import-success') || "이미지가 성공적으로 등록되었습니다!");
@@ -2245,12 +2248,13 @@
             const img = new Image();
             img.onload = function() {
                 const splash = document.getElementById('start-splash-screen');
-                if (splash) {
-                    splash.classList.add('fade-out');
-                    splash.style.display = 'none';
-                    splash.style.opacity = '0';
-                    splash.style.visibility = 'hidden';
-                }
+            if (splash) {
+                splash.classList.add('fade-out');
+                splash.style.setProperty('display', 'none', 'important');
+                splash.style.setProperty('opacity', '0', 'important');
+                splash.style.setProperty('visibility', 'hidden', 'important');
+                splash.style.pointerEvents = 'none';
+            }
                 const path = (drawCropPoints && drawCropPoints.length > 5) ? drawCropPoints : null;
                 processImageToJelly(img, true, path, guideCenter);
                 closeCustomCamera();
@@ -4817,7 +4821,10 @@
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
                 splash.classList.add('fade-out');
-                splash.style.display = 'none';
+                splash.style.setProperty('display', 'none', 'important');
+                splash.style.setProperty('opacity', '0', 'important');
+                splash.style.setProperty('visibility', 'hidden', 'important');
+                splash.style.pointerEvents = 'none';
             }
 
             jellyImage.onload = function() {
@@ -5127,7 +5134,7 @@
             }
             triggerHaptic(40);
             
-            bgmPlayer.start();
+            try { bgmPlayer.start(); } catch(e) {}
             
             if (document.documentElement.requestFullscreen) {
                 document.documentElement.requestFullscreen().catch(err => {
@@ -5138,11 +5145,15 @@
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
                 splash.classList.add('fade-out');
-                setTimeout(() => { splash.style.display = 'none'; }, 400);
+                splash.style.setProperty('display', 'none', 'important');
+                splash.style.setProperty('opacity', '0', 'important');
+                splash.style.setProperty('visibility', 'hidden', 'important');
+                splash.style.pointerEvents = 'none';
             }
 
-            // Transition from lobby to playground stage!
-            setScreenMode('splash');
+            // Transition from splash to playground stage!
+            setScreenMode('playground');
+            showNotification(i18n.t('notif-game-started') || "게임이 시작되었습니다!");
         }
 
         function resetLobby() {
@@ -5247,6 +5258,24 @@
         }
 
 }
+
+
+        // Enable instant game start on tap anywhere on splash screen
+        window.addEventListener('load', () => {
+            const splashEl = document.getElementById('start-splash-screen');
+            if (splashEl) {
+                const triggerStart = (e) => {
+                    if (splashEl.style.display !== 'none' && !splashEl.classList.contains('fade-out')) {
+                        startGameSession();
+                    }
+                };
+                splashEl.addEventListener('touchstart', triggerStart, { passive: true });
+                splashEl.addEventListener('click', triggerStart);
+            }
+        });
+
+
+        
 
 </script>
 </body>
