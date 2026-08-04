@@ -1388,3 +1388,13 @@
     1. **Tangle Jelly Inward 3D Dimple Dent**: Tapping/pressing without dragging causes the touched area to depress INWARD in 3D depth with a concave 3D shadow ring, creating a realistic squishy indentation!
     2. **Soft Flexible Stretch (`maxStretch = 120.0px`, `softMultiplier = 1.15`)**: Softens the gelatin mesh so pulling or pushing centered at the touch point stretches and squishes with smooth, soft elasticity!
     3. **Single-Mass Gravity Gel Slime (`singleMassProtection = true`, `gravityAccel = 0.85`)**: Wraps Slime in the exact same 1-piece solid mass protection as Jelly (0% tearing/cutting), and uses gravity acceleration to pool and spread the gel mass outward & downward towards the floor when pressed!
+
+## Master Release v112.0.0 (2026-08-04) - DEEP 3D WHIRLPOOL SINKHOLE & STEEP ANCHORED DRAG
+- **Version Checkpoint File**: `v112.0.0_DEEP_SINKHOLE_AND_STEEP_GRADIENT_DRAG.html`
+- **100% Deep Whirlpool Drain Inward Sinkhole & Steep Spatial Gradient Anchored Drag Physics**:
+  - Implemented the user's explicit directives:
+    1. "In Tangle Jelly, pressing inward to sink into depth is not working. The touched center should go deepest into depth and surrounding areas should sink together like water going down a drain. Holding longer should sink deeper!"
+    2. "When pulling or pushing, the whole character moves along. Areas far from the touch point should STAY 100% ANCHORED in place, while close areas follow the touch cursor much more heavily for a natural soft feel!"
+  - **Engine Architecture Upgrades**:
+    1. **Deep Whirlpool Drain Sinkhole**: Pressing/holding down causes the center point to sink deepest into 3D depth, pulling surrounding nodes inward radially like water draining into a whirlpool. Pressing longer increases sinkhole depth up to 52px with 3D whirlpool concave shading!
+    2. **Steep Spatial Gradient Anchored Drag (`sigma = 95.0px`)**: Nodes far from the touch point (`dist > 150px`) remain 100% stationary at their home origins `(p.ox, p.oy)`, while nodes close to the touch point stretch smoothly towards the drag cursor!

@@ -1786,6 +1786,7 @@
         let cols = 10;
         let grabbedPointIndex = null;
         let isTouching = false;
+        let touchStartX = 0, touchStartY = 0;
         let touchX = 0;
         let touchY = 0;
         let lastTouchX = 0;
@@ -3504,7 +3505,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                // --- 1. Deep Inward Sinkhole & Steep Spatial Gradient Soft Jelly Engine ---
+                                                                                                // --- 1. Zero-Flinch Deep Inward Sinkhole & Anchored Drag Physics Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
@@ -3587,63 +3588,61 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 깊은 3D 하수구 함몰 (Sinkhole) & Steep Spatial Gradient (먼 곳 100% 고정!)
-                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                            let gNode = points[grabbedPointIndex];
-                            let dragDx = touchX - gNode.ox;
-                            let dragDy = touchY - gNode.oy;
-                            let dragDist = Math.hypot(dragDx, dragDy);
+                        // [탱글젤리 모드]: 움찔거림 0% + 누르면 속으로 쏙 들어가는 깊은 3D 함몰 (Deep Inward Sinkhole)
+                        let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
 
-                            if (dragDist < 8.0) {
-                                // 1. 누르고 있기 (Hold/Press): 하수구로 물이 빨려 들어가듯 깊은 3D 함몰 (Deep Sinkhole)
-                                let sinkRadius = width * 0.42;
-                                // Longer press = deeper sink hole!
-                                let sinkDepth = Math.min(52.0, 18.0 + touchTime * 1.6);
+                        if (dragFromStart < 14.0) {
+                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 움찔거림 0%! 터치 위치 중심 깊은 3D 함몰 (Sinkhole)
+                            let sinkRadius = width * 0.45;
+                            let sinkDepth = Math.min(58.0, 22.0 + touchTime * 1.8); // Deepens continuously with hold time!
 
-                                for (let i = 0; i < points.length; i++) {
-                                    let p = points[i];
-                                    let dx = p.ox - touchX;
-                                    let dy = p.oy - touchY;
-                                    let dist = Math.hypot(dx, dy);
+                            for (let i = 0; i < points.length; i++) {
+                                let p = points[i];
+                                let dx = p.ox - touchX;
+                                let dy = p.oy - touchY;
+                                let dist = Math.hypot(dx, dy);
 
-                                    if (dist < sinkRadius && dist > 0.1) {
-                                        let weight = Math.pow(1 - dist / sinkRadius, 1.8);
-                                        let nx = dx / dist;
-                                        let ny = dy / dist;
+                                if (dist < sinkRadius && dist > 0.1) {
+                                    let weight = Math.pow(1 - dist / sinkRadius, 1.6);
+                                    let nx = dx / dist;
+                                    let ny = dy / dist;
 
-                                        // Pull nodes inward towards sink center (하수구 빨려 내려감)
-                                        p.x -= nx * weight * sinkDepth * 0.45;
-                                        p.y -= ny * weight * sinkDepth * 0.45;
-                                    }
+                                    // Pull nodes inward towards sinkhole center (속으로 쏙 빨려 들어감)
+                                    p.x -= nx * weight * sinkDepth * 0.40;
+                                    p.y -= ny * weight * sinkDepth * 0.40;
                                 }
+                            }
 
-                                // Render 3D Whirlpool Sinkhole Shadow & Depressed Contour
-                                ctx.save();
-                                let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.65);
-                                sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.45)');
-                                sGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.20)');
-                                sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                                ctx.fillStyle = sGrad;
-                                ctx.beginPath();
-                                ctx.arc(touchX, touchY, sinkRadius * 0.65, 0, Math.PI * 2);
-                                ctx.fill();
-                                ctx.restore();
+                            // Render 3D Whirlpool Sinkhole Shadow & Depressed Inner Ring
+                            ctx.save();
+                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.60);
+                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.48)');
+                            sGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.22)');
+                            sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                            ctx.fillStyle = sGrad;
+                            ctx.beginPath();
+                            ctx.arc(touchX, touchY, sinkRadius * 0.60, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
 
-                            } else {
-                                // 2. 당기기/밀기 (Drag >= 8px): 먼 곳은 100% 제자리 고정 + 가까운 곳만 터치 위치로 크게 끌려옴!
+                        } else {
+                            // 2. 드래그/당기기 상태 (dragFromStart >= 14px): 먼 곳 100% 고정 + 터치 부위만 크게 따라오는 로컬 당기기!
+                            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                                let gNode = points[grabbedPointIndex];
+                                let dragDx = touchX - touchStartX;
+                                let dragDy = touchY - touchStartY;
+
                                 for (let i = 0; i < points.length; i++) {
                                     let p = points[i];
-                                    let pdx = p.ox - gNode.ox;
-                                    let pdy = p.oy - gNode.oy;
+                                    let pdx = p.ox - touchStartX;
+                                    let pdy = p.oy - touchStartY;
                                     let dist = Math.hypot(pdx, pdy);
 
-                                    // Steep Exponential Decay: Nodes far (>150px) get 0 weight and STAY 100% ANCHORED!
-                                    let sigma = 95.0; // Narrow, sharp spatial influence range
+                                    let sigma = 110.0;
                                     let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
 
-                                    // Nearby nodes follow touch vector closely, far nodes remain anchored at (p.ox, p.oy)
-                                    p.x = p.ox + dragDx * weight;
-                                    p.y = p.oy + dragDy * weight;
+                                    p.x = p.ox + dragDx * weight * 1.10;
+                                    p.y = p.oy + dragDy * weight * 1.10;
                                     p.vx *= 0.25; p.vy *= 0.25;
                                 }
                             }
@@ -3651,7 +3650,6 @@
                     }
                 } else {
                     touchTime = 0;
-                    // Soft spring restoration
                     let modeSpring = (currentMode === 'slime') ? 0.035 : (currentMode === 'mochi' ? 0.07 : 0.16);
                     let modeDamping = (currentMode === 'slime') ? 0.93 : (currentMode === 'mochi' ? 0.88 : 0.80);
 
@@ -3948,6 +3946,8 @@
             isTouching = true;
             touchX = pos.x;
             touchY = pos.y;
+            touchStartX = pos.x;
+            touchStartY = pos.y;
             lastTouchX = pos.x;
             lastTouchY = pos.y;
             touchTime = 0;
