@@ -1376,3 +1376,15 @@
   - **Engine Architecture Upgrades**:
     1. **Tangle Jelly Extended Elastic Stretch (`maxStretch = 75px`, `spatialRadius = 175.0px`)**: Preserves the 1-piece solid mass envelope while allowing cheeks, ears, and hands to stretch out **much further, smoother, and longer** without tearing or breaking.
     2. **In-Place Slime Fluid Pooling (`zeroDownwardTranslation = true`, `horizontalSpreadRatio = 0.42`)**: Eliminates downward character translation. When pressed, the character stays anchored in its exact spot, flattens vertically, and spreads out wide to the left and right like a pool of viscous honey/slime.
+
+## Master Release v111.0.0 (2026-08-04) - SOFT JELLY INWARD 3D DIMPLE & SINGLE-MASS GRAVITY GEL SLIME
+- **Version Checkpoint File**: `v111.0.0_SOFT_JELLY_DIMPLE_AND_GRAVITY_GEL_SLIME.html`
+- **100% Soft Elastic Gelatin Softness, Inward 3D Dimple Dent & Single-Mass Gravity Gel Slime Fluid Engine**:
+  - Implemented the user's explicit directives:
+    1. "In Tangle Jelly, pressing inward to create a squishy indentation/sink (inward dimple/depression) is not working!"
+    2. "It feels too stiff/hard right now! Make it softer so that pulling or pushing centered around the touched area works much better and smoother."
+    3. "In Slime, when pressed, it gets cut and torn because it's not recognized as a SINGLE UNIFIED SOLID MASS! Just like Tangle Jelly, first recognize it as 1 SINGLE UNIFIED MASS, and then physically turn it into a viscous gel state, so that when pressed, it uses gravity to gradually flow and spread out towards the floor/bottom!"
+  - **Engine Architecture Upgrades**:
+    1. **Tangle Jelly Inward 3D Dimple Dent**: Tapping/pressing without dragging causes the touched area to depress INWARD in 3D depth with a concave 3D shadow ring, creating a realistic squishy indentation!
+    2. **Soft Flexible Stretch (`maxStretch = 120.0px`, `softMultiplier = 1.15`)**: Softens the gelatin mesh so pulling or pushing centered at the touch point stretches and squishes with smooth, soft elasticity!
+    3. **Single-Mass Gravity Gel Slime (`singleMassProtection = true`, `gravityAccel = 0.85`)**: Wraps Slime in the exact same 1-piece solid mass protection as Jelly (0% tearing/cutting), and uses gravity acceleration to pool and spread the gel mass outward & downward towards the floor when pressed!

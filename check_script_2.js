@@ -2129,13 +2129,11 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                // --- 1. Soft Tangle Jelly (Inward Dimple + Soft Drag) & Single-Mass Gravity Gel Slime ---
+                                                                                // --- 1. Deep Inward Sinkhole & Steep Spatial Gradient Soft Jelly Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
                     touchTime++;
-
-                    let maxRadius = width * 0.48;
 
                     // 2-Finger Pinch Balloon Swell (두 손가락 핀치 시 가운데 풍선 부풀어 오름)
                     if (activeTouchList && activeTouchList.length >= 2) {
@@ -2176,7 +2174,7 @@
                         ctx.fill();
                         ctx.restore();
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 100% 1개 단일 덩어리 보존 (잘림/찢어짐 0%) + 중력 기반 바닥 겔 퍼짐 (Gravity Gel Pooling)
+                        // [슬라임 모드]: 100% 1개 단일 덩어리 보존 + 중력 기반 바닥 겔 퍼짐 (Gravity Gel Pooling)
                         let pressRadius = width * 0.55;
                         let gravityForce = Math.min(58.0, 18.0 + touchTime * 1.25);
 
@@ -2190,9 +2188,8 @@
                                 let weight = Math.pow(1 - dist / pressRadius, 1.3);
                                 let nx = dx / dist;
 
-                                // Single solid mass gravity pooling: Gel spreads horizontally and settles downward under gravity
-                                p.x += nx * weight * gravityForce * 0.48; // Horizontal gel expansion to left & right
-                                p.y += weight * gravityForce * 0.32;      // Gravity gel settling towards floor
+                                p.x += nx * weight * gravityForce * 0.48;
+                                p.y += weight * gravityForce * 0.32;
                             }
                         }
                     } else if (currentMode === 'mochi') {
@@ -2215,17 +2212,18 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 연하고 말랑말랑한 젤리 + 누르면 움푹 들어가는 3D 함몰 (Inward Dimple + Soft Drag)
+                        // [탱글젤리 모드]: 깊은 3D 하수구 함몰 (Sinkhole) & Steep Spatial Gradient (먼 곳 100% 고정!)
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
                             let dragDy = touchY - gNode.oy;
                             let dragDist = Math.hypot(dragDx, dragDy);
 
-                            if (dragDist < 6.0) {
-                                // 1. 누름 상태 (Drag < 6px): 터치 지점 중심으로 움푹 들어가는 3D 함몰 효과 (Inward Dimple)
-                                let dimpleRadius = width * 0.38;
-                                let dimpleDepth = 26.0;
+                            if (dragDist < 8.0) {
+                                // 1. 누르고 있기 (Hold/Press): 하수구로 물이 빨려 들어가듯 깊은 3D 함몰 (Deep Sinkhole)
+                                let sinkRadius = width * 0.42;
+                                // Longer press = deeper sink hole!
+                                let sinkDepth = Math.min(52.0, 18.0 + touchTime * 1.6);
 
                                 for (let i = 0; i < points.length; i++) {
                                     let p = points[i];
@@ -2233,47 +2231,45 @@
                                     let dy = p.oy - touchY;
                                     let dist = Math.hypot(dx, dy);
 
-                                    if (dist < dimpleRadius && dist > 0.1) {
-                                        let weight = Math.pow(1 - dist / dimpleRadius, 1.6);
+                                    if (dist < sinkRadius && dist > 0.1) {
+                                        let weight = Math.pow(1 - dist / sinkRadius, 1.8);
                                         let nx = dx / dist;
                                         let ny = dy / dist;
 
-                                        // Inward squish & dimple depression
-                                        p.x -= nx * weight * dimpleDepth * 0.30;
-                                        p.y -= ny * weight * dimpleDepth * 0.30;
+                                        // Pull nodes inward towards sink center (하수구 빨려 내려감)
+                                        p.x -= nx * weight * sinkDepth * 0.45;
+                                        p.y -= ny * weight * sinkDepth * 0.45;
                                     }
                                 }
 
-                                // Render concave 3D dimple inner shadow ring
+                                // Render 3D Whirlpool Sinkhole Shadow & Depressed Contour
                                 ctx.save();
-                                let dGrad = ctx.createRadialGradient(touchX, touchY, 2, touchX, touchY, dimpleRadius * 0.55);
-                                dGrad.addColorStop(0, 'rgba(0, 0, 0, 0.28)');
-                                dGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.10)');
-                                dGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                                ctx.fillStyle = dGrad;
+                                let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.65);
+                                sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.45)');
+                                sGrad.addColorStop(0.4, 'rgba(0, 0, 0, 0.20)');
+                                sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                                ctx.fillStyle = sGrad;
                                 ctx.beginPath();
-                                ctx.arc(touchX, touchY, dimpleRadius * 0.55, 0, Math.PI * 2);
+                                ctx.arc(touchX, touchY, sinkRadius * 0.65, 0, Math.PI * 2);
                                 ctx.fill();
                                 ctx.restore();
 
                             } else {
-                                // 2. 당기기/밀기 상태 (Drag >= 6px): 매우 연하고 말랑말랑하게 쭉 늘어남 (Soft Flexible Stretch: 120px Range)
-                                let maxStretch = 120.0; // Soft & long stretch range!
-                                if (dragDist > maxStretch) {
-                                    dragDx = (dragDx / dragDist) * maxStretch;
-                                    dragDy = (dragDy / dragDist) * maxStretch;
-                                }
-
+                                // 2. 당기기/밀기 (Drag >= 8px): 먼 곳은 100% 제자리 고정 + 가까운 곳만 터치 위치로 크게 끌려옴!
                                 for (let i = 0; i < points.length; i++) {
                                     let p = points[i];
                                     let pdx = p.ox - gNode.ox;
                                     let pdy = p.oy - gNode.oy;
-                                    let distSq = pdx * pdx + pdy * pdy;
-                                    let weight = Math.exp(-distSq / (220.0 * 220.0)); // Soft wide influence
+                                    let dist = Math.hypot(pdx, pdy);
 
-                                    p.x = p.ox + dragDx * weight * 1.15; // Extra soft responsiveness
-                                    p.y = p.oy + dragDy * weight * 1.15;
-                                    p.vx *= 0.35; p.vy *= 0.35;
+                                    // Steep Exponential Decay: Nodes far (>150px) get 0 weight and STAY 100% ANCHORED!
+                                    let sigma = 95.0; // Narrow, sharp spatial influence range
+                                    let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
+
+                                    // Nearby nodes follow touch vector closely, far nodes remain anchored at (p.ox, p.oy)
+                                    p.x = p.ox + dragDx * weight;
+                                    p.y = p.oy + dragDy * weight;
+                                    p.vx *= 0.25; p.vy *= 0.25;
                                 }
                             }
                         }
