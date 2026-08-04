@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🐰 과일토끼 키캡랩 시뮬레이터 (FRTE Web)</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- LEFT PANEL: Physics & Animation -->
+        <div class="panel">
+            <div class="panel-header">
+                <h1>FRTE 물리 & 연출 실험실</h1>
+            </div>
+            <div class="panel-content">
+                <!-- Switch Presets -->
+                <div class="section" style="color: var(--color-physics);">
+                    <div class="section-title">스위치 타입 프리셋</div>
+                    <div class="preset-selector">
+                        <button class="preset-btn active" onclick="applyPreset('linear')">적축 (Linear)</button>
+                        <button class="preset-btn" onclick="applyPreset('clicky')">청축 (Clicky)</button>
+                        <button class="preset-btn" onclick="applyPreset('tactile')">갈축 (Tactile)</button>
+                    </div>
+                </div>
+
+                <!-- Physics Controls -->
+                <div class="section" style="color: var(--color-physics);">
+                    <div class="section-title">물리 서브시스템 (Physics)</div>
+                    
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>스프링 강도 (Spring Strength)</span>
+                            <span class="control-value physics-glow" id="val-SpringStrength">180</span>
+                        </div>
+                        <input type="range" class="physics-slider" id="SpringStrength" min="50" max="400" value="180" oninput="updateParam('SpringStrength', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>물리 댐핑 (Damping)</span>
+                            <span class="control-value physics-glow" id="val-Damping">12.0</span>
+                        </div>
+                        <input type="range" class="physics-slider" id="Damping" min="2.0" max="30.0" step="0.5" value="12.0" oninput="updateParam('Damping', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>스트로크 변위 (Travel Distance)</span>
+                            <span class="control-value physics-glow" id="val-TravelDistance">4.0 mm</span>
+                        </div>
+                        <input type="range" class="physics-slider" id="TravelDistance" min="2.0" max="5.0" step="0.1" value="4.0" oninput="updateParam('TravelDistance', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>입력 작동 지점 (Actuation Point)</span>
+                            <span class="control-value physics-glow" id="val-ActuationPoint">2.0 mm</span>
+                        </div>
+                        <input type="range" class="physics-slider" id="ActuationPoint" min="1.0" max="3.0" step="0.1" value="2.0" oninput="updateParam('ActuationPoint', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>타건 누름 질량 (Press Mass)</span>
+                            <span class="control-value physics-glow" id="val-PressMass">0.12 kg</span>
+                        </div>
+                        <input type="range" class="physics-slider" id="PressMass" min="0.05" max="0.30" step="0.01" value="0.12" oninput="updateParam('PressMass', this.value)">
+                    </div>
+                </div>
+
+                <!-- Animation Controls -->
+                <div class="section" style="color: var(--color-animation);">
+                    <div class="section-title">비주얼 연출 (Animation)</div>
+                    
+                    <div class="toggle-group">
+                        <span class="toggle-label">물리 압축 연출 (Compression)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="EnableCompression" checked onchange="updateToggle('EnableCompression', this.checked)">
+                            <span class="slider-toggle" style="--toggle-active-color: var(--color-animation);"></span>
+                        </label>
+                    </div>
+
+                    <div class="toggle-group">
+                        <span class="toggle-label">최대 타건 흔들림 (Tilt)</span>
+                        <label class="switch">
+                            <input type="checkbox" id="EnableTilt" checked onchange="updateToggle('EnableTilt', this.checked)">
+                            <span class="slider-toggle" style="--toggle-active-color: var(--color-animation);"></span>
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>기울기 민감도 (Max Tilt Degrees)</span>
+                            <span class="control-value animation-glow" id="val-MaximumTiltDegrees">6.5°</span>
+                        </div>
+                        <input type="range" class="animation-slider" id="MaximumTiltDegrees" min="1.0" max="15.0" step="0.5" value="6.5" oninput="updateParam('MaximumTiltDegrees', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>탄성 바운스 강도</span>
+                            <span class="control-value animation-glow" id="val-BounceVisualMultiplier">1.2x</span>
+                        </div>
+                        <input type="range" class="animation-slider" id="BounceVisualMultiplier" min="0.5" max="2.5" step="0.1" value="1.2" oninput="updateParam('BounceVisualMultiplier', this.value)">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- CENTER STAGE: 3D Keycap Visualization -->
+        <div class="center-stage">
+            <div class="stage-title">
+                <h2>FRTE_KeycapRoot</h2>
+                <p>3D Keycap Simulator & Physics Modeler</p>
+            </div>
+
+            <!-- CSS 3D Keycap Container -->
+            <div class="keycap-container-3d" id="keycapContainer" onmousedown="onKeyPress(event)" onmouseup="onKeyRelease()" onmouseleave="onKeyRelease()">
+                <div class="keycap-root-3d" id="keycapRoot">
+                    <!-- Selection Indicator (active state) -->
+                    <div class="selection-indicator-3d active" id="selectionRing"></div>
+
+                    <!-- LED Diffuser (Acrylic Transparent layer) -->
+                    <div class="cube-3d led-diffuser-3d">
+                        <div class="cube-face face-front"></div>
+                        <div class="cube-face face-back"></div>
+                        <div class="cube-face face-left"></div>
+                        <div class="cube-face face-right"></div>
+                        <div class="cube-face face-top"></div>
+                        <div class="cube-face face-bottom"></div>
+                    </div>
+
+                    <!-- 12 LED Bulbs (discrete, hidden in acrylic, glowing) -->
+                    <div class="led-bulbs-container" id="bulbsContainer">
+                        <!-- Bulbs will be injected by script.js -->
+                    </div>
+
+                    <!-- Keycap Body -->
+                    <div class="cube-3d keycap-body-3d" id="keycapBody">
+                        <div class="cube-face face-front"></div>
+                        <div class="cube-face face-back"></div>
+                        <div class="cube-face face-left"></div>
+                        <div class="cube-face face-right"></div>
+                        <div class="cube-face face-top" id="keycapTopFace">
+                            <!-- Character Artwork Top Decal (Centered) -->
+                            <div class="keycap-character-art" id="activeCharacterArt">
+                                <!-- Active fruitrabbit SVG injected here -->
+                            </div>
+                        </div>
+                        <div class="cube-face face-bottom"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="floor-grid"></div>
+
+            <!-- Stage Footer (Undo/Redo & Baseline) -->
+            <div class="stage-footer">
+                <button class="footer-btn" id="btnUndo" onclick="undo()" disabled>◀ Undo</button>
+                <button class="footer-btn" id="btnCompare" onmousedown="compareBaseline(true)" onmouseup="compareBaseline(false)" onmouseleave="compareBaseline(false)">Baseline 비교 (Hold)</button>
+                <button class="footer-btn" id="btnRedo" onclick="redo()" disabled>Redo ▶</button>
+            </div>
+        </div>
+
+        <!-- RIGHT PANEL: Audio, LED & FruitRabbit -->
+        <div class="panel right">
+            <div class="panel-header">
+                <h2>과일토끼 & 연출 모듈</h2>
+            </div>
+            <div class="panel-content">
+                <!-- FruitRabbit Artwork selection -->
+                <div class="section" style="color: var(--color-audio);">
+                    <div class="section-title">과일토끼 아트웍 선택 (Center-Aligned)</div>
+                    <div class="artwork-grid" id="artworkGrid">
+                        <!-- Injected by script.js with SVG artwork items -->
+                    </div>
+                </div>
+
+                <!-- Audio Controls -->
+                <div class="section" style="color: var(--color-audio);">
+                    <div class="section-title">타건 사운드 (Audio Synthesis)</div>
+                    
+                    <div class="toggle-group">
+                        <span class="toggle-label">오디오 재생 활성화</span>
+                        <label class="switch">
+                            <input type="checkbox" id="AudioEnabled" checked onchange="updateToggle('AudioEnabled', this.checked)">
+                            <span class="slider-toggle" style="--toggle-active-color: var(--color-audio);"></span>
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>마스터 볼륨 (Master Volume)</span>
+                            <span class="control-value audio-glow" id="val-AudioMasterVolume">75%</span>
+                        </div>
+                        <input type="range" class="audio-slider" id="AudioMasterVolume" min="0" max="100" value="75" oninput="updateParam('AudioMasterVolume', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>스위치 기본 피치 (Pitch)</span>
+                            <span class="control-value audio-glow" id="val-PitchMinimum">1.0x</span>
+                        </div>
+                        <input type="range" class="audio-slider" id="PitchMinimum" min="0.5" max="2.0" step="0.05" value="1.0" oninput="updateParam('PitchMinimum', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>바닥 타건음 크기 (Bottom-Out Vol)</span>
+                            <span class="control-value audio-glow" id="val-BottomOutVolume">80%</span>
+                        </div>
+                        <input type="range" class="audio-slider" id="BottomOutVolume" min="0" max="100" value="80" oninput="updateParam('BottomOutVolume', this.value)">
+                    </div>
+                </div>
+
+                <!-- LED Controls -->
+                <div class="section" style="color: var(--color-led);">
+                    <div class="section-title">아크릴 LED 발광 제어 (12 Bulbs)</div>
+                    
+                    <div class="toggle-group">
+                        <span class="toggle-label">LED 조명 켜기</span>
+                        <label class="switch">
+                            <input type="checkbox" id="LEDEnabled" checked onchange="updateToggle('LEDEnabled', this.checked)">
+                            <span class="slider-toggle" style="--toggle-active-color: var(--color-led);"></span>
+                        </label>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>LED 색상 선택</span>
+                        </div>
+                        <div class="led-color-picker">
+                            <div class="color-option active" style="background: #5EE0D1; color: #5EE0D1;" onclick="setLedColor('#5EE0D1', this)"></div>
+                            <div class="color-option" style="background: #F49A45; color: #F49A45;" onclick="setLedColor('#F49A45', this)"></div>
+                            <div class="color-option" style="background: #A879F7; color: #A879F7;" onclick="setLedColor('#A879F7', this)"></div>
+                            <div class="color-option" style="background: #5EA8FF; color: #5EA8FF;" onclick="setLedColor('#5EA8FF', this)"></div>
+                            <div class="color-option" style="background: #FF5E7e; color: #FF5E7e;" onclick="setLedColor('#FF5E7e', this)"></div>
+                            <div class="color-option" style="background: #F2C14E; color: #F2C14E;" onclick="setLedColor('#F2C14E', this)"></div>
+                        </div>
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>최대 방출 조도 (Max Emission)</span>
+                            <span class="control-value led-glow" id="val-LEDMaximumEmission">1.5x</span>
+                        </div>
+                        <input type="range" class="led-slider" id="LEDMaximumEmission" min="0.5" max="3.0" step="0.1" value="1.5" oninput="updateParam('LEDMaximumEmission', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>회전 패턴 패턴 속도 (Speed)</span>
+                            <span class="control-value led-glow" id="val-LEDPatternSpeed">1.2x</span>
+                        </div>
+                        <input type="range" class="led-slider" id="LEDPatternSpeed" min="0.1" max="3.0" step="0.1" value="1.2" oninput="updateParam('LEDPatternSpeed', this.value)">
+                    </div>
+
+                    <div class="control-group">
+                        <div class="control-label">
+                            <span>LED 애니메이션 패턴</span>
+                        </div>
+                        <div class="preset-selector">
+                            <button class="preset-btn active" id="pat-chase" onclick="setLedPattern('chase')">회전 (Chase)</button>
+                            <button class="preset-btn" id="pat-wave" onclick="setLedPattern('wave')">파동 (Wave)</button>
+                            <button class="preset-btn" id="pat-rainbow" onclick="setLedPattern('rainbow')">무지개 (Rainbow)</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Status Widget -->
+                <div class="status-widget">
+                    <div class="status-row">
+                        <span class="status-lbl">물리 시뮬레이션 FPS</span>
+                        <span class="status-val pulse" id="lblFPS">60.0</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-lbl">키캡 변위 (Displacement)</span>
+                        <span class="status-val" id="lblDisplacement">0.00 mm</span>
+                    </div>
+                    <div class="status-row">
+                        <span class="status-lbl">타건 속도 (Velocity)</span>
+                        <span class="status-val" id="lblVelocity">0.00 m/s</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
