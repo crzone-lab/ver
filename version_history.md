@@ -1485,3 +1485,13 @@
   - **Engine Architecture Upgrades**:
     1. **Spring Restitution Bounce (`modeSpring = 0.18`, `modeDamping = 0.78`)**: Gives Tangle Jelly and Mochi organic spring restitution when released, bouncing several times cutely before coming to a rest!
     2. **Single Solid Gel Envelope Slime (`singleGelEnvelope = true`, `anchoredGaussianWeight`)**: Wraps Slime in a 1-piece solid gel mass envelope (ignoring inner colors/patterns). **0% mesh inversion, 0% flipping when pulled or pushed!**
+
+## Master Release v121.0.0 (2026-08-04) - REFERENCE-EXACT TRANSLUCENT GEL PUDDLE SLIME
+- **Version Checkpoint File**: `v121.0.0_REFERENCE_EXACT_TRANSLUCENT_GEL_PUDDLE_SLIME.html`
+- **100% Reference-Exact Translucent Golden Liquid Gel Puddle Slime Engine**:
+  - Implemented the user's explicit directive:
+    - User uploaded an exact reference photo showing a translucent golden liquid gel mango rabbit melting into a wide gel pool on a wooden table (`media_1785878192000`).
+  - **Engine Architecture Upgrades**:
+    1. **Translucent Glass/Golden Liquid Gel Puddle Outline (`poolRadiusX = 0.52w`, `stroke = 3px white gloss rim`)**: When pressed in Slime mode, an outer translucent golden glass gel pool expands symmetrically outward on the floor with glossy glass highlights!
+    2. **Homothetic Liquid Melt**: The inner character (mango chunks, eyes, ears) flattens smoothly into the liquid gel pool without any mesh tearing, cutting, or spikes!
+    3. **Tremble Jiggle Restoration**: When released, the gel pool contracts back cutely into the rabbit shape with fun 3D liquid trembling oscillations!
