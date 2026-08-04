@@ -1366,3 +1366,13 @@
     1. **`activeTextureMode` Sync**: Clicking **탱글젤리**, **쫀득모찌**, or **슬라임** buttons now instantly updates `activeTextureMode` with 100% guarantee!
     2. **Multi-Touch (2~3 Fingers) Center Balloon Inflation**: When 2 fingers hold/pinch the character, `getAllTouchPos(e)` tracks both fingers, and the center between the fingers inflates outward like a 3D balloon with a radial specular highlight!
     3. **Tangle Jelly Local Elastic Stretch**: Removes rigid base offset so dragging a cheek, ear, or hand locally stretches that specific region cutely!
+
+## Master Release v110.0.0 (2026-08-04) - EXTENDED JELLY STRETCH & IN-PLACE SLIME LIQUID SPREAD
+- **Version Checkpoint File**: `v110.0.0_PERFECT_JELLY_STRETCH_AND_IN_PLACE_SLIME.html`
+- **100% Extended Tangle Jelly Stretch Range & In-Place Viscous Slime Liquid Pooling Engine**:
+  - Implemented the user's explicit directives:
+    1. "In Tangle Jelly, it really feels like ONE SINGLE SOLID MASS now! In this exact state, I want it to stretch out MORE flexibly/easily. Do NOT touch any other parts, just make it stretch out better/longer!"
+    2. "In Slime, when pressed, the whole character moves downward. When pressed, can you make the character stay in its exact spot, turn into a liquid state right there, and spread out wide like a pool of fluid?"
+  - **Engine Architecture Upgrades**:
+    1. **Tangle Jelly Extended Elastic Stretch (`maxStretch = 75px`, `spatialRadius = 175.0px`)**: Preserves the 1-piece solid mass envelope while allowing cheeks, ears, and hands to stretch out **much further, smoother, and longer** without tearing or breaking.
+    2. **In-Place Slime Fluid Pooling (`zeroDownwardTranslation = true`, `horizontalSpreadRatio = 0.42`)**: Eliminates downward character translation. When pressed, the character stays anchored in its exact spot, flattens vertically, and spreads out wide to the left and right like a pool of viscous honey/slime.
