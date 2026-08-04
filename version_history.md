@@ -1452,3 +1452,13 @@
     1. **Unified Homothetic Liquid Melt Slime (`meltScale = 1.0 + 0.022 * time`, 0% Shards)**: Solved the jagged glass shard issue shown in user screenshot! Scales all mesh nodes uniformly outward as 1 single solid liquid mass, creating a 100% smooth, pure, beautiful 3D liquid pool!
     2. **Tremble Jiggle Auto-Stop & Instant Touch Freeze**: Trembling automatically stabilizes after 1.1s, and freezes INSTANTLY to zero velocity the microsecond a new touch begins.
     3. **Long Tangle Jelly Elastic Stretch (`maxStretch = 220.0px`, `spatialSigma = 280.0px`)**: Increases stretch range to 220px so cheeks, ears, and paws stretch out **super long, super flexible, and super smooth** while keeping all other features 100% intact!
+
+## Master Release v118.0.0 (2026-08-04) - ANCHORED JELLY STRETCH & RESTORED SLIME TREMBLE JIGGLE
+- **Version Checkpoint File**: `v118.0.0_ANCHORED_BODY_JELLY_STRETCH_AND_JIGGLE_SLIME.html`
+- **100% Anchored Character Body Soft Jelly Stretch & Restored Slime Liquid Tremble Jiggle**:
+  - Implemented the user's explicit directives:
+    1. "Tangle Jelly feels too rigid! When pulling, the touched area (ear/cheek/hand) should stretch out heavily while the main character body stays STILL! Currently it's rigid and the whole body follows along."
+    2. "Slime mode: When pressing, it just scales up the same character without melting! And the fun trembling effect disappeared! Only modify what I ask you to modify, please do not touch any other parts!"
+  - **Engine Architecture Upgrades**:
+    1. **Anchored Main Body Soft Jelly Stretch (`anchoredFalloff = 100.0px`, `softMultiplier = 1.35`)**: All nodes beyond radius `R > 130px` from the touch point remain 100% STILL at home origins `(p.ox, p.oy)`. Only the touched ear/cheek/paw stretches out easily and smoothly!
+    2. **Restored Slime Liquid Gel Melting & Tremble Jiggle (`modeSpring = 0.040`, `modeDamping = 0.93`)**: Restores Slime's liquid gel melting when pressed and fun rapid trembling oscillations when released!

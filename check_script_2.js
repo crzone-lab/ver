@@ -2129,7 +2129,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                                // --- 1. Anchored Body Soft Jelly Stretch & Fun Jiggle Slime Engine ---
+                                                                                                                                // --- 1. Anchored Body Soft Jelly Stretch & Fun Jiggle Slime Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
@@ -2174,9 +2174,9 @@
                         ctx.fill();
                         ctx.restore();
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 꿀처럼 바닥에 부드럽게 녹아 퍼지는 3D 액체 겔 (Smooth In-Place Liquid Gel Melt)
+                        // [슬라임 모드]: 원점 기반 3D 유체 녹음 (Spike Crossover 0% 완전 해결!)
                         let meltRadius = width * 0.52;
-                        let meltForce = Math.min(52.0, 16.0 + touchTime * 1.20);
+                        let meltProgress = Math.min(1.0, touchTime * 0.04);
 
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
@@ -2184,14 +2184,14 @@
                             let dy = p.oy - touchY;
                             let dist = Math.hypot(dx, dy);
 
-                            if (dist < meltRadius && dist > 0.1) {
-                                let weight = Math.pow(1 - dist / meltRadius, 1.4);
-                                let nx = dx / dist;
-                                let ny = dy / dist;
+                            if (dist < meltRadius) {
+                                let weight = Math.pow(1.0 - dist / meltRadius, 1.5) * meltProgress;
+                                // Smooth Liquid Flattening & Radial Spreading (Origin-anchored: 0% mesh inversion!)
+                                let scaleX = 1.0 + 0.45 * weight;
+                                let scaleY = 1.0 - 0.28 * weight;
 
-                                // Radial Liquid Gel Melt
-                                p.x += nx * weight * meltForce * 0.45;
-                                p.y += ny * weight * meltForce * 0.45;
+                                p.x = touchX + dx * scaleX;
+                                p.y = touchY + dy * scaleY;
                             }
                         }
 
@@ -2208,7 +2208,7 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 천천히 늘어나는 플라스틱 모찌
+                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 천천히 늘어나는 플라스틱 모찌 (100% 원본 유지)
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2227,7 +2227,7 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 몸통 100% 고정 + 터치한 부위만 잘 늘어나는 엘라스틱 당기기!
+                        // [탱글젤리 모드]: 몸통 100% 고정 + 터치한 부위만 잘 늘어나는 엘라스틱 당기기 (100% 원본 유지)
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2239,11 +2239,9 @@
                                 let pdy = p.oy - gNode.oy;
                                 let dist = Math.hypot(pdx, pdy);
 
-                                // High Spatial Falloff: Nodes far from touch (>130px) stay 100% anchored at home (p.ox, p.oy)!
                                 let sigma = 100.0;
                                 let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
 
-                                // Body stays fixed while local ear/cheek/paw stretches out easily!
                                 p.x = p.ox + dragDx * weight * 1.35;
                                 p.y = p.oy + dragDy * weight * 1.35;
                                 p.vx *= 0.25; p.vy *= 0.25;
