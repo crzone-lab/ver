@@ -2129,20 +2129,56 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                // 1. Pure 3D Inward Suction Physics (Screen Y-Shift = 0: ZERO downward squishing on hover/touch)
-                                // --- 1. Single Unified 3D Mass Physics & Viscous Honey Slime Engine ---
+                                // --- 1. Distinct 3 Texture Modes (Jelly, Mochi, Slime) & Multi-Touch Balloon Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
                     touchTime++;
 
-                    let maxRadius = width * 0.45;
-                    let sigma = maxRadius / 2.0;
+                    let maxRadius = width * 0.42;
 
-                    if (currentMode === 'slime') {
-                        // [슬라임 모드]: 꿀처럼 걸쭉하게 넓게 퍼지는 점성 액체 유체 (Viscous Honey Liquid Spreading)
-                        let pushRadius = width * 0.50;
-                        let spreadForce = Math.min(48.0, 15.0 + touchTime * 0.85);
+                    // 2-Finger Pinch Balloon Swell (두 손가락 꼭 집으면 가운데 풍선 부풀어 오름)
+                    if (activeTouchList && activeTouchList.length >= 2) {
+                        let t1 = activeTouchList[0];
+                        let t2 = activeTouchList[1];
+                        let midX = (t1.x + t2.x) / 2;
+                        let midY = (t1.y + t2.y) / 2;
+                        let fDist = Math.hypot(t2.x - t1.x, t2.y - t1.y);
+
+                        let swellRadius = Math.max(width * 0.40, fDist * 1.3);
+                        let bulgeForce = Math.min(42.0, Math.max(15.0, (300.0 - fDist) * 0.32));
+
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let dx = p.ox - midX;
+                            let dy = p.oy - midY;
+                            let dist = Math.hypot(dx, dy);
+
+                            if (dist < swellRadius && dist > 1.0) {
+                                let weight = Math.pow(1 - dist / swellRadius, 1.5);
+                                let nx = dx / dist;
+                                let ny = dy / dist;
+
+                                p.x += nx * weight * bulgeForce * 0.40;
+                                p.y += ny * weight * bulgeForce * 0.40;
+                            }
+                        }
+
+                        // Render 3D swelling balloon specular light reflection between the two fingers
+                        ctx.save();
+                        let bGrad = ctx.createRadialGradient(midX, midY, 5, midX, midY, swellRadius * 0.70);
+                        bGrad.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+                        bGrad.addColorStop(0.35, 'rgba(255, 245, 210, 0.40)');
+                        bGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = bGrad;
+                        ctx.beginPath();
+                        ctx.arc(midX, midY, swellRadius * 0.70, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+                    } else if (currentMode === 'slime') {
+                        // [슬라임 모드]: 꿀처럼 걸쭉하게 넓게 퍼지는 점성 액체 유체 (Viscous Honey Spreading)
+                        let pushRadius = width * 0.48;
+                        let spreadForce = Math.min(45.0, 14.0 + touchTime * 0.90);
 
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
@@ -2155,13 +2191,12 @@
                                 let nx = dx / dist;
                                 let ny = dy / dist;
 
-                                // Viscous Honey Spreading: Pushes nodes outward horizontally & downwards like pouring honey
-                                p.x += (nx * 0.85 + (p.ox > width/2 ? 0.3 : -0.3)) * weight * spreadForce * 0.18;
-                                p.y += (ny * 0.40 + 0.65) * weight * spreadForce * 0.22; // Flows downward & spreads outwards
+                                p.x += (nx * 0.85 + (p.ox > width/2 ? 0.35 : -0.35)) * weight * spreadForce * 0.25;
+                                p.y += (ny * 0.40 + 0.65) * weight * spreadForce * 0.28;
                             }
                         }
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 천천히 늘어나는 플라스틱 모찌
+                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 천천히 늘어나는 모찌
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2172,36 +2207,44 @@
                                 let pdx = p.ox - gNode.ox;
                                 let pdy = p.oy - gNode.oy;
                                 let distSq = pdx * pdx + pdy * pdy;
-                                let weight = 0.60 + 0.40 * Math.exp(-distSq / (sigma * sigma * 2.5));
-                                p.x = p.ox + dragDx * weight * 0.85;
-                                p.y = p.oy + dragDy * weight * 0.85;
-                                p.vx *= 0.10; p.vy *= 0.10;
+                                let weight = Math.exp(-distSq / (140.0 * 140.0));
+
+                                p.x = p.ox + dragDx * weight * 0.90;
+                                p.y = p.oy + dragDy * weight * 0.90;
+                                p.vx *= 0.12; p.vy *= 0.12;
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: Single Unified 3D Mass Physics (1개의 단일 3D 덩어리 방어 - 잘림 0%)
+                        // [탱글젤리 모드]: 국소 부위가 탱글탱글하게 늘어나는 로컬 엘라스틱 젤리 (Local Elastic Stretch)
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
                             let dragDy = touchY - gNode.oy;
+
+                            let dragDist = Math.hypot(dragDx, dragDy);
+                            let maxStretch = 45.0;
+                            if (dragDist > maxStretch) {
+                                dragDx = (dragDx / dragDist) * maxStretch;
+                                dragDy = (dragDy / dragDist) * maxStretch;
+                            }
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
                                 let pdx = p.ox - gNode.ox;
                                 let pdy = p.oy - gNode.oy;
                                 let distSq = pdx * pdx + pdy * pdy;
-                                let weight = 0.72 + 0.28 * Math.exp(-distSq / (sigma * sigma * 2.0));
+                                let weight = Math.exp(-distSq / (120.0 * 120.0));
+
                                 p.x = p.ox + dragDx * weight;
                                 p.y = p.oy + dragDy * weight;
-                                p.vx *= 0.20; p.vy *= 0.20;
+                                p.vx *= 0.30; p.vy *= 0.30;
                             }
                         }
                     }
                 } else {
                     touchTime = 0;
-                    // Mode-specific spring restoration
-                    let modeSpring = (currentMode === 'slime') ? 0.04 : (currentMode === 'mochi' ? 0.08 : 0.14);
-                    let modeDamping = (currentMode === 'slime') ? 0.92 : (currentMode === 'mochi' ? 0.88 : 0.82);
+                    let modeSpring = (currentMode === 'slime') ? 0.03 : (currentMode === 'mochi' ? 0.07 : 0.15);
+                    let modeDamping = (currentMode === 'slime') ? 0.94 : (currentMode === 'mochi' ? 0.88 : 0.82);
 
                     for (let i = 0; i < points.length; i++) {
                         let fx = (points[i].ox - points[i].x) * modeSpring;
@@ -3021,18 +3064,13 @@
         }
 
         function selectFeelPill(feel) {
-            stopAutopilot(); releaseGrab(true); releaseGrab(true);
-            activeFeel = feel;
-            
+            activeTextureMode = feel;
             const pJelly = document.getElementById("pill-jelly");
             const pMochi = document.getElementById("pill-mochi");
             const pSlime = document.getElementById("pill-slime");
 
             [pJelly, pMochi, pSlime].forEach(p => {
-                if (p) {
-                    p.classList.remove("active");
-                    p.style.cssText = "";
-                }
+                if (p) p.classList.remove("active");
             });
 
             if (feel === "jelly") {
@@ -3041,11 +3079,11 @@
                 showNotification(i18n.t("notif-jelly") || "탱글젤리 감촉 선택됨");
             } else if (feel === "mochi") {
                 if (pMochi) pMochi.classList.add("active");
-                stiffness = 120; damping = 22;
+                stiffness = 110; damping = 18;
                 showNotification(i18n.t("notif-mochi") || "쫀득모찌 감촉 선택됨");
             } else if (feel === "slime") {
                 if (pSlime) pSlime.classList.add("active");
-                stiffness = 22; damping = 2.5;
+                stiffness = 15; damping = 3;
                 showNotification(i18n.t("notif-slime") || "슬라임 감촉 선택됨");
             }
             
