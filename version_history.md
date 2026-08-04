@@ -1440,3 +1440,15 @@
   - **Engine Architecture Upgrades**:
     1. **Top-Down Floor Radial Liquid Melt (`meltRadius = 0.58w`, `radialMeltForce = 0.52`)**: Looking down from above, pressing down melts the character into a liquid pool that spreads symmetrically 360 degrees outward in all directions right on the floor without sliding down the screen!
     2. **Tremble Jiggle Restoration (`modeSpring = 0.045`, `modeDamping = 0.94`)**: When released, the melted liquid pool snaps back into character shape with rapid, fun 3D liquid trembling oscillations intact!
+
+## Master Release v117.0.0 (2026-08-04) - UNIFIED HOMOTHETIC LIQUID SLIME & LONG JELLY STRETCH
+- **Version Checkpoint File**: `v117.0.0_UNIFIED_HOMOTHETIC_LIQUID_SLIME_AND_LONG_JELLY.html`
+- **100% Unified Homothetic Radial Liquid Melt Slime (0% Jagged Shards), Tremble Auto-Stop & Long Jelly Stretch (220px)**:
+  - Implemented the user's explicit directives:
+    1. "For Slime, auto-stop trembling after a fixed duration, and stop trembling INSTANTLY when touched!"
+    2. "Look at the screenshot: When pressing Slime, it turns into weird jagged shards because it is not recognized as 1 unified liquid mass. Make the ENTIRE character melt into 1 single unified liquid pool!"
+    3. "For Tangle Jelly, make it stretch out MUCH LONGER! Do not touch any other parts!"
+  - **Engine Architecture Upgrades**:
+    1. **Unified Homothetic Liquid Melt Slime (`meltScale = 1.0 + 0.022 * time`, 0% Shards)**: Solved the jagged glass shard issue shown in user screenshot! Scales all mesh nodes uniformly outward as 1 single solid liquid mass, creating a 100% smooth, pure, beautiful 3D liquid pool!
+    2. **Tremble Jiggle Auto-Stop & Instant Touch Freeze**: Trembling automatically stabilizes after 1.1s, and freezes INSTANTLY to zero velocity the microsecond a new touch begins.
+    3. **Long Tangle Jelly Elastic Stretch (`maxStretch = 220.0px`, `spatialSigma = 280.0px`)**: Increases stretch range to 220px so cheeks, ears, and paws stretch out **super long, super flexible, and super smooth** while keeping all other features 100% intact!
