@@ -1410,3 +1410,12 @@
     - Built **`touchStartX` / `touchStartY` Offset Detection**:
       1. **Press/Hold Mode (`dragFromStart < 14.0px`)**: Flinching is 0%! The touched center depresses deepest into 3D depth, pulling surrounding nodes inward like water draining into a whirlpool. Pressing longer deepens the sinkhole up to 58px with 3D whirlpool concave shading!
       2. **Drag Mode (`dragFromStart >= 14.0px`)**: Nodes far from the touch point (`dist > 150px`) remain 100% stationary at their home origins `(p.ox, p.oy)`, while nodes close to the touch point stretch smoothly towards the drag cursor!
+
+## Master Release v114.0.0 (2026-08-04) - RESTORED STABLE V110 BASELINE
+- **Version Checkpoint File**: `v114.0.0_RESTORED_STABLE_V110_BASELINE.html`
+- **100% Restoration of User-Approved Baseline (`v110.0.0`)**:
+  - Implemented the user's explicit directive: "The moment I press down, it turns messy! Go back."
+  - **Restoration Details**:
+    1. Reverted `index.html` back to stable baseline `v110.0.0`.
+    2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
+    3. Restored stable jelly elasticity, single 3D mass envelope, and in-place slime liquid spreading.

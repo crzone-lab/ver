@@ -411,7 +411,6 @@
         let cols = 10;
         let grabbedPointIndex = null;
         let isTouching = false;
-        let touchStartX = 0, touchStartY = 0;
         let touchX = 0;
         let touchY = 0;
         let lastTouchX = 0;
@@ -2130,7 +2129,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                // --- 1. Zero-Flinch Deep Inward Sinkhole & Anchored Drag Physics Engine ---
+                                                                // --- 1. Super Smooth Jelly Stretch & Soft Gel Slime Physics Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
@@ -2175,22 +2174,23 @@
                         ctx.fill();
                         ctx.restore();
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 100% 1개 단일 덩어리 보존 + 중력 기반 바닥 겔 퍼짐 (Gravity Gel Pooling)
-                        let pressRadius = width * 0.55;
-                        let gravityForce = Math.min(58.0, 18.0 + touchTime * 1.25);
+                        // [슬라임 모드]: 100% 1개 단일 덩어리 보존 + 부드럽고 매끄러운 3D 겔 (Soft 3D Gel State - 잘림 0%)
+                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                            let gNode = points[grabbedPointIndex];
+                            let dragDx = touchX - gNode.ox;
+                            let dragDy = touchY - gNode.oy;
 
-                        for (let i = 0; i < points.length; i++) {
-                            let p = points[i];
-                            let dx = p.ox - touchX;
-                            let dy = p.oy - touchY;
-                            let dist = Math.hypot(dx, dy);
+                            // Smooth Gel Deformation Field: Zero triangle cutting!
+                            for (let i = 0; i < points.length; i++) {
+                                let p = points[i];
+                                let pdx = p.ox - gNode.ox;
+                                let pdy = p.oy - gNode.oy;
+                                let distSq = pdx * pdx + pdy * pdy;
+                                let weight = Math.exp(-distSq / (260.0 * 260.0)); // Soft gel wide field
 
-                            if (dist < pressRadius && dist > 0.1) {
-                                let weight = Math.pow(1 - dist / pressRadius, 1.3);
-                                let nx = dx / dist;
-
-                                p.x += nx * weight * gravityForce * 0.48;
-                                p.y += weight * gravityForce * 0.32;
+                                p.x = p.ox + dragDx * weight * 0.95;
+                                p.y = p.oy + dragDy * weight * 0.95;
+                                p.vx *= 0.10; p.vy *= 0.10; // Gel viscous damping
                             }
                         }
                     } else if (currentMode === 'mochi') {
@@ -2213,70 +2213,37 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 움찔거림 0% + 누르면 속으로 쏙 들어가는 깊은 3D 함몰 (Deep Inward Sinkhole)
-                        let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
+                        // [탱글젤리 모드]: 훨씬 더 길고 부드럽고 쫀쫀하게 잘 늘어나는 탄성 젤리 (Extended Smooth Stretch: 140px Range)
+                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                            let gNode = points[grabbedPointIndex];
+                            let dragDx = touchX - gNode.ox;
+                            let dragDy = touchY - gNode.oy;
 
-                        if (dragFromStart < 14.0) {
-                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 움찔거림 0%! 터치 위치 중심 깊은 3D 함몰 (Sinkhole)
-                            let sinkRadius = width * 0.45;
-                            let sinkDepth = Math.min(58.0, 22.0 + touchTime * 1.8); // Deepens continuously with hold time!
+                            let dragDist = Math.hypot(dragDx, dragDy);
+                            let maxStretch = 140.0; // Increased to 140px for super smooth long stretch!
+                            if (dragDist > maxStretch) {
+                                dragDx = (dragDx / dragDist) * maxStretch;
+                                dragDy = (dragDy / dragDist) * maxStretch;
+                            }
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
-                                let dx = p.ox - touchX;
-                                let dy = p.oy - touchY;
-                                let dist = Math.hypot(dx, dy);
+                                let pdx = p.ox - gNode.ox;
+                                let pdy = p.oy - gNode.oy;
+                                let distSq = pdx * pdx + pdy * pdy;
+                                let weight = Math.exp(-distSq / (200.0 * 200.0)); // Ultra smooth elastic gradient
 
-                                if (dist < sinkRadius && dist > 0.1) {
-                                    let weight = Math.pow(1 - dist / sinkRadius, 1.6);
-                                    let nx = dx / dist;
-                                    let ny = dy / dist;
-
-                                    // Pull nodes inward towards sinkhole center (속으로 쏙 빨려 들어감)
-                                    p.x -= nx * weight * sinkDepth * 0.40;
-                                    p.y -= ny * weight * sinkDepth * 0.40;
-                                }
-                            }
-
-                            // Render 3D Whirlpool Sinkhole Shadow & Depressed Inner Ring
-                            ctx.save();
-                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.60);
-                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.48)');
-                            sGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.22)');
-                            sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                            ctx.fillStyle = sGrad;
-                            ctx.beginPath();
-                            ctx.arc(touchX, touchY, sinkRadius * 0.60, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.restore();
-
-                        } else {
-                            // 2. 드래그/당기기 상태 (dragFromStart >= 14px): 먼 곳 100% 고정 + 터치 부위만 크게 따라오는 로컬 당기기!
-                            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                                let gNode = points[grabbedPointIndex];
-                                let dragDx = touchX - touchStartX;
-                                let dragDy = touchY - touchStartY;
-
-                                for (let i = 0; i < points.length; i++) {
-                                    let p = points[i];
-                                    let pdx = p.ox - touchStartX;
-                                    let pdy = p.oy - touchStartY;
-                                    let dist = Math.hypot(pdx, pdy);
-
-                                    let sigma = 110.0;
-                                    let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
-
-                                    p.x = p.ox + dragDx * weight * 1.10;
-                                    p.y = p.oy + dragDy * weight * 1.10;
-                                    p.vx *= 0.25; p.vy *= 0.25;
-                                }
+                                p.x = p.ox + dragDx * weight;
+                                p.y = p.oy + dragDy * weight;
+                                p.vx *= 0.28; p.vy *= 0.28;
                             }
                         }
                     }
                 } else {
                     touchTime = 0;
-                    let modeSpring = (currentMode === 'slime') ? 0.035 : (currentMode === 'mochi' ? 0.07 : 0.16);
-                    let modeDamping = (currentMode === 'slime') ? 0.93 : (currentMode === 'mochi' ? 0.88 : 0.80);
+                    // Mode-specific spring restoration
+                    let modeSpring = (currentMode === 'slime') ? 0.025 : (currentMode === 'mochi' ? 0.07 : 0.15);
+                    let modeDamping = (currentMode === 'slime') ? 0.95 : (currentMode === 'mochi' ? 0.88 : 0.82);
 
                     for (let i = 0; i < points.length; i++) {
                         let fx = (points[i].ox - points[i].x) * modeSpring;
@@ -2571,8 +2538,6 @@
             isTouching = true;
             touchX = pos.x;
             touchY = pos.y;
-            touchStartX = pos.x;
-            touchStartY = pos.y;
             lastTouchX = pos.x;
             lastTouchY = pos.y;
             touchTime = 0;
