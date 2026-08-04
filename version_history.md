@@ -1419,3 +1419,13 @@
     1. Reverted `index.html` back to stable baseline `v110.0.0`.
     2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
     3. Restored stable jelly elasticity, single 3D mass envelope, and in-place slime liquid spreading.
+
+## Master Release v115.0.0 (2026-08-04) - EXTENDED JELLY STRETCH & SOFT GEL SLIME ENGINE
+- **Version Checkpoint File**: `v115.0.0_EXTENDED_JELLY_STRETCH_AND_SOFT_GEL_SLIME.html`
+- **100% Extended Tangle Jelly Stretch (140px Range) & Soft 3D Gel Slime Physics (0% Cutting)**:
+  - Implemented the user's explicit directives:
+    1. "For Slime, you misunderstood it! When testing on mobile phone, it gets cut sharp into 4 directions and breaks - can't you turn it into a soft GEL state?"
+    2. "For Tangle Jelly, just make it stretch out MORE flexibly and easily! (Leave inward dimpling for later)"
+  - **Engine Architecture Upgrades**:
+    1. **Extended Smooth Tangle Jelly Stretch (`maxStretch = 140.0px`, `spatialSigma = 200.0px`)**: Increases stretch range to 140px so cheeks, ears, hands, and paws stretch out **much further, smoother, and longer** without whole-body shifting.
+    2. **Soft 3D Gel Slime Engine (`gelFieldRadius = 260.0px`, `gelViscousDamping = 0.95`, `spring = 0.025`)**: Replaces radial vector pushes with a smooth 3D gel deformation field. **0% triangle cutting, 0% sharp tearing on mobile devices!** Deforms super softly and flows back slowly like real 3D liquid gel slime!

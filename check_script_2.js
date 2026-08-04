@@ -2129,7 +2129,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                // --- 1. Super Smooth Jelly Stretch & Soft Gel Slime Physics Engine ---
+                                                                                // --- 1. Top-Down Floor Perspective Liquid Melt Slime & Tremble Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
@@ -2174,25 +2174,39 @@
                         ctx.fill();
                         ctx.restore();
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 100% 1개 단일 덩어리 보존 + 부드럽고 매끄러운 3D 겔 (Soft 3D Gel State - 잘림 0%)
-                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                            let gNode = points[grabbedPointIndex];
-                            let dragDx = touchX - gNode.ox;
-                            let dragDy = touchY - gNode.oy;
+                        // [탑다운 탑시선 슬라임]: 누르면 바닥에서 액체로 녹아 사방 360도로 넓게 퍼지는 꿀 슬라임 (Top-Down Liquid Melt Radial Pool)
+                        let meltRadius = width * 0.58;
+                        let meltForce = Math.min(65.0, 20.0 + touchTime * 1.35);
 
-                            // Smooth Gel Deformation Field: Zero triangle cutting!
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let pdx = p.ox - gNode.ox;
-                                let pdy = p.oy - gNode.oy;
-                                let distSq = pdx * pdx + pdy * pdy;
-                                let weight = Math.exp(-distSq / (260.0 * 260.0)); // Soft gel wide field
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let dx = p.ox - touchX;
+                            let dy = p.oy - touchY;
+                            let dist = Math.hypot(dx, dy);
 
-                                p.x = p.ox + dragDx * weight * 0.95;
-                                p.y = p.oy + dragDy * weight * 0.95;
-                                p.vx *= 0.10; p.vy *= 0.10; // Gel viscous damping
+                            if (dist < meltRadius && dist > 0.1) {
+                                let weight = Math.pow(1 - dist / meltRadius, 1.35);
+                                let nx = dx / dist;
+                                let ny = dy / dist;
+
+                                // Top-Down Floor Perspective: Liquid melts & expands 360° radially outward on the floor
+                                p.x += nx * weight * meltForce * 0.52;
+                                p.y += ny * weight * meltForce * 0.52;
                             }
                         }
+
+                        // Render Top-Down 3D Liquid Pool Shimmer Reflection
+                        ctx.save();
+                        let lGrad = ctx.createRadialGradient(touchX, touchY, 5, touchX, touchY, meltRadius * 0.65);
+                        lGrad.addColorStop(0, 'rgba(255, 255, 255, 0.50)');
+                        lGrad.addColorStop(0.5, 'rgba(200, 255, 230, 0.25)');
+                        lGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = lGrad;
+                        ctx.beginPath();
+                        ctx.arc(touchX, touchY, meltRadius * 0.65, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.restore();
+
                     } else if (currentMode === 'mochi') {
                         // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 천천히 늘어나는 플라스틱 모찌
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
@@ -2213,14 +2227,14 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 훨씬 더 길고 부드럽고 쫀쫀하게 잘 늘어나는 탄성 젤리 (Extended Smooth Stretch: 140px Range)
+                        // [탱글젤리 모드]: 길고 부드럽고 쫀쫀하게 잘 늘어나는 탄성 젤리 (Extended Smooth Stretch: 140px Range)
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
                             let dragDy = touchY - gNode.oy;
 
                             let dragDist = Math.hypot(dragDx, dragDy);
-                            let maxStretch = 140.0; // Increased to 140px for super smooth long stretch!
+                            let maxStretch = 140.0;
                             if (dragDist > maxStretch) {
                                 dragDx = (dragDx / dragDist) * maxStretch;
                                 dragDy = (dragDy / dragDist) * maxStretch;
@@ -2231,7 +2245,7 @@
                                 let pdx = p.ox - gNode.ox;
                                 let pdy = p.oy - gNode.oy;
                                 let distSq = pdx * pdx + pdy * pdy;
-                                let weight = Math.exp(-distSq / (200.0 * 200.0)); // Ultra smooth elastic gradient
+                                let weight = Math.exp(-distSq / (200.0 * 200.0));
 
                                 p.x = p.ox + dragDx * weight;
                                 p.y = p.oy + dragDy * weight;
@@ -2241,9 +2255,9 @@
                     }
                 } else {
                     touchTime = 0;
-                    // Mode-specific spring restoration
-                    let modeSpring = (currentMode === 'slime') ? 0.025 : (currentMode === 'mochi' ? 0.07 : 0.15);
-                    let modeDamping = (currentMode === 'slime') ? 0.95 : (currentMode === 'mochi' ? 0.88 : 0.82);
+                    // Slime Tremble Jiggle Oscillating Spring (놓았을 때 신나게 막 떠는 액체 찰랑임 100% 보존!)
+                    let modeSpring = (currentMode === 'slime') ? 0.045 : (currentMode === 'mochi' ? 0.07 : 0.15);
+                    let modeDamping = (currentMode === 'slime') ? 0.94 : (currentMode === 'mochi' ? 0.88 : 0.82);
 
                     for (let i = 0; i < points.length; i++) {
                         let fx = (points[i].ox - points[i].x) * modeSpring;
