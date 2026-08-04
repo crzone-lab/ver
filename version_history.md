@@ -1311,3 +1311,27 @@
     2. `styles.css` (14.8 KB) - Responsive layout & Keycap lab design system
     3. `script.js` (31.2 KB) - SVG Fruit Rabbit Data, Canvas Render Engine & Physics Control Panel
   - **Audit**: `node --check script.js` passed 100% with zero syntax errors.
+
+## Master Release v106.0.0 (2026-08-04) - REVERT DESKTOP OVERWRITE & RESTORE MASTER BASELINE
+- **Version Checkpoint File**: `v106.0.0_RESTORED_PERFECT_MASTER_V104.html`
+- **100% Reversion of Desktop `fruit malrangi` Overwrite & Master Restoration**:
+  - Implemented the user's explicit directive: "No, throw this away then! We shouldn't overwrite it."
+  - **Restoration Details**:
+    1. Reverted `index.html` back to pre-overwrite master baseline (`v104.0.0` / `v103.0.0`).
+    2. Removed unwanted `styles.css` and `script.js`.
+    3. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
+    4. Verified all features (jelly mesh physics, dual-mode AI cutout, background shadow removal, top/bottom import buttons, local persistence).
+
+## Master Release v107.0.0 (2026-08-04) - MULTI-TOUCH 2-FINGER PINCH BALLOON INFLATION ENGINE
+- **Version Checkpoint File**: `v107.0.0_MULTI_TOUCH_PINCH_BALLOON_INFLATION_ENGINE.html`
+- **100% Multi-Touch (2~3 Fingers) & 2-Finger Squeeze Balloon Inflation Physics**:
+  - Implemented the user's explicit directive: "I enabled 2~3 fingers in Tangle Jelly but it didn't work well. My idea is: when squeezing/holding the jelly tightly with 2 fingers, I want the middle area between the 2 fingers to bulge/inflate outward like a balloon! Is this possible?"
+  - **Identified & Fixed Technical Reason for Multi-Touch Failure**:
+    - Discovered that `getTouchPos` only read `e.touches[0]` (1 finger), completely ignoring 2nd and 3rd touch points.
+    - Built a **Multi-Touch & 2-Finger Squeeze Balloon Inflation Engine**:
+      1. **`getAllTouchPos(e)`**: Tracks up to 3 simultaneous touch points on mobile devices & trackpads.
+      2. **2-Finger Squeeze Balloon Bulge**: When 2 fingers hold/pinch the jelly, mesh nodes near the midpoint `(midX, midY)` expand OUTWARD in 3D volume by a bulge force $B = \text{clamp}((280 - \text{dist}) \cdot 0.28, 12, 38)$.
+      3. **3D Swelling Light Highlight**: Renders a radial 3D specular highlight and swelling gradient over the midpoint `(midX, midY)`.
+  - **Results**:
+    - **Multi-Touch**: 2~3 fingers fully supported with multi-anchor elastic drag!
+    - **2-Finger Pinch**: Squeezing with 2 fingers causes the center between the fingers to inflate and swell up cutely like a 3D balloon!

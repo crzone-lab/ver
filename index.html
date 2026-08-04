@@ -3777,23 +3777,38 @@
         canvas.addEventListener('mouseleave', releaseGrab);
 
         // Mobile touch gesture bindings mapped dynamically to engine input
-        const getTouchPos = (e) => {
-            if (!e.touches || e.touches.length === 0) return null;
+                // --- Multi-Touch & 2-Finger Pinch Balloon Inflation Engine ---
+        let activeTouchList = [];
+
+        const getAllTouchPos = (e) => {
+            if (!e.touches || e.touches.length === 0) return [];
             let rect = canvas.getBoundingClientRect();
             let scaleX = canvas.width / rect.width;
             let scaleY = canvas.height / rect.height;
-            return {
-                x: (e.touches[0].clientX - rect.left) * scaleX,
-                y: (e.touches[0].clientY - rect.top) * scaleY
-            };
+            let list = [];
+            for (let i = 0; i < Math.min(e.touches.length, 3); i++) {
+                list.push({
+                    x: (e.touches[i].clientX - rect.left) * scaleX,
+                    y: (e.touches[i].clientY - rect.top) * scaleY
+                });
+            }
+            return list;
+        };
+
+        const getTouchPos = (e) => {
+            let list = getAllTouchPos(e);
+            return list.length > 0 ? list[0] : null;
         };
 
         canvas.addEventListener('touchstart', (e) => {
             if (!isPlaygroundActive() || isAutopilotActive) return;
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             e.preventDefault();
-            let pos = getTouchPos(e);
-            if (!pos) return;
+            
+            activeTouchList = getAllTouchPos(e);
+            if (activeTouchList.length === 0) return;
+            
+            let pos = activeTouchList[0];
             let minDist = 99999;
             let closestIdx = -1;
             for (let i = 0; i < points.length; i++) {
@@ -3809,7 +3824,6 @@
                 triggerHaptic(15);
             }
             
-            
             isTouching = true;
             touchX = pos.x;
             touchY = pos.y;
@@ -3821,27 +3835,19 @@
         canvas.addEventListener('touchmove', (e) => {
             if (!isPlaygroundActive() || isAutopilotActive) return;
             e.preventDefault();
-            let pos = getTouchPos(e);
-            if (!pos) return;
+            
+            activeTouchList = getAllTouchPos(e);
+            if (activeTouchList.length === 0) return;
+            
+            let pos = activeTouchList[0];
             touchX = pos.x;
             touchY = pos.y;
             isTouching = true;
 
             if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                 let gPoint = points[grabbedPointIndex];
-                let moveDx = pos.x - gPoint.x;
-                let moveDy = pos.y - gPoint.y;
-                let R = width * 0.65;
-                for (let i = 0; i < points.length; i++) {
-                    let p = points[i];
-                    let dist = Math.sqrt(Math.pow(p.ox - gPoint.ox, 2) + Math.pow(p.oy - gPoint.oy, 2));
-                    let rawW = dist < R ? 0.5 * (1 + Math.cos((dist / R) * Math.PI)) : 0;
-                    let w = 0.38 + 0.62 * rawW;
-                    p.x += moveDx * w * 0.75;
-                    p.y += moveDy * w * 0.75;
-                }
-            } else {
-                deformMesh(pos.x, pos.y, 15);
+                gPoint.x = pos.x;
+                gPoint.y = pos.y;
             }
         }, { passive: false });
 
