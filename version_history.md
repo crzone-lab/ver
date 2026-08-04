@@ -1475,3 +1475,13 @@
     1. **Tangle Jelly & Mochi**: 100% UNTOUCHED & PRESERVED!
     2. **Spike-Free Homothetic Slime Melt (`scaleX = 1.0 + 0.45w`, `scaleY = 1.0 - 0.28w`)**: Replaced cumulative directional vectors with origin-anchored homothetic scaling. **0% node crossover, 0% mesh inversion, 0% giant yellow spikes!**
     3. **Restored Slime Tremble Jiggle**: Smoothly melts when pressed, and trembles/jiggles cutely when released!
+
+## Master Release v120.0.0 (2026-08-04) - SPRING BOUNCE & SINGLE SOLID GEL SLIME ENVELOPE
+- **Version Checkpoint File**: `v120.0.0_SPRING_BOUNCE_JELLY_MOCHI_AND_SINGLE_GEL_SLIME.html`
+- **100% Spring Restitution Bounce (Jelly/Mochi) & 1-Piece Single Solid Gel Envelope Slime Physics**:
+  - Implemented the user's explicit directives:
+    1. "For Tangle Jelly and Mochi, when pulled/pushed and released, use gravity and spring resilience to bounce several times cutely before settling down!"
+    2. "For Slime mode, when pulled/pushed, it inverts/flips! Can't you recognize it as 1 single unified mass regardless of character pattern or colors? Turn it into a 1-piece gel lump!"
+  - **Engine Architecture Upgrades**:
+    1. **Spring Restitution Bounce (`modeSpring = 0.18`, `modeDamping = 0.78`)**: Gives Tangle Jelly and Mochi organic spring restitution when released, bouncing several times cutely before coming to a rest!
+    2. **Single Solid Gel Envelope Slime (`singleGelEnvelope = true`, `anchoredGaussianWeight`)**: Wraps Slime in a 1-piece solid gel mass envelope (ignoring inner colors/patterns). **0% mesh inversion, 0% flipping when pulled or pushed!**

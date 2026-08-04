@@ -3504,7 +3504,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                                                                // --- 1. Organic Spring Bounce (Jelly/Mochi) & Single Gel Envelope Slime Physics ---
+                                                                                                                                                                // --- 1. Reference-Exact Translucent Gel Puddle Slime & Spring Bounce Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
@@ -3549,37 +3549,43 @@
                         ctx.fill();
                         ctx.restore();
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 캐릭터 무늬/컬러 무관 1개 3D 단일 겔 덩어리 보존 (뒤집힘/꼬임 0%)
-                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                            let gNode = points[grabbedPointIndex];
-                            let dragDx = touchX - gNode.ox;
-                            let dragDy = touchY - gNode.oy;
+                        // [슬라임 모드]: 레퍼런스 이미지 그대로! 누르면 투명 젤리 웅덩이가 사방으로 바닥에 번지는 3D 겔 (Translucent Liquid Gel Puddle)
+                        let meltCenter = (grabbedPointIndex !== null && points[grabbedPointIndex]) ? points[grabbedPointIndex] : { ox: width/2, oy: height/2 };
+                        let meltProgress = Math.min(1.0, touchTime * 0.045);
 
-                            // Single Solid Gel Envelope: All nodes deform cohesively as 1 gel mass (0% flipping!)
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let pdx = p.ox - gNode.ox;
-                                let pdy = p.oy - gNode.oy;
-                                let dist = Math.hypot(pdx, pdy);
-
-                                let weight = Math.exp(-(dist * dist) / (220.0 * 220.0));
-                                p.x = p.ox + dragDx * weight * 0.88;
-                                p.y = p.oy + dragDy * weight * 0.88;
-                                p.vx *= 0.15; p.vy *= 0.15;
-                            }
-                        }
-
-                        // Render 3D Liquid Pool Shimmer Reflection
+                        // 1. Render Outer Translucent Glass/Golden Liquid Gel Pool Outline (레퍼런스 이미지 젤리 웅덩이 테두리)
                         ctx.save();
-                        let lGrad = ctx.createRadialGradient(touchX, touchY, 5, touchX, touchY, width * 0.35);
-                        lGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
-                        lGrad.addColorStop(0.5, 'rgba(200, 255, 230, 0.28)');
-                        lGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = lGrad;
+                        let poolRadiusX = width * (0.36 + meltProgress * 0.16);
+                        let poolRadiusY = height * (0.36 + meltProgress * 0.12);
+
+                        let pGrad = ctx.createRadialGradient(touchX, touchY, poolRadiusX * 0.2, touchX, touchY, poolRadiusX);
+                        pGrad.addColorStop(0, 'rgba(255, 230, 140, 0.45)');
+                        pGrad.addColorStop(0.7, 'rgba(255, 200, 90, 0.25)');
+                        pGrad.addColorStop(0.95, 'rgba(255, 255, 255, 0.75)');
+                        pGrad.addColorStop(1, 'rgba(255, 220, 120, 0.10)');
+
+                        ctx.fillStyle = pGrad;
+                        ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+                        ctx.lineWidth = 3;
+
                         ctx.beginPath();
-                        ctx.arc(touchX, touchY, width * 0.35, 0, Math.PI * 2);
+                        ctx.ellipse(touchX, touchY, poolRadiusX, poolRadiusY, 0, 0, Math.PI * 2);
                         ctx.fill();
+                        ctx.stroke();
                         ctx.restore();
+
+                        // 2. Homothetic Liquid Flattening (내부 캐릭터가 젤리 웅덩이에 매끈하게 압착)
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let dx = p.ox - meltCenter.ox;
+                            let dy = p.oy - meltCenter.oy;
+
+                            let scaleX = 1.0 + 0.38 * meltProgress;
+                            let scaleY = 1.0 - 0.22 * meltProgress;
+
+                            p.x = meltCenter.ox + dx * scaleX;
+                            p.y = meltCenter.oy + dy * scaleY;
+                        }
 
                     } else if (currentMode === 'mochi') {
                         // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 늘어났다가 몇 번 찰랑거리며 복원되는 모찌
@@ -3625,8 +3631,8 @@
                 } else {
                     touchTime = 0;
                     // Mode-Specific Spring Restitution (놓았을 때 중력/반발력으로 몇 번 튕기며 안착!)
-                    let modeSpring = (currentMode === 'slime') ? 0.040 : (currentMode === 'mochi' ? 0.09 : 0.18); // High spring bounce!
-                    let modeDamping = (currentMode === 'slime') ? 0.93 : (currentMode === 'mochi' ? 0.85 : 0.78); // Underdamped oscillation!
+                    let modeSpring = (currentMode === 'slime') ? 0.045 : (currentMode === 'mochi' ? 0.09 : 0.18);
+                    let modeDamping = (currentMode === 'slime') ? 0.92 : (currentMode === 'mochi' ? 0.85 : 0.78);
 
                     for (let i = 0; i < points.length; i++) {
                         let fx = (points[i].ox - points[i].x) * modeSpring;
