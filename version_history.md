@@ -1398,3 +1398,15 @@
   - **Engine Architecture Upgrades**:
     1. **Deep Whirlpool Drain Sinkhole**: Pressing/holding down causes the center point to sink deepest into 3D depth, pulling surrounding nodes inward radially like water draining into a whirlpool. Pressing longer increases sinkhole depth up to 52px with 3D whirlpool concave shading!
     2. **Steep Spatial Gradient Anchored Drag (`sigma = 95.0px`)**: Nodes far from the touch point (`dist > 150px`) remain 100% stationary at their home origins `(p.ox, p.oy)`, while nodes close to the touch point stretch smoothly towards the drag cursor!
+
+## Master Release v113.0.0 (2026-08-04) - ZERO-FLINCH DEEP SINKHOLE & STEEP ANCHORED DRAG
+- **Version Checkpoint File**: `v113.0.0_ZERO_FLINCH_DEEP_SINKHOLE_AND_ANCHORED_DRAG.html`
+- **100% Zero-Flinch Deep Whirlpool Drain Sinkhole & Steep Spatial Gradient Anchored Drag Physics**:
+  - Implemented the user's explicit directives:
+    1. "In Tangle Jelly, pressing down doesn't sink inward into depth, the whole character flinches slightly. The touched center should go deepest into depth and surrounding areas should sink together like water going down a drain. Holding longer should sink deeper!"
+    2. "When pulling or pushing, the whole character moves along. Areas far from the touch point should STAY 100% ANCHORED in place, while close areas follow the touch cursor heavily for a natural soft feel!"
+  - **Identified & Fixed Technical Reason for Flinching**:
+    - Discovered that initial touch distance from mesh origin `gNode.ox` was immediately `> 8px`, skipping the sinkhole block and triggering drag flinching.
+    - Built **`touchStartX` / `touchStartY` Offset Detection**:
+      1. **Press/Hold Mode (`dragFromStart < 14.0px`)**: Flinching is 0%! The touched center depresses deepest into 3D depth, pulling surrounding nodes inward like water draining into a whirlpool. Pressing longer deepens the sinkhole up to 58px with 3D whirlpool concave shading!
+      2. **Drag Mode (`dragFromStart >= 14.0px`)**: Nodes far from the touch point (`dist > 150px`) remain 100% stationary at their home origins `(p.ox, p.oy)`, while nodes close to the touch point stretch smoothly towards the drag cursor!
