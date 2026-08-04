@@ -17,7 +17,9 @@
             try { setScreenMode("lobby"); } catch(e) {}
         }
         if (typeof renderLobbyGrid === "function") {
-            try { renderLobbyGrid(); } catch(e) {}
+            try { loadSavedCustomRabbitsFromPhone();
+            initFileInputListener();
+            renderLobbyGrid(); } catch(e) {}
         }
         try {
             if (typeof bgmPlayer !== "undefined" && bgmPlayer && bgmPlayer.start) {
