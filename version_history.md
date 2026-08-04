@@ -1495,3 +1495,14 @@
     1. **Translucent Glass/Golden Liquid Gel Puddle Outline (`poolRadiusX = 0.52w`, `stroke = 3px white gloss rim`)**: When pressed in Slime mode, an outer translucent golden glass gel pool expands symmetrically outward on the floor with glossy glass highlights!
     2. **Homothetic Liquid Melt**: The inner character (mango chunks, eyes, ears) flattens smoothly into the liquid gel pool without any mesh tearing, cutting, or spikes!
     3. **Tremble Jiggle Restoration**: When released, the gel pool contracts back cutely into the rabbit shape with fun 3D liquid trembling oscillations!
+
+## Master Release v122.0.0 (2026-08-05) - 2-3 BOUNCES & STOP + 3D LIQUID SHADER SLIME ENGINE
+- **Version Checkpoint File**: `v122.0.0_LIQUID_SHADER_SLIME_AND_BOUNCE_STOP.html`
+- **100% 2-3 Bounces & Clean Stop Physics + 3D Viscous Liquid Gooey Shader Slime Engine**:
+  - Implemented the user's explicit directives:
+    1. "For Tangle Jelly & Mochi, when pulled/pushed and released, it should bounce 2-3 times cutely with spring jiggle, and then STOP completely at its original position!"
+    2. "For Slime mode, transform the character artwork itself into a 3D liquid/gel state when selected, and melt smoothly when pressed!"
+  - **Engine Architecture Upgrades**:
+    1. **Clean Stop Lock (2-3 Bounces & Freeze)**: When released, spring restitution causes 2-3 cute oscillations (`modeDamping = 0.78`). When velocity drops below 0.18px/frame and distance from home is < 0.6px, it locks cleanly back to `(p.ox, p.oy)` with zero drift!
+    2. **3D Viscous Liquid Gooey Shader (`#slime-liquid-gooey`)**: Selecting Slime mode dynamically applies a 3D glass liquid refraction & gooey filter over the canvas, liquefying the character artwork itself into a translucent 3D gel droplet!
+    3. **Homothetic Melt & Spring Bounce**: Smoothly pools on the floor when pressed, and bounces cutely back into shape when released!
