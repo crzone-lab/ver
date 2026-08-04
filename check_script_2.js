@@ -2130,7 +2130,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                                                                                                                                                // --- 1. Explicit Damped Sine Wave 2-3 Bounce Engine (Visible Jelly/Mochi Elasticity) ---
+                                                                                                                                                                                                                                                // --- 1. Super Visible, Rhythmic Damped Sine Wave 2-3 Bounce Engine (1.05s Duration) ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
                 canvas.style.filter = 'drop-shadow(0 12px 28px rgba(0, 0, 0, 0.15))';
 
@@ -2176,7 +2176,7 @@
                         ctx.restore();
 
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 그대로 유지 (DO NOT TOUCH SLIME)
+                        // [슬라임 모드]: 그대로 보존 (DO NOT TOUCH SLIME)
                         let meltCenter = (grabbedPointIndex !== null && points[grabbedPointIndex]) ? points[grabbedPointIndex] : { ox: width/2, oy: height/2 };
                         let meltAmount = Math.min(0.75, touchTime * 0.032);
                         let wavePulse = Math.sin(touchTime * 0.18) * 0.05 * (1.0 + meltAmount);
@@ -2222,7 +2222,6 @@
                                 p.x = p.ox + dragDx * weight * 0.92;
                                 p.y = p.oy + dragDy * weight * 0.92;
 
-                                // Store max drag offset for release bounce calculation
                                 p.lastDx = p.x - p.ox;
                                 p.lastDy = p.y - p.oy;
                             }
@@ -2246,29 +2245,27 @@
                                 p.x = p.ox + dragDx * weight * 1.35;
                                 p.y = p.oy + dragDy * weight * 1.35;
 
-                                // Store max drag offset for release bounce calculation
                                 p.lastDx = p.x - p.ox;
                                 p.lastDy = p.y - p.oy;
                             }
                         }
                     }
                 } else {
-                    // --- Release Bounce Mode (Explicit Damped Sine Wave: 2-3 Bounces & Clean Stop) ---
+                    // --- Release Bounce Mode (Slow, Rhythmic 2-3 Bounces over 1.05s / 65 frames) ---
                     if (touchTime > 0) {
-                        releaseTime = 0; // Reset release bounce timer on release start
+                        releaseTime = 0;
                         touchTime = 0;
                     }
 
                     releaseTime++;
 
-                    // Damped Sine Wave Parameters (Exactly 2.5 visible bounces over 26 frames = ~0.43s)
+                    // Slow, Rhythmic Frequency w = 7.2 rad/s, Damping gamma = 2.2 -> Total 1.05 seconds!
                     let tSec = releaseTime * 0.016; // Time in seconds
-                    let duration = 0.43; // Total bounce duration
 
-                    if (releaseTime <= 28) {
-                        // Damped harmonic oscillation: x(t) = A * e^(-4.8t) * cos(16t)
-                        let envelope = Math.exp(-4.8 * tSec);
-                        let oscillation = Math.cos(16.0 * tSec);
+                    if (releaseTime <= 65) {
+                        // Damped Sine Wave: x(t) = A * e^(-2.2t) * cos(7.2t)
+                        let envelope = Math.exp(-2.2 * tSec);
+                        let oscillation = Math.cos(7.2 * tSec);
                         let bounceFactor = envelope * oscillation;
 
                         for (let i = 0; i < points.length; i++) {
