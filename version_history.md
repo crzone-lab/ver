@@ -1559,3 +1559,12 @@
     2. **Multi-Touch 2-Finger Balloon Inflation**: Midpoint between two fingers swells outward like a 3D balloon with specular lighting reflection.
     3. **Viscous Slime Engine**: 1-piece unified gel envelope with top-down 360° radial liquid pooling and wave ripples.
     4. **Refactored Codebase**: Cleaned up all scratch files, validated JS syntax across all `<script>` tags with 0 errors.
+
+## Master Release v128.0.0 (2026-08-05) - RESTORED INWARD 3D SINKHOLE TANGLE JELLY
+- **Version Checkpoint File**: `v128.0.0_RESTORED_INWARD_3D_SINKHOLE_JELLY.html`
+- **100% Restored Inward 3D Whirlpool Sinkhole Depression & Shadow Shading for Tangle Jelly**:
+  - Implemented the user's explicit directive: "Now let me fix the inward 3D sinkhole in Tangle Jelly. Yesterday it was working well at one point, can you find it?"
+  - **Engine Architecture Upgrades**:
+    1. **Inward 3D Whirlpool Sinkhole (`dragFromStart < 14px`)**: Pressing and holding down without dragging depresses the touched area inward into 3D depth, pulling surrounding nodes inward radially like water draining into a whirlpool (`p.x = p.ox - nx * weight * sinkDepth * 0.40`).
+    2. **Whirlpool Concave 3D Shading**: Renders a rich radial shadow ring (`rgba(0, 0, 0, 0.48)`) centered at the touch point to give an authentic 3D squishy indentation effect!
+    3. **Seamless Drag Transition (`dragFromStart >= 14px`)**: Smoothly transitions into anchored local elastic stretching when dragging!
