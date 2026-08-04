@@ -1429,3 +1429,14 @@
   - **Engine Architecture Upgrades**:
     1. **Extended Smooth Tangle Jelly Stretch (`maxStretch = 140.0px`, `spatialSigma = 200.0px`)**: Increases stretch range to 140px so cheeks, ears, hands, and paws stretch out **much further, smoother, and longer** without whole-body shifting.
     2. **Soft 3D Gel Slime Engine (`gelFieldRadius = 260.0px`, `gelViscousDamping = 0.95`, `spring = 0.025`)**: Replaces radial vector pushes with a smooth 3D gel deformation field. **0% triangle cutting, 0% sharp tearing on mobile devices!** Deforms super softly and flows back slowly like real 3D liquid gel slime!
+
+## Master Release v116.0.0 (2026-08-04) - TOP-DOWN RADIAL LIQUID MELT SLIME & TREMBLE JIGGLE
+- **Version Checkpoint File**: `v116.0.0_TOP_DOWN_LIQUID_MELT_SLIME_AND_TREMBLE.html`
+- **100% Top-Down Floor Perspective 360° Radial Liquid Melt Slime & Oscillating Tremble Jiggle**:
+  - Implemented the user's explicit directives:
+    1. "Yes. Not sliding down the phone screen, but make it from a Top-Down Perspective (looking down at the floor from above)!"
+    2. "When pressed, the character melts into a liquid state right there on the floor and spreads outward in all directions.."
+    3. "Keep the rapid tremble jiggle effect when released as is!"
+  - **Engine Architecture Upgrades**:
+    1. **Top-Down Floor Radial Liquid Melt (`meltRadius = 0.58w`, `radialMeltForce = 0.52`)**: Looking down from above, pressing down melts the character into a liquid pool that spreads symmetrically 360 degrees outward in all directions right on the floor without sliding down the screen!
+    2. **Tremble Jiggle Restoration (`modeSpring = 0.045`, `modeDamping = 0.94`)**: When released, the melted liquid pool snaps back into character shape with rapid, fun 3D liquid trembling oscillations intact!
