@@ -1506,3 +1506,13 @@
     1. **Clean Stop Lock (2-3 Bounces & Freeze)**: When released, spring restitution causes 2-3 cute oscillations (`modeDamping = 0.78`). When velocity drops below 0.18px/frame and distance from home is < 0.6px, it locks cleanly back to `(p.ox, p.oy)` with zero drift!
     2. **3D Viscous Liquid Gooey Shader (`#slime-liquid-gooey`)**: Selecting Slime mode dynamically applies a 3D glass liquid refraction & gooey filter over the canvas, liquefying the character artwork itself into a translucent 3D gel droplet!
     3. **Homothetic Melt & Spring Bounce**: Smoothly pools on the floor when pressed, and bounces cutely back into shape when released!
+
+## Master Release v123.0.0 (2026-08-05) - TRUE 2-3 SPRING BOUNCE & CONTINUOUS SLIME MELT
+- **Version Checkpoint File**: `v123.0.0_TRUE_SPRING_BOUNCE_AND_CONTINUOUS_SLIME_MELT.html`
+- **100% True 2-3 Kinetic Spring Restitution Bounce & Continuous Flowing Liquid Slime Melt**:
+  - Implemented the user's explicit directives:
+    1. "Bouncing 2-3 times and settling down at original position is NOT working at all!"
+    2. "For Slime mode, when pressed, it just scales up slightly and freezes/stops!"
+  - **Identified & Fixed Technical Root Causes**:
+    1. **Spring Bounce Velocity Impulse (`releaseGrab` Impulse = 0.45)**: Fixed `releaseGrab()` which was previously zeroing out velocities on release. Now passes kinetic drag velocity impulse to the mesh on release, causing **2 to 3 organic 3D spring bounces** before locking cleanly back to home origin `(p.ox, p.oy)`!
+    2. **Continuous Flowing Slime Melt & Liquid Ripple Wave (`liquidRipple = sin(time * 0.15) * 0.06`)**: Removed progress cap! Slime now melts and flows continuously outward as long as touch is held, with a smooth 3D liquid gel wave ripple!

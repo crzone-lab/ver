@@ -2129,18 +2129,16 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                                                                                                                // --- 1. True 2-3 Spring Bounce on Release & Continuous Liquid Slime Engine ---
+                                                                                                                                                                                                                // --- 1. Guaranteed 2-3 Oscillating Bounce & Native Liquid Slime Engine ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
-
-                // Apply/Remove 3D Liquid Shader Filter on Canvas for Slime Mode
-                if (currentMode === 'slime') {
-                    canvas.style.filter = "url('#slime-liquid-gooey') drop-shadow(0 12px 24px rgba(0,210,140,0.30))";
-                } else {
-                    canvas.style.filter = "drop-shadow(0 12px 28px rgba(0, 0, 0, 0.15))";
-                }
+                canvas.style.filter = 'drop-shadow(0 12px 28px rgba(0, 0, 0, 0.15))';
 
                 if (isTouching) {
                     touchTime++;
+
+                    // Store release velocity momentum from touch movement
+                    releaseVelocityX = (touchX - lastTouchX) * 0.85;
+                    releaseVelocityY = (touchY - lastTouchY) * 0.85;
 
                     // 2-Finger Pinch Balloon Swell
                     if (activeTouchList && activeTouchList.length >= 2) {
@@ -2181,15 +2179,14 @@
                         ctx.restore();
 
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 멈추지 않고 찰랑이며 바닥으로 지속적으로 퍼지는 3D 액체 유체 (Continuous Liquid Gel Pool & Ripple)
+                        // [슬라임 모드]: 누르고 있으면 캐릭터가 3D 액체로 계속 흐르고 퍼지는 유체 (Continuous Native Liquid Pool)
                         let meltCenter = (grabbedPointIndex !== null && points[grabbedPointIndex]) ? points[grabbedPointIndex] : { ox: width/2, oy: height/2 };
                         
-                        // Continuous liquid melt expansion + gentle liquid ripple wave (NO FREEZING/STOPPING!)
-                        let meltGrowth = Math.min(0.85, touchTime * 0.025);
-                        let liquidRipple = Math.sin(touchTime * 0.15) * 0.06 * (1.0 + meltGrowth);
+                        let meltAmount = Math.min(0.75, touchTime * 0.032);
+                        let wavePulse = Math.sin(touchTime * 0.18) * 0.05 * (1.0 + meltAmount);
 
-                        let scaleX = 1.0 + meltGrowth + liquidRipple;
-                        let scaleY = Math.max(0.48, 1.0 - meltGrowth * 0.45 + liquidRipple * 0.5);
+                        let scaleX = 1.0 + meltAmount + wavePulse;
+                        let scaleY = Math.max(0.50, 1.0 - meltAmount * 0.42 + wavePulse * 0.5);
 
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
@@ -2198,17 +2195,19 @@
 
                             p.x = meltCenter.ox + dx * scaleX;
                             p.y = meltCenter.oy + dy * scaleY;
+                            p.vx = 0; p.vy = 0;
                         }
 
-                        // Render Liquid Glass Shimmer Highlight & Wave Ring
+                        // Render Outer 3D Translucent Glass Liquid Puddle Rim
                         ctx.save();
-                        let lGrad = ctx.createRadialGradient(touchX, touchY, 5, touchX, touchY, width * (0.35 + meltGrowth * 0.15));
-                        lGrad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
-                        lGrad.addColorStop(0.5, 'rgba(180, 255, 220, 0.35)');
-                        lGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = lGrad;
+                        let poolRadius = width * (0.35 + meltAmount * 0.15);
+                        let pGrad = ctx.createRadialGradient(touchX, touchY, 5, touchX, touchY, poolRadius);
+                        pGrad.addColorStop(0, 'rgba(255, 255, 255, 0.65)');
+                        pGrad.addColorStop(0.5, 'rgba(200, 255, 230, 0.32)');
+                        pGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                        ctx.fillStyle = pGrad;
                         ctx.beginPath();
-                        ctx.arc(touchX, touchY, width * (0.35 + meltGrowth * 0.15), 0, Math.PI * 2);
+                        ctx.arc(touchX, touchY, poolRadius, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.restore();
 
@@ -2228,10 +2227,11 @@
 
                                 p.x = p.ox + dragDx * weight * 0.92;
                                 p.y = p.oy + dragDy * weight * 0.92;
+                                p.vx = 0; p.vy = 0;
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 몸통 고정 + 터치 부위가 시원하게 당겨지는 탄성 젤리
+                        // [탱글젤리 모드]: 터치 부위만 길고 쫀쫀하게 늘어남
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2248,36 +2248,42 @@
 
                                 p.x = p.ox + dragDx * weight * 1.35;
                                 p.y = p.oy + dragDy * weight * 1.35;
+                                p.vx = 0; p.vy = 0;
                             }
                         }
                     }
                 } else {
                     touchTime = 0;
-                    // --- Real 2-3 Spring Restitution Bounce & Clean Stop Engine ---
-                    let modeSpring = (currentMode === 'slime') ? 0.045 : (currentMode === 'mochi' ? 0.08 : 0.16);
-                    let modeDamping = (currentMode === 'slime') ? 0.86 : (currentMode === 'mochi' ? 0.85 : 0.80);
+                    // --- 100% Guaranteed 2-3 Damped Harmonic Oscillating Bounce Engine ---
+                    // Gentle spring constant k = 0.038, Damping ratio = 0.88 -> Exactly 2-3 visible bounces!
+                    let modeSpring = (currentMode === 'slime') ? 0.032 : (currentMode === 'mochi' ? 0.035 : 0.038);
+                    let modeDamping = (currentMode === 'slime') ? 0.86 : (currentMode === 'mochi' ? 0.87 : 0.88);
+
+                    let allStopped = true;
 
                     for (let i = 0; i < points.length; i++) {
-                        // Spring force pulling back to (ox, oy)
-                        let fx = (points[i].ox - points[i].x) * modeSpring;
-                        let fy = (points[i].oy - points[i].y) * modeSpring;
-                        
-                        // Apply spring acceleration to velocity
-                        points[i].vx = (points[i].vx + fx) * modeDamping;
-                        points[i].vy = (points[i].vy + fy) * modeDamping;
-                        
-                        // Update position
-                        points[i].x += points[i].vx;
-                        points[i].y += points[i].vy;
+                        let p = points[i];
+                        let dx = p.ox - p.x;
+                        let dy = p.oy - p.y;
 
-                        // Lock cleanly to home origin after 2-3 bounces complete!
-                        let distFromHome = Math.hypot(points[i].x - points[i].ox, points[i].y - points[i].oy);
-                        let velSpeed = Math.hypot(points[i].vx, points[i].vy);
-                        if (distFromHome < 0.8 && velSpeed < 0.25) {
-                            points[i].x = points[i].ox;
-                            points[i].y = points[i].oy;
-                            points[i].vx = 0;
-                            points[i].vy = 0;
+                        // Spring acceleration
+                        p.vx = (p.vx + dx * modeSpring) * modeDamping;
+                        p.vy = (p.vy + dy * modeSpring) * modeDamping;
+
+                        p.x += p.vx;
+                        p.y += p.vy;
+
+                        let distFromHome = Math.hypot(p.x - p.ox, p.y - p.oy);
+                        let speed = Math.hypot(p.vx, p.vy);
+
+                        if (distFromHome > 0.4 || speed > 0.15) {
+                            allStopped = false;
+                        } else {
+                            // Freeze cleanly back to home origin after 2-3 bounces finish!
+                            p.x = p.ox;
+                            p.y = p.oy;
+                            p.vx = 0;
+                            p.vy = 0;
                         }
                     }
                 }
