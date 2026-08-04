@@ -416,6 +416,7 @@
         let lastTouchX = 0;
         let lastTouchY = 0;
         let touchTime = 0;
+                let releaseTime = 0;
         let touchHapticFrame = 0;
 
         
@@ -2129,16 +2130,12 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                                                                                                                                // --- 1. Guaranteed 2-3 Oscillating Bounce & Native Liquid Slime Engine ---
+                                                                                                                                                                                                                                // --- 1. Explicit Damped Sine Wave 2-3 Bounce Engine (Visible Jelly/Mochi Elasticity) ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
                 canvas.style.filter = 'drop-shadow(0 12px 28px rgba(0, 0, 0, 0.15))';
 
                 if (isTouching) {
                     touchTime++;
-
-                    // Store release velocity momentum from touch movement
-                    releaseVelocityX = (touchX - lastTouchX) * 0.85;
-                    releaseVelocityY = (touchY - lastTouchY) * 0.85;
 
                     // 2-Finger Pinch Balloon Swell
                     if (activeTouchList && activeTouchList.length >= 2) {
@@ -2179,9 +2176,8 @@
                         ctx.restore();
 
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 누르고 있으면 캐릭터가 3D 액체로 계속 흐르고 퍼지는 유체 (Continuous Native Liquid Pool)
+                        // [슬라임 모드]: 그대로 유지 (DO NOT TOUCH SLIME)
                         let meltCenter = (grabbedPointIndex !== null && points[grabbedPointIndex]) ? points[grabbedPointIndex] : { ox: width/2, oy: height/2 };
-                        
                         let meltAmount = Math.min(0.75, touchTime * 0.032);
                         let wavePulse = Math.sin(touchTime * 0.18) * 0.05 * (1.0 + meltAmount);
 
@@ -2195,10 +2191,8 @@
 
                             p.x = meltCenter.ox + dx * scaleX;
                             p.y = meltCenter.oy + dy * scaleY;
-                            p.vx = 0; p.vy = 0;
                         }
 
-                        // Render Outer 3D Translucent Glass Liquid Puddle Rim
                         ctx.save();
                         let poolRadius = width * (0.35 + meltAmount * 0.15);
                         let pGrad = ctx.createRadialGradient(touchX, touchY, 5, touchX, touchY, poolRadius);
@@ -2212,7 +2206,7 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 늘어나는 모찌
+                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 당기기
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2227,11 +2221,14 @@
 
                                 p.x = p.ox + dragDx * weight * 0.92;
                                 p.y = p.oy + dragDy * weight * 0.92;
-                                p.vx = 0; p.vy = 0;
+
+                                // Store max drag offset for release bounce calculation
+                                p.lastDx = p.x - p.ox;
+                                p.lastDy = p.y - p.oy;
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 터치 부위만 길고 쫀쫀하게 늘어남
+                        // [탱글젤리 모드]: 터치 부위가 길고 쫀쫀하게 당겨짐
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2248,42 +2245,49 @@
 
                                 p.x = p.ox + dragDx * weight * 1.35;
                                 p.y = p.oy + dragDy * weight * 1.35;
-                                p.vx = 0; p.vy = 0;
+
+                                // Store max drag offset for release bounce calculation
+                                p.lastDx = p.x - p.ox;
+                                p.lastDy = p.y - p.oy;
                             }
                         }
                     }
                 } else {
-                    touchTime = 0;
-                    // --- 100% Guaranteed 2-3 Damped Harmonic Oscillating Bounce Engine ---
-                    // Gentle spring constant k = 0.038, Damping ratio = 0.88 -> Exactly 2-3 visible bounces!
-                    let modeSpring = (currentMode === 'slime') ? 0.032 : (currentMode === 'mochi' ? 0.035 : 0.038);
-                    let modeDamping = (currentMode === 'slime') ? 0.86 : (currentMode === 'mochi' ? 0.87 : 0.88);
+                    // --- Release Bounce Mode (Explicit Damped Sine Wave: 2-3 Bounces & Clean Stop) ---
+                    if (touchTime > 0) {
+                        releaseTime = 0; // Reset release bounce timer on release start
+                        touchTime = 0;
+                    }
 
-                    let allStopped = true;
+                    releaseTime++;
 
-                    for (let i = 0; i < points.length; i++) {
-                        let p = points[i];
-                        let dx = p.ox - p.x;
-                        let dy = p.oy - p.y;
+                    // Damped Sine Wave Parameters (Exactly 2.5 visible bounces over 26 frames = ~0.43s)
+                    let tSec = releaseTime * 0.016; // Time in seconds
+                    let duration = 0.43; // Total bounce duration
 
-                        // Spring acceleration
-                        p.vx = (p.vx + dx * modeSpring) * modeDamping;
-                        p.vy = (p.vy + dy * modeSpring) * modeDamping;
+                    if (releaseTime <= 28) {
+                        // Damped harmonic oscillation: x(t) = A * e^(-4.8t) * cos(16t)
+                        let envelope = Math.exp(-4.8 * tSec);
+                        let oscillation = Math.cos(16.0 * tSec);
+                        let bounceFactor = envelope * oscillation;
 
-                        p.x += p.vx;
-                        p.y += p.vy;
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
+                            let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
 
-                        let distFromHome = Math.hypot(p.x - p.ox, p.y - p.oy);
-                        let speed = Math.hypot(p.vx, p.vy);
-
-                        if (distFromHome > 0.4 || speed > 0.15) {
-                            allStopped = false;
-                        } else {
-                            // Freeze cleanly back to home origin after 2-3 bounces finish!
-                            p.x = p.ox;
-                            p.y = p.oy;
-                            p.vx = 0;
-                            p.vy = 0;
+                            p.x = p.ox + baseDx * bounceFactor;
+                            p.y = p.oy + baseDy * bounceFactor;
+                        }
+                    } else {
+                        // Bounces complete! Lock 100% cleanly back to home origin (p.ox, p.oy)
+                        for (let i = 0; i < points.length; i++) {
+                            points[i].x = points[i].ox;
+                            points[i].y = points[i].oy;
+                            points[i].vx = 0;
+                            points[i].vy = 0;
+                            points[i].lastDx = 0;
+                            points[i].lastDy = 0;
                         }
                     }
                 }
