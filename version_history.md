@@ -1568,3 +1568,12 @@
     1. **Inward 3D Whirlpool Sinkhole (`dragFromStart < 14px`)**: Pressing and holding down without dragging depresses the touched area inward into 3D depth, pulling surrounding nodes inward radially like water draining into a whirlpool (`p.x = p.ox - nx * weight * sinkDepth * 0.40`).
     2. **Whirlpool Concave 3D Shading**: Renders a rich radial shadow ring (`rgba(0, 0, 0, 0.48)`) centered at the touch point to give an authentic 3D squishy indentation effect!
     3. **Seamless Drag Transition (`dragFromStart >= 14px`)**: Smoothly transitions into anchored local elastic stretching when dragging!
+
+## Master Release v129.0.0 (2026-08-05) - RESTORED CLEAN STABLE MASTER BASELINE
+- **Version Checkpoint File**: `v129.0.0_RESTORED_CLEAN_MASTER_BASELINE.html`
+- **100% Restoration of Stable Master Baseline (`v127.0.0`)**:
+  - Implemented the user's explicit directive: "Let's restore everything back to the original working state for today and finish!"
+  - **Restoration Details**:
+    1. Reverted `index.html` 100% back to clean stable master release `v127.0.0`.
+    2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
+    3. Preserved stable 2-3 oscillation bounce elasticity, single-mass envelope, and liquid slime engine.

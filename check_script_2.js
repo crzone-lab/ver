@@ -2130,7 +2130,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                                                                                                                                                                                // --- 1. Tangle Jelly Inward 3D Sinkhole & Damped Sine Bounce Engine ---
+                                                                                                                                                                                                                                                // --- 1. Super Visible, Rhythmic Damped Sine Wave 2-3 Bounce Engine (1.05s Duration) ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
                 canvas.style.filter = 'drop-shadow(0 12px 28px rgba(0, 0, 0, 0.15))';
 
@@ -2227,73 +2227,31 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 누르면 속으로 쏙 내려가는 깊은 3D 함몰 (Sinkhole) & 당기기
-                        let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
-
-                        if (dragFromStart < 14.0) {
-                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 터치 위치 중심 깊은 3D 함몰 (Inward 3D Sinkhole)
-                            let sinkRadius = width * 0.45;
-                            let sinkDepth = Math.min(58.0, 22.0 + touchTime * 1.8);
+                        // [탱글젤리 모드]: 터치 부위가 길고 쫀쫀하게 당겨짐
+                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                            let gNode = points[grabbedPointIndex];
+                            let dragDx = touchX - gNode.ox;
+                            let dragDy = touchY - gNode.oy;
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
-                                let dx = p.ox - touchX;
-                                let dy = p.oy - touchY;
-                                let dist = Math.hypot(dx, dy);
+                                let pdx = p.ox - gNode.ox;
+                                let pdy = p.oy - gNode.oy;
+                                let dist = Math.hypot(pdx, pdy);
 
-                                if (dist < sinkRadius && dist > 0.1) {
-                                    let weight = Math.pow(1 - dist / sinkRadius, 1.6);
-                                    let nx = dx / dist;
-                                    let ny = dy / dist;
+                                let sigma = 100.0;
+                                let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
 
-                                    // Pull nodes inward towards sinkhole center (속으로 쏙 빨려 들어감)
-                                    p.x = p.ox - nx * weight * sinkDepth * 0.40;
-                                    p.y = p.oy - ny * weight * sinkDepth * 0.40;
+                                p.x = p.ox + dragDx * weight * 1.35;
+                                p.y = p.oy + dragDy * weight * 1.35;
 
-                                    p.lastDx = p.x - p.ox;
-                                    p.lastDy = p.y - p.oy;
-                                }
-                            }
-
-                            // Render 3D Whirlpool Sinkhole Shadow & Depressed Inner Ring (함몰 그림자 음영)
-                            ctx.save();
-                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.60);
-                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.48)');
-                            sGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.22)');
-                            sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                            ctx.fillStyle = sGrad;
-                            ctx.beginPath();
-                            ctx.arc(touchX, touchY, sinkRadius * 0.60, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.restore();
-
-                        } else {
-                            // 2. 드래그/당기기 상태 (dragFromStart >= 14px): 터치 부위가 길고 쫀쫀하게 당겨짐
-                            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                                let gNode = points[grabbedPointIndex];
-                                let dragDx = touchX - gNode.ox;
-                                let dragDy = touchY - gNode.oy;
-
-                                for (let i = 0; i < points.length; i++) {
-                                    let p = points[i];
-                                    let pdx = p.ox - gNode.ox;
-                                    let pdy = p.oy - gNode.oy;
-                                    let dist = Math.hypot(pdx, pdy);
-
-                                    let sigma = 100.0;
-                                    let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
-
-                                    p.x = p.ox + dragDx * weight * 1.35;
-                                    p.y = p.oy + dragDy * weight * 1.35;
-
-                                    p.lastDx = p.x - p.ox;
-                                    p.lastDy = p.y - p.oy;
-                                }
+                                p.lastDx = p.x - p.ox;
+                                p.lastDy = p.y - p.oy;
                             }
                         }
                     }
                 } else {
-                    // --- Release Bounce Mode (Slow, Rhythmic 2-3 Bounces over 1.05s) ---
+                    // --- Release Bounce Mode (Slow, Rhythmic 2-3 Bounces over 1.05s / 65 frames) ---
                     if (touchTime > 0) {
                         releaseTime = 0;
                         touchTime = 0;
@@ -2301,9 +2259,11 @@
 
                     releaseTime++;
 
-                    let tSec = releaseTime * 0.016;
+                    // Slow, Rhythmic Frequency w = 7.2 rad/s, Damping gamma = 2.2 -> Total 1.05 seconds!
+                    let tSec = releaseTime * 0.016; // Time in seconds
 
                     if (releaseTime <= 65) {
+                        // Damped Sine Wave: x(t) = A * e^(-2.2t) * cos(7.2t)
                         let envelope = Math.exp(-2.2 * tSec);
                         let oscillation = Math.cos(7.2 * tSec);
                         let bounceFactor = envelope * oscillation;
@@ -2317,6 +2277,7 @@
                             p.y = p.oy + baseDy * bounceFactor;
                         }
                     } else {
+                        // Bounces complete! Lock 100% cleanly back to home origin (p.ox, p.oy)
                         for (let i = 0; i < points.length; i++) {
                             points[i].x = points[i].ox;
                             points[i].y = points[i].oy;
