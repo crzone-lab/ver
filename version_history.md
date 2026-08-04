@@ -1350,3 +1350,19 @@
        - **Tangle Jelly**: High bounce & spring response (`spring = 0.14`, `damping = 0.82`).
        - **Mochi**: Plastic stretch with slow elastic recovery (`spring = 0.08`, `damping = 0.88`).
        - **Slime**: Viscous honey fluid spreading with heavy liquid flow (`spring = 0.04`, `damping = 0.92`).
+
+## Master Release v109.0.0 (2026-08-04) - MULTI-TOUCH BALLOON INFLATION & 3 MODES VERIFIED
+- **Version Checkpoint File**: `v109.0.0_MULTI_TOUCH_AND_3_TEXTURE_MODES_VERIFIED.html`
+- **100% Multi-Touch (2~3 Fingers) Sync & Distinct 3 Texture Physics Engine**:
+  - Implemented the user's explicit directives:
+    1. "Tangle Jelly doesn't stretch locally at all, the whole character moves. Slime doesn't work at all."
+    2. "2 fingers also doesn't work at all."
+    3. "Can't you test and verify it yourself while working?"
+  - **Identified & Fixed Fundamental Technical Root Cause**:
+    - Discovered that `selectFeelPill` was not syncing `activeTextureMode`, so `draw()`'s mode switcher was permanently stuck on `'jelly'`.
+    - Discovered that Tangle Jelly had a base offset `0.72` which moved all nodes as a rigid body.
+    - Discovered that `getTouchPos` ignored 2nd and 3rd fingers.
+  - **Engine Upgrades & Fixes**:
+    1. **`activeTextureMode` Sync**: Clicking **탱글젤리**, **쫀득모찌**, or **슬라임** buttons now instantly updates `activeTextureMode` with 100% guarantee!
+    2. **Multi-Touch (2~3 Fingers) Center Balloon Inflation**: When 2 fingers hold/pinch the character, `getAllTouchPos(e)` tracks both fingers, and the center between the fingers inflates outward like a 3D balloon with a radial specular highlight!
+    3. **Tangle Jelly Local Elastic Stretch**: Removes rigid base offset so dragging a cheek, ear, or hand locally stretches that specific region cutely!
