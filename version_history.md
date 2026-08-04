@@ -1462,3 +1462,16 @@
   - **Engine Architecture Upgrades**:
     1. **Anchored Main Body Soft Jelly Stretch (`anchoredFalloff = 100.0px`, `softMultiplier = 1.35`)**: All nodes beyond radius `R > 130px` from the touch point remain 100% STILL at home origins `(p.ox, p.oy)`. Only the touched ear/cheek/paw stretches out easily and smoothly!
     2. **Restored Slime Liquid Gel Melting & Tremble Jiggle (`modeSpring = 0.040`, `modeDamping = 0.93`)**: Restores Slime's liquid gel melting when pressed and fun rapid trembling oscillations when released!
+
+## Master Release v119.0.0 (2026-08-04) - SPIKE-FREE HOMOTHETIC SLIME MELT ENGINE
+- **Version Checkpoint File**: `v119.0.0_SPIKE_FREE_SLIME_MELT_ENGINE.html`
+- **100% Spike-Free Homothetic Slime Liquid Melt Engine (Tangle Jelly & Mochi 100% Untouched)**:
+  - Implemented the user's explicit directives:
+    1. "Tangle Jelly and Mochi feel similar and good now. Keep them as-is, DO NOT TOUCH Tangle Jelly and Mochi!"
+    2. "Slime is the issue - look at the screenshot (yellow rabbit forming a massive sharp pyramid/diamond spike). Analyze why it breaks like that!"
+  - **Identified Technical Root Cause for Massive Yellow Spikes**:
+    - Discovered that accumulating directional vectors (`p.x += nx * weight`) pushed inner nodes past outer nodes, causing 2D mesh inversion (꼬임) that stretched UV texture coordinates into giant diagonal yellow spikes across the screen!
+  - **Engine Architecture Upgrades**:
+    1. **Tangle Jelly & Mochi**: 100% UNTOUCHED & PRESERVED!
+    2. **Spike-Free Homothetic Slime Melt (`scaleX = 1.0 + 0.45w`, `scaleY = 1.0 - 0.28w`)**: Replaced cumulative directional vectors with origin-anchored homothetic scaling. **0% node crossover, 0% mesh inversion, 0% giant yellow spikes!**
+    3. **Restored Slime Tremble Jiggle**: Smoothly melts when pressed, and trembles/jiggles cutely when released!

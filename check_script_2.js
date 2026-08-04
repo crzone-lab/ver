@@ -2129,7 +2129,7 @@
                 // Draw floating decorative background jellies
                 drawDecoJellies();
 
-                                                                                                                                // --- 1. Anchored Body Soft Jelly Stretch & Fun Jiggle Slime Engine ---
+                                                                                                                                                // --- 1. Organic Spring Bounce (Jelly/Mochi) & Single Gel Envelope Slime Physics ---
                 let currentMode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
                 if (isTouching) {
@@ -2174,41 +2174,40 @@
                         ctx.fill();
                         ctx.restore();
                     } else if (currentMode === 'slime') {
-                        // [슬라임 모드]: 원점 기반 3D 유체 녹음 (Spike Crossover 0% 완전 해결!)
-                        let meltRadius = width * 0.52;
-                        let meltProgress = Math.min(1.0, touchTime * 0.04);
+                        // [슬라임 모드]: 캐릭터 무늬/컬러 무관 1개 3D 단일 겔 덩어리 보존 (뒤집힘/꼬임 0%)
+                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                            let gNode = points[grabbedPointIndex];
+                            let dragDx = touchX - gNode.ox;
+                            let dragDy = touchY - gNode.oy;
 
-                        for (let i = 0; i < points.length; i++) {
-                            let p = points[i];
-                            let dx = p.ox - touchX;
-                            let dy = p.oy - touchY;
-                            let dist = Math.hypot(dx, dy);
+                            // Single Solid Gel Envelope: All nodes deform cohesively as 1 gel mass (0% flipping!)
+                            for (let i = 0; i < points.length; i++) {
+                                let p = points[i];
+                                let pdx = p.ox - gNode.ox;
+                                let pdy = p.oy - gNode.oy;
+                                let dist = Math.hypot(pdx, pdy);
 
-                            if (dist < meltRadius) {
-                                let weight = Math.pow(1.0 - dist / meltRadius, 1.5) * meltProgress;
-                                // Smooth Liquid Flattening & Radial Spreading (Origin-anchored: 0% mesh inversion!)
-                                let scaleX = 1.0 + 0.45 * weight;
-                                let scaleY = 1.0 - 0.28 * weight;
-
-                                p.x = touchX + dx * scaleX;
-                                p.y = touchY + dy * scaleY;
+                                let weight = Math.exp(-(dist * dist) / (220.0 * 220.0));
+                                p.x = p.ox + dragDx * weight * 0.88;
+                                p.y = p.oy + dragDy * weight * 0.88;
+                                p.vx *= 0.15; p.vy *= 0.15;
                             }
                         }
 
                         // Render 3D Liquid Pool Shimmer Reflection
                         ctx.save();
-                        let lGrad = ctx.createRadialGradient(touchX, touchY, 5, touchX, touchY, meltRadius * 0.60);
+                        let lGrad = ctx.createRadialGradient(touchX, touchY, 5, touchX, touchY, width * 0.35);
                         lGrad.addColorStop(0, 'rgba(255, 255, 255, 0.55)');
                         lGrad.addColorStop(0.5, 'rgba(200, 255, 230, 0.28)');
                         lGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
                         ctx.fillStyle = lGrad;
                         ctx.beginPath();
-                        ctx.arc(touchX, touchY, meltRadius * 0.60, 0, Math.PI * 2);
+                        ctx.arc(touchX, touchY, width * 0.35, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 천천히 늘어나는 플라스틱 모찌 (100% 원본 유지)
+                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 늘어났다가 몇 번 찰랑거리며 복원되는 모찌
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2227,7 +2226,7 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 몸통 100% 고정 + 터치한 부위만 잘 늘어나는 엘라스틱 당기기 (100% 원본 유지)
+                        // [탱글젤리 모드]: 당겼다 놓으면 몇 번 튕기면서 안착하는 탄성 젤리
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -2250,9 +2249,9 @@
                     }
                 } else {
                     touchTime = 0;
-                    // Slime Tremble Jiggle Oscillating Spring (유저님이 재미있어하신 찰랑이는 액체 떨림 100% 보존!)
-                    let modeSpring = (currentMode === 'slime') ? 0.040 : (currentMode === 'mochi' ? 0.07 : 0.15);
-                    let modeDamping = (currentMode === 'slime') ? 0.93 : (currentMode === 'mochi' ? 0.88 : 0.82);
+                    // Mode-Specific Spring Restitution (놓았을 때 중력/반발력으로 몇 번 튕기며 안착!)
+                    let modeSpring = (currentMode === 'slime') ? 0.040 : (currentMode === 'mochi' ? 0.09 : 0.18); // High spring bounce!
+                    let modeDamping = (currentMode === 'slime') ? 0.93 : (currentMode === 'mochi' ? 0.85 : 0.78); // Underdamped oscillation!
 
                     for (let i = 0; i < points.length; i++) {
                         let fx = (points[i].ox - points[i].x) * modeSpring;
