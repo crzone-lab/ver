@@ -3704,15 +3704,78 @@
                 }
 
                 // 2. Solve internal springs every frame for realistic 3D jelly stretching and squishing
-                for (let step = 0; step < 4; step++) {
-                    for (let i = 0; i < springs.length; i++) {
-                        springs[i].solve();
+                // 1. Physics Spring Solver (Only run when touching or after release animation completes)
+                if (isTouching || releaseTime > 90) {
+                    for (let step = 0; step < 4; step++) {
+                        for (let i = 0; i < springs.length; i++) {
+                            springs[i].solve();
+                        }
+                    }
+                    for (let i = 0; i < points.length; i++) {
+                        points[i].update();
                     }
                 }
 
-                // 3. Update mesh points
-                for (let i = 0; i < points.length; i++) {
-                    points[i].update();
+                // 2. 3단계 역동적 바운스 연출: 1) 위로 통통 점프(56px) + 좌우 흔들림(42px) ➔ 2) 짧게 부르르 떨림 ➔ 3) 완전 정지
+                if (!isTouching) {
+                    let tSec = releaseTime * 0.016; // Time in seconds
+
+                    if (releaseTime <= 65) {
+                        // Stage 1: 공중으로 높게 위로 통통 튀기고(56px Air Jump) + 좌우로 좌우 흔들림(42px Sway)
+                        let jumpEnv = Math.exp(-1.1 * tSec);
+                        let jumpHeight = Math.abs(Math.sin(9.5 * tSec)) * jumpEnv * 56.0; // 위로 높게 통통 점프!
+                        let swayX = Math.sin(7.0 * tSec) * jumpEnv * 42.0; // 좌우로 크고 흔들림!
+                        let squishY = 1.0 + (Math.cos(13.0 * tSec) * jumpEnv * 0.32);
+                        let squishX = 1.0 - (Math.cos(13.0 * tSec) * jumpEnv * 0.22);
+
+                        let centerX = 0, centerY = 0;
+                        for (let i = 0; i < points.length; i++) {
+                            centerX += points[i].ox;
+                            centerY += points[i].oy;
+                        }
+                        centerX /= points.length;
+                        centerY /= points.length;
+
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
+                            let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
+
+                            let localX = p.ox + baseDx * jumpEnv * Math.cos(13.0 * tSec);
+                            let localY = p.oy + baseDy * jumpEnv * Math.cos(13.0 * tSec);
+
+                            let relX = localX - centerX;
+                            let relY = localY - centerY;
+
+                            p.x = centerX + (relX * squishX) + swayX;
+                            p.y = centerY + (relY * squishY) - jumpHeight;
+
+                            p.oldx = p.x;
+                            p.oldy = p.y;
+                        }
+                    } else if (releaseTime <= 90) {
+                        // Stage 2: 짧게 부르르 떨면서(Micro-Shiver/Tremble) 정지 준비
+                        let shiverT = (releaseTime - 65) * 0.016;
+                        let shiverAmp = Math.exp(-5.0 * shiverT) * Math.sin(48.0 * shiverT) * 9.5; // 고주파 부르르 떨림
+
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            p.x = p.ox + shiverAmp;
+                            p.y = p.oy;
+                            p.oldx = p.x;
+                            p.oldy = p.y;
+                        }
+                    } else {
+                        // Stage 3: Complete 100% Clean Stop at Home Origin
+                        for (let i = 0; i < points.length; i++) {
+                            points[i].x = points[i].ox;
+                            points[i].y = points[i].oy;
+                            points[i].oldx = points[i].ox;
+                            points[i].oldy = points[i].oy;
+                            points[i].vx = 0;
+                            points[i].vy = 0;
+                        }
+                    }
                 }
 
                 // Draw a realistic 3D contact ambient occlusion shadow underneath the main character
