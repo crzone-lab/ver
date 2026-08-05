@@ -4550,9 +4550,14 @@
         }
 
         function selectLobbyCharacter(index, element) {
-            stopAutopilot(); releaseGrab(true); releaseGrab(true);
+            stopAutopilot(); 
+            try { releaseGrab(true); releaseGrab(true); } catch(e) {}
             activeLobbyIndex = index;
-            syncCarouselSelection(index);
+
+            // 1. Immediately switch screen to playground so next page OPENS 100% INSTANTLY!
+            try { setScreenMode("playground"); } catch(e) {}
+            try { syncCarouselSelection(index); } catch(e) {}
+
             const char = lobbyCharacters[index];
             if (!char) return;
 
@@ -4560,17 +4565,10 @@
             activeBase = char.base;
             activeHue = char.hue || 350;
 
-            // Hide splash screen if open
-            const splash = document.getElementById('start-splash-screen');
-            if (splash) {
-                splash.classList.add('fade-out');
-                splash.style.display = 'none';
-            }
-
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
             jellyImage.onload = function() {
-                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
+                bakedJellyTexture = jellyImage;
                 if (typeof bakeSingleCompositeTexture === 'function') {
                     bakeSingleCompositeTexture(jellyImage);
                 }
@@ -4579,7 +4577,7 @@
             };
 
             jellyImage.src = imageSrc;
-            bakedJellyTexture = jellyImage; // Immediate fallback assignment
+            bakedJellyTexture = jellyImage;
 
             if (jellyImage.complete && jellyImage.naturalWidth > 0) {
                 initMesh();
@@ -4588,8 +4586,9 @@
 
             initMesh();
             generateDecoJellies(activeHue);
-            setScreenMode("playground");
-            showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
+            if (typeof showNotification === 'function') {
+                showNotification();
+            }
 
             // Highlight selected bubble
             document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
@@ -5395,4 +5394,80 @@
         </defs>
     </svg>
 </body>
+                // 릴리즈 동작: 탱글젤리(고공 96px 바운스) vs 쫀득모찌(12초 초슬로우 점성 복원) 차별화 Engine
+                if (!isTouching) {
+                    let tSec = releaseTime * 0.016; // Time in seconds
+
+                    if (currentMode === 'mochi') {
+                        // [쫀득모찌 릴리즈]: 당기고 놨을 때 튕김 0%! 12초 동안 엄청 느리고 묵직하게 츠스스- 복원
+                        if (releaseTime <= 750) {
+                            let viscousDecay = Math.exp(-0.18 * tSec);
+
+                            for (let i = 0; i < points.length; i++) {
+                                let p = points[i];
+                                let baseDx = (p && p.lastDx !== undefined) ? p.lastDx : 0;
+                                let baseDy = (p && p.lastDy !== undefined) ? p.lastDy : 0;
+
+                                p.x = p.ox + baseDx * viscousDecay;
+                                p.y = p.oy + baseDy * viscousDecay;
+
+                                p.oldx = p.x;
+                                p.oldy = p.y;
+                            }
+                        } else {
+                            for (let i = 0; i < points.length; i++) {
+                                points[i].x = points[i].ox;
+                                points[i].y = points[i].oy;
+                                points[i].oldx = points[i].ox;
+                                points[i].oldy = points[i].oy;
+                                points[i].vx = 0;
+                                points[i].vy = 0;
+                            }
+                        }
+                    } else {
+                        // [탱글젤리 릴리즈]: 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 엔진 (~7.5초)
+                        if (releaseTime <= 450) {
+                            let floatEnv = Math.exp(-0.45 * tSec);
+                            let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0;
+                            let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0;
+                            let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
+                            let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
+
+                            let centerX = 0, centerY = 0;
+                            for (let i = 0; i < points.length; i++) {
+                                centerX += points[i].ox;
+                                centerY += points[i].oy;
+                            }
+                            centerX /= points.length;
+                            centerY /= points.length;
+
+                            for (let i = 0; i < points.length; i++) {
+                                let p = points[i];
+                                let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
+                                let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
+
+                                let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
+                                let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
+
+                                let relX = localX - centerX;
+                                let relY = localY - centerY;
+
+                                p.x = centerX + (relX * squishX) + swayX;
+                                p.y = centerY + (relY * squishY) - jumpHeight;
+
+                                p.oldx = p.x;
+                                p.oldy = p.y;
+                            }
+                        } else {
+                            for (let i = 0; i < points.length; i++) {
+                                points[i].x = points[i].ox;
+                                points[i].y = points[i].oy;
+                                points[i].oldx = points[i].ox;
+                                points[i].oldy = points[i].oy;
+                                points[i].vx = 0;
+                                points[i].vy = 0;
+                            }
+                        }
+                    }
+                }
 </html>
