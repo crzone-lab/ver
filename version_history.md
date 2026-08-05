@@ -1642,3 +1642,12 @@
     1. **Convex Combination Interpolation (`p.x = p.ox * (1 - blendRatio) + touchX * blendRatio`)**: Eliminates directional vector divisions. Mesh triangles stay 100% strictly convex and valid. **0% character disappearing, 0% mesh inversion guaranteed!**
     2. **Slow Smooth Ease-Out Sinkhole Progression**: Sinks inward slowly and smoothly over ~1.2s and stops at max 48px depth cap.
     3. **All Other Features 100% Preserved**: Pulling, pushing, 2-3 bounce elasticity, and slime mode stay 100% untouched.
+
+## Master Release v136.0.0 (2026-08-05) - RESTORED WORKING 3D SINKHOLE CHECKPOINT (v133.0.0)
+- **Version Checkpoint File**: `v136.0.0_RESTORED_V133_SINKHOLE.html`
+- **100% Restoration of Working 3D Sinkhole Checkpoint (`v133.0.0`)**:
+  - Implemented the user's explicit directive: "Go back to when the 3D sinkhole was working earlier!"
+  - **Restoration Details**:
+    1. Reverted `index.html` 100% back to working checkpoint `v133.0.0`.
+    2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
+    3. Preserved working 3D Whirlpool Sinkhole where touched center and surrounding area sink together inward into 3D depth, seamless elastic pulling, and 2-3 damped sine bounce elasticity.
