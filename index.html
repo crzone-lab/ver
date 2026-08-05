@@ -3610,9 +3610,9 @@
                         if (dragFromStart < 14.0) {
                             // 1. 누름/홀드 상태 (dragFromStart < 14px): 터치 부위와 주변이 깊은 3D 속으로 쏙 빨려 들어감!
                             let sinkRadius = width * 0.46;
-                            let sinkProgress = Math.min(1.0, touchTime / 80.0);
+                            let sinkProgress = Math.min(1.0, touchTime / 115.0); // 타임 1.9초로 더 늘림
                             let smoothEase = 1.0 - Math.pow(1.0 - sinkProgress, 2.0);
-                            let sinkDepth = smoothEase * 42.0;
+                            let sinkDepth = smoothEase * 58.0; // 함몰 깊이를 더 깊게 (58px)
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
