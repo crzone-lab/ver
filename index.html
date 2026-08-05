@@ -3583,10 +3583,10 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 1) 누르기만 할 때 변형 0%, 2) 당길 때 터치 위치 1:1 정확 일치 100% 쫀득 Engine
+                        // [쫀득모찌 모드]: 말랑말랑하게 엄청 길게 쭉- 늘어나는 Ultra Soft Mochi Stretch Engine
                         let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
 
-                        if (dragFromStart >= 8.0) {
+                        if (dragFromStart >= 6.0) {
                             if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                                 let gNode = points[grabbedPointIndex];
                                 let dragDx = touchX - gNode.ox;
@@ -3597,19 +3597,19 @@
                                     let pdx = p.ox - gNode.ox;
                                     let pdy = p.oy - gNode.oy;
                                     let distSq = pdx * pdx + pdy * pdy;
-                                    let sigma = 135.0;
+                                    let sigma = 220.0; // 넓고 말랑말랑하게 부드럽게 꺾이는 반경
                                     let weight = Math.exp(-distSq / (2.0 * sigma * sigma));
 
-                                    // 1:1 정확한 터치 위치 추종 (터치한 곳과 당겨지는 젤리 위치 100% 완벽 일치!)
-                                    p.x = p.ox + dragDx * weight;
-                                    p.y = p.oy + dragDy * weight;
+                                    // 말랑말랑하게 2.2배 엄청 길고 부드럽게 쭉- 늘어남!
+                                    p.x = p.ox + dragDx * weight * 2.20;
+                                    p.y = p.oy + dragDy * weight * 2.20;
 
                                     p.lastDx = p.x - p.ox;
                                     p.lastDy = p.y - p.oy;
                                 }
                             }
                         } else {
-                            // 단순 누르기만 할 때는 형태 변형 0% (가만히 유지)
+                            // 단순 누르기만 할 때는 형태 변형 0%
                             for (let i = 0; i < points.length; i++) {
                                 points[i].x = points[i].ox;
                                 points[i].y = points[i].oy;
@@ -3719,7 +3719,8 @@
 
                 // 2. Solve internal springs every frame for realistic 3D jelly stretching and squishing
                 // 1. Physics Spring Solver (Only run when touching or after release animation completes)
-                if (isTouching || releaseTime > 90) {
+                let maxReleaseFrames = (currentMode === "mochi") ? 600 : 450;
+                if (isTouching || releaseTime > maxReleaseFrames) {
                     for (let step = 0; step < 4; step++) {
                         for (let i = 0; i < springs.length; i++) {
                             springs[i].solve();
@@ -3735,9 +3736,9 @@
                     let tSec = releaseTime * 0.016; // Time in seconds
 
                     if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드 릴리즈]: 튕김 0%! 0.6초 뜸들인 후 10초 이상 아주 엄청 느리고 묵직하게 츠스스- 복원 (~10초)
-                        if (releaseTime <= 620) {
-                            let viscousDecay = (tSec < 0.6) ? 1.0 : Math.exp(-0.25 * (tSec - 0.6)); // 10초 이상 초슬로우 복원
+                        // [쫀득모찌 모드 릴리즈]: 튕김 0%! 0.5초 뜸들인 후 10초 이상 아주 엄청 느리고 묵직하게 츠스스- 복원 (스냅 방지 게이트)
+                        if (releaseTime <= 600) {
+                            let viscousDecay = (tSec < 0.5) ? 1.0 : Math.exp(-0.22 * (tSec - 0.5)); // 10초 이상 초슬로우 점성 복원
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
