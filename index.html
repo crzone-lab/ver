@@ -3716,17 +3716,17 @@
                     }
                 }
 
-                // 끊김이나 억지 정지 없이 탄성 여운이 은은하게 감쇄하며 서서히 정지하는 자연스러운 릴리즈 엔진 (~4.8초)
+                // 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 릴리즈 엔진 (~7.5초)
                 if (!isTouching) {
                     let tSec = releaseTime * 0.016; // Time in seconds
 
-                    if (releaseTime <= 290) {
-                        // 지속적인 지수 감쇄 곡선: 끊김 없이 은은하게 잔여 여운이 0px로 감속되는 자연스러운 릴리즈
-                        let floatEnv = Math.exp(-0.85 * tSec); // 매끄러운 릴리즈 여운 감쇄
-                        let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 62.0; // 은은하고 부드러운 통통 점프
-                        let swayX = Math.sin(1.5 * tSec) * floatEnv * 44.0; // 자연스러운 은은한 좌우 흔들림 여운
-                        let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.22);
-                        let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.14);
+                    if (releaseTime <= 450) {
+                        // 아주 완만하고 부드러운 감쇄 (gamma = 0.45): 7.5초 동안 여유롭고 재미있게 지속되는 롱 바운스
+                        let floatEnv = Math.exp(-0.45 * tSec); // 아주 여유로운 롱 릴리즈 감쇄
+                        let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0; // 높게 붕- 튀어오르는 96px 고공 점프!
+                        let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0; // 재미있고 크고 넉넉한 좌우 54px 흔들림!
+                        let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
+                        let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
 
                         let centerX = 0, centerY = 0;
                         for (let i = 0; i < points.length; i++) {
@@ -3754,7 +3754,7 @@
                             p.oldy = p.y;
                         }
                     } else {
-                        // Bounces complete cleanly at zero amplitude without any sudden brake or artificial snap!
+                        // Bounces complete cleanly at zero amplitude after 7.5 seconds
                         for (let i = 0; i < points.length; i++) {
                             points[i].x = points[i].ox;
                             points[i].y = points[i].oy;
