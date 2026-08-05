@@ -3722,7 +3722,8 @@
 
                     if (releaseTime <= 450) {
                         // 아주 완만하고 부드러운 감쇄 (gamma = 0.45): 7.5초 동안 여유롭고 재미있게 지속되는 롱 바운스
-                        let floatEnv = Math.exp(-0.45 * tSec); // 아주 여유로운 롱 릴리즈 감쇄
+                        let decayRate = (currentMode === 'mochi') ? 0.10 : 0.45;
+                        let floatEnv = Math.exp(-decayRate * tSec); // 아주 여유로운 롱 릴리즈 감쇄
                         let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0; // 높게 붕- 튀어오르는 96px 고공 점프!
                         let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0; // 재미있고 크고 넉넉한 좌우 54px 흔들림!
                         let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
