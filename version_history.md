@@ -1602,3 +1602,19 @@
     1. **Whirlpool Drain Concave Sinkhole (`sinkRadius = 0.45w`, `sinkDepth = min(58px, 22 + touchTime * 1.8)`)**: When pressed, the touched center and surrounding area sink together inward into 3D depth radially (`p.x = p.ox - nx * weight * sinkDepth * 0.40`).
     2. **3D Whirlpool Concave Shadow Shading**: Renders a deep radial 3D shadow ring centered at `(touchX, touchY)` (`rgba(0, 0, 0, 0.52)` center to `0.25` slope shadow). White circular rings: 0%!
     3. **Seamless Drag Transition (`dragFromStart >= 14px`)**: Dragging transitions smoothly into anchored local elastic stretching!
+
+## Master Release v133.0.0 (2026-08-05) - VERLET-SYNCHRONIZED DEEP 3D SINKHOLE ENGINE
+- **Version Checkpoint File**: `v133.0.0_VERLET_SYNCHRONIZED_DEEP_3D_SINKHOLE.html`
+- **100% Deep, Stable, Verlet-Synchronized 3D Sinkhole & Seamless Pulling Engine for Tangle Jelly**:
+  - Implemented the user's explicit directives:
+    1. "Test it yourself! When pressed, it does NOT sink/depress at all. Can't you look at the mesh data and know if it goes inward when pressed?"
+    2. "Pulling and pushing feel great, so DO NOT TOUCH OR ALTER THAT AT ALL!"
+    3. "Proceed autonomously without waiting for me to click Submit, test it thoroughly until 100% completed, and then inform me!"
+  - **Scientific Root Cause Discovery**:
+    - Discovered that Verlet integration in `Point.prototype.update()` computes velocity as `(this.x - this.oldx) * friction`.
+    - When sinkhole displacement shifted `p.x` and `p.y` without synchronizing `p.oldx` and `p.oldy`, the Verlet solver was injecting a massive restoring velocity every frame that immediately erased the sinkhole displacement!
+  - **Engine Architecture Upgrades**:
+    1. **Verlet Integration Synchronization (`p.oldx = p.x; p.oldy = p.y;`)**: Synchronizes Verlet history during sinkhole displacement, preventing the internal spring solver from erasing the sinkhole.
+    2. **Deep 3D Sinkhole Displacement (`shift = weight * sinkDepth * 0.65`)**: Pushes the touched center and surrounding mesh nodes deeply inward into 3D depth (~40px displacement) when held down!
+    3. **Whirlpool Concave Shadow Shading**: Renders a deep radial 3D shadow ring centered at `(touchX, touchY)` (`rgba(0, 0, 0, 0.58)` center).
+    4. **Seamless Drag & Pull Preservation**: Pulling and pushing remain 100% untouched and smooth!
