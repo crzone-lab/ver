@@ -4554,7 +4554,31 @@
         function selectLobbyCharacter(index, element) {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             activeLobbyIndex = index;
-            syncCarouselSelection(index);
+
+            // Forcefully switch screen to playground IMMEDIATELY at the top of function!
+            document.querySelectorAll('.pop-overlay').forEach(el => el.style.display = 'none');
+            const splash = document.getElementById('start-splash-screen');
+            if (splash) {
+                splash.style.display = 'none';
+                splash.style.opacity = '0';
+                splash.style.pointerEvents = 'none';
+            }
+            const lobby = document.getElementById('lobby-screen');
+            if (lobby) {
+                lobby.style.display = 'none';
+                lobby.style.opacity = '0';
+                lobby.style.pointerEvents = 'none';
+            }
+            const canvasEl = document.getElementById('main-canvas');
+            if (canvasEl) {
+                canvasEl.style.display = 'block';
+                canvasEl.style.pointerEvents = 'auto';
+            }
+            if (typeof setScreenMode === 'function') {
+                setScreenMode('playground');
+            }
+
+            try { syncCarouselSelection(index); } catch(e) {}
             const char = lobbyCharacters[index];
             if (!char) return;
 
@@ -4562,17 +4586,10 @@
             activeBase = char.base;
             activeHue = char.hue || 350;
 
-            // Hide splash screen if open
-            const splash = document.getElementById('start-splash-screen');
-            if (splash) {
-                splash.classList.add('fade-out');
-                splash.style.display = 'none';
-            }
-
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
             jellyImage.onload = function() {
-                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
+                bakedJellyTexture = jellyImage;
                 if (typeof bakeSingleCompositeTexture === 'function') {
                     bakeSingleCompositeTexture(jellyImage);
                 }
@@ -4581,7 +4598,7 @@
             };
 
             jellyImage.src = imageSrc;
-            bakedJellyTexture = jellyImage; // Immediate fallback assignment
+            bakedJellyTexture = jellyImage;
 
             if (jellyImage.complete && jellyImage.naturalWidth > 0) {
                 initMesh();
@@ -4590,8 +4607,9 @@
 
             initMesh();
             generateDecoJellies(activeHue);
-            setScreenMode("playground");
-            showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
+            if (typeof showNotification === 'function') {
+                showNotification();
+            }
 
             // Highlight selected bubble
             document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
