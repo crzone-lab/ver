@@ -7,11 +7,11 @@ function solvePhysicsStep(isTouching, releaseTime, currentMode, points, springs)
         if (!points || points.length === 0) return;
 
         if (currentMode === 'mochi') {
-            // 🍡 1. Mochi Mode: Dedicated 12-Second Slow Viscous Return
+            // 🍡 1. Chewy Mochi Dedicated Physics (0px Jump, 0px Sway, 12-Second Viscous Slow Return)
             if (!isTouching) {
                 let tSec = releaseTime * 0.016;
                 if (releaseTime <= 750) {
-                    let viscousDecay = Math.exp(-0.18 * tSec);
+                    let viscousDecay = Math.exp(-0.15 * tSec); // 12-second slow viscous decay
                     for (let i = 0; i < points.length; i++) {
                         let p = points[i];
                         if (p) {
@@ -40,20 +40,8 @@ function solvePhysicsStep(isTouching, releaseTime, currentMode, points, springs)
                     }
                 }
             }
-        } else if (currentMode === 'slime') {
-            // 💧 2. Slime Mode: 100% Pure Liquid Spring Physics (Zero Shivering/Flickering!)
-            if (isTouching || releaseTime > 0) {
-                for (let step = 0; step < 4; step++) {
-                    for (let i = 0; i < springs.length; i++) {
-                        springs[i].solve();
-                    }
-                }
-                for (let i = 0; i < points.length; i++) {
-                    points[i].update();
-                }
-            }
         } else {
-            // 🐰 3. Tangle Jelly Mode: 100% Pure v157 96px High Jump & 3D Bowl Sinkhole
+            // 🐰 2. Tangle Jelly & Slime: 100% Pure Original v157 Master Physics (96px High Jump & Bowl Sinkhole)
             if (isTouching || releaseTime > 90) {
                 for (let step = 0; step < 4; step++) {
                     for (let i = 0; i < springs.length; i++) {
@@ -85,8 +73,8 @@ function solvePhysicsStep(isTouching, releaseTime, currentMode, points, springs)
 
                     for (let i = 0; i < points.length; i++) {
                         let p = points[i];
-                        let baseDx = (typeof p.lastDx === 'number' && !isNaN(p.lastDx) && p.lastDx !== 0) ? p.lastDx : (p.x - p.ox);
-                        let baseDy = (typeof p.lastDy === 'number' && !isNaN(p.lastDy) && p.lastDy !== 0) ? p.lastDy : (p.y - p.oy);
+                        let baseDx = (p.lastDx !== undefined && !isNaN(p.lastDx)) ? p.lastDx : (p.x - p.ox);
+                        let baseDy = (p.lastDy !== undefined && !isNaN(p.lastDy)) ? p.lastDy : (p.y - p.oy);
 
                         let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
                         let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
@@ -109,8 +97,6 @@ function solvePhysicsStep(isTouching, releaseTime, currentMode, points, springs)
                             points[i].oldy = points[i].oy;
                             points[i].vx = 0;
                             points[i].vy = 0;
-                            points[i].lastDx = 0;
-                            points[i].lastDy = 0;
                         }
                     }
                 }
