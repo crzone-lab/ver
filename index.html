@@ -3716,17 +3716,17 @@
                     }
                 }
 
-                // 2. 3단계 역동적 바운스 연출: 1) 위로 통통 점프(56px) + 좌우 흔들림(42px) ➔ 2) 짧게 부르르 떨림 ➔ 3) 완전 정지
+                // 달나라 무중력(Zero-G Moon Float) 슬로우 통통 튀기기 + 엣지 있는 달빛 흔들림 + 착지 부르르 연출 (2.2초)
                 if (!isTouching) {
                     let tSec = releaseTime * 0.016; // Time in seconds
 
-                    if (releaseTime <= 65) {
-                        // Stage 1: 공중으로 높게 위로 통통 튀기고(56px Air Jump) + 좌우로 좌우 흔들림(42px Sway)
-                        let jumpEnv = Math.exp(-1.1 * tSec);
-                        let jumpHeight = Math.abs(Math.sin(9.5 * tSec)) * jumpEnv * 56.0; // 위로 높게 통통 점프!
-                        let swayX = Math.sin(7.0 * tSec) * jumpEnv * 42.0; // 좌우로 크고 흔들림!
-                        let squishY = 1.0 + (Math.cos(13.0 * tSec) * jumpEnv * 0.32);
-                        let squishX = 1.0 - (Math.cos(13.0 * tSec) * jumpEnv * 0.22);
+                    if (releaseTime <= 110) {
+                        // Stage 1: 달나라 무중력 붕- 떠오르는 슬로우 점프(64px) + 우아한 달빛 엣지 흔들림(46px)
+                        let floatEnv = Math.exp(-0.72 * tSec); // 천천히 감속되는 무중력 감쇄
+                        let jumpHeight = Math.abs(Math.sin(5.2 * tSec)) * floatEnv * 64.0; // 천천히 통통 떠오르는 달나라 점프!
+                        let swayX = Math.sin(3.6 * tSec) * floatEnv * 46.0; // 엣지 있는 우아한 무중력 좌우 흔들림!
+                        let squishY = 1.0 + (Math.cos(7.2 * tSec) * floatEnv * 0.28);
+                        let squishX = 1.0 - (Math.cos(7.2 * tSec) * floatEnv * 0.18);
 
                         let centerX = 0, centerY = 0;
                         for (let i = 0; i < points.length; i++) {
@@ -3741,8 +3741,8 @@
                             let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
                             let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
 
-                            let localX = p.ox + baseDx * jumpEnv * Math.cos(13.0 * tSec);
-                            let localY = p.oy + baseDy * jumpEnv * Math.cos(13.0 * tSec);
+                            let localX = p.ox + baseDx * floatEnv * Math.cos(7.2 * tSec);
+                            let localY = p.oy + baseDy * floatEnv * Math.cos(7.2 * tSec);
 
                             let relX = localX - centerX;
                             let relY = localY - centerY;
@@ -3753,10 +3753,10 @@
                             p.oldx = p.x;
                             p.oldy = p.y;
                         }
-                    } else if (releaseTime <= 90) {
-                        // Stage 2: 짧게 부르르 떨면서(Micro-Shiver/Tremble) 정지 준비
-                        let shiverT = (releaseTime - 65) * 0.016;
-                        let shiverAmp = Math.exp(-5.0 * shiverT) * Math.sin(48.0 * shiverT) * 9.5; // 고주파 부르르 떨림
+                    } else if (releaseTime <= 135) {
+                        // Stage 2: 달표면 착지 후 엣지 있게 짧게 부르르 떨면서(Micro-Shiver) 완전 착지
+                        let shiverT = (releaseTime - 110) * 0.016;
+                        let shiverAmp = Math.exp(-4.5 * shiverT) * Math.sin(42.0 * shiverT) * 8.0;
 
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
