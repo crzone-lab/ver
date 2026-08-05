@@ -3583,7 +3583,7 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 당기기
+                        // [쫀득모찌 모드]: 홀드 중 자동으로 돌아감 0% 차단 + 2.5배 아주 잘늘어나는 Ultra Soft Mochi Engine
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -3594,11 +3594,15 @@
                                 let pdx = p.ox - gNode.ox;
                                 let pdy = p.oy - gNode.oy;
                                 let distSq = pdx * pdx + pdy * pdy;
-                                let weight = Math.exp(-distSq / (150.0 * 150.0));
+                                let sigma = 220.0;
+                                let weight = Math.exp(-distSq / (2.0 * sigma * sigma));
 
-                                p.x = p.ox + dragDx * weight * 0.92;
-                                p.y = p.oy + dragDy * weight * 0.92;
+                                // 2.5배 엄청 잘늘어나며, 손을 쥐고 있는 동안에는 절대 수축되지 않음!
+                                p.x = p.ox + dragDx * weight * 2.50;
+                                p.y = p.oy + dragDy * weight * 2.50;
 
+                                p.oldx = p.x; // Verlet 위치 동기화로 홀드 중 자동 수축 원천 차단!
+                                p.oldy = p.y;
                                 p.lastDx = p.x - p.ox;
                                 p.lastDy = p.y - p.oy;
                             }
@@ -3704,8 +3708,8 @@
                 }
 
                 // 2. Solve internal springs every frame for realistic 3D jelly stretching and squishing
-                // 1. Physics Spring Solver (Only run when touching or after release animation completes)
-                if (isTouching || releaseTime > 90) {
+                // 1. Physics Spring Solver (Run for Jelly mode, skip spring solver for Mochi mode while holding touch so it NEVER auto-returns!)
+                if (currentMode !== 'mochi' && (isTouching || releaseTime > 90)) {
                     for (let step = 0; step < 4; step++) {
                         for (let i = 0; i < springs.length; i++) {
                             springs[i].solve();
