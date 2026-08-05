@@ -3738,8 +3738,8 @@
                     let tSec = releaseTime * 0.016; // Time in seconds
 
                     if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드 릴리즈]: 스냅 백 100% 방지! 0.5초 뜸들인 후 10초 이상 초슬로우 츠스스- 점성 복원
-                        let viscousDecay = (tSec < 0.5) ? 1.0 : Math.exp(-0.22 * (tSec - 0.5));
+                        // [쫀득모찌 모드 릴리즈]: 스냅 백 100% 완벽 방지 + 15초 동안 아주 엄청 느리고 묵직하게 츠스스- 초슬로우 점성 복원
+                        let viscousDecay = Math.exp(-0.18 * tSec); // 아주 엄청 느린 지수 감쇄 (15초 이상 츠스스- 복원)
 
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
@@ -4010,14 +4010,20 @@
         }
 
                 const releaseGrab = (quiet = false) => {
-            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                // Give spring release velocity impulse to initiate 2-3 bounces!
+            if (currentMode === 'mochi') {
+                // Save exact displacement offsets for all points so mochi restores ultra-slowly without snap back
+                for (let i = 0; i < points.length; i++) {
+                    points[i].lastDx = points[i].x - points[i].ox;
+                    points[i].lastDy = points[i].y - points[i].oy;
+                }
+            } else if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                 let impulse = 0.45;
                 points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
                 points[grabbedPointIndex].vy = (touchY - lastTouchY) * impulse;
             }
             grabbedPointIndex = null;
             isTouching = false;
+            releaseTime = 0;
             if (!quiet) {
                 playReleaseSound();
             }
