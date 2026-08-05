@@ -3604,13 +3604,17 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 누르면 터치 부위와 주변이 속으로 쏙 들어가는 깊은 3D 함몰 (Deep Sinkhole) + 당기기
+                        // [탱글젤리 모드]: 누르면 터치한 지점과 주변이 천천히 속으로 쏙 함몰되고 한계 깊이에서 스톱!
                         let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
 
                         if (dragFromStart < 14.0) {
-                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 터치 부위와 주변이 깊은 3D 속으로 쏙 빨려 들어감!
-                            let sinkRadius = width * 0.46;
-                            let sinkDepth = Math.min(65.0, 28.0 + touchTime * 2.2);
+                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 1.2초 동안 천천히 3D 속으로 들어간 후 스톱!
+                            let sinkProgress = Math.min(1.0, touchTime / 75.0);
+                            let smoothEase = 1.0 - Math.pow(1.0 - sinkProgress, 2.0); // 부드러운 감속 이징
+                            let maxDepth = 45.0; // 스톱 한계 깊이
+                            let sinkDepth = smoothEase * maxDepth;
+
+                            let sinkRadius = width * 0.45;
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
@@ -3618,15 +3622,16 @@
                                 let dy = p.oy - touchY;
                                 let dist = Math.hypot(dx, dy);
 
-                                if (dist < sinkRadius && dist > 0.1) {
+                                if (dist < sinkRadius) {
                                     let weight = Math.pow(1.0 - dist / sinkRadius, 1.4);
-                                    let nx = dx / dist;
-                                    let ny = dy / dist;
+                                    let nx = (dist > 0.1) ? (dx / dist) : 0; // Division by zero 방지 (사라짐 0%)
+                                    let ny = (dist > 0.1) ? (dy / dist) : 0;
 
-                                    let shift = weight * sinkDepth * 0.65;
+                                    let shift = weight * sinkDepth * 0.55;
                                     p.x = p.ox - nx * shift;
                                     p.y = p.oy - ny * shift;
 
+                                    // Verlet Integration Synchronization (스프링 적분기와 위치 동기화)
                                     p.oldx = p.x;
                                     p.oldy = p.y;
                                     p.lastDx = p.x - p.ox;
@@ -3636,13 +3641,13 @@
 
                             // Render 3D Whirlpool Drain Concave Shadow
                             ctx.save();
-                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.62);
-                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.58)');
-                            sGrad.addColorStop(0.48, 'rgba(0, 0, 0, 0.28)');
+                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.60);
+                            sGrad.addColorStop(0, `rgba(0, 0, 0, ${0.52 * smoothEase})`);
+                            sGrad.addColorStop(0.45, `rgba(0, 0, 0, ${0.22 * smoothEase})`);
                             sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                             ctx.fillStyle = sGrad;
                             ctx.beginPath();
-                            ctx.arc(touchX, touchY, sinkRadius * 0.62, 0, Math.PI * 2);
+                            ctx.arc(touchX, touchY, sinkRadius * 0.60, 0, Math.PI * 2);
                             ctx.fill();
                             ctx.restore();
 

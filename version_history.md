@@ -1669,3 +1669,12 @@
     1. Reverted `index.html` 100% back to actual 3D sinkhole release `v132.0.0`.
     2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
     3. Preserved actual 3D Whirlpool Sinkhole where touched center and surrounding area sink together radially inward into 3D depth (`sinkRadius = 0.45w`, `sinkDepth = min(58px, 22 + touchTime * 1.8)`), seamless elastic pulling, and 2-3 damped sine bounce elasticity.
+
+## Master Release v139.0.0 (2026-08-05) - RESTORED V133.0.0 VERLET-SYNCHRONIZED DEEP 3D SINKHOLE
+- **Version Checkpoint File**: `v139.0.0_RESTORED_V133_VERLET_SINKHOLE.html`
+- **100% Restoration of Verlet-Synchronized Deep 3D Sinkhole Release (`v133.0.0`)**:
+  - Implemented the user's explicit directive: "No, the one after that! Go to the next one!"
+  - **Restoration Details**:
+    1. Reverted `index.html` 100% back to `v133.0.0` (where Verlet integration `p.oldx = p.x; p.oldy = p.y;` was added to lock the 3D sinkhole displacement).
+    2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
+    3. Preserved deep 3D Whirlpool Sinkhole where touched center and surrounding area sink together inward into 3D depth (~40px displacement), seamless elastic pulling, and 2-3 damped sine bounce elasticity.

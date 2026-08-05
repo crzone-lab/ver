@@ -27,6 +27,8 @@
                 isTouching = true;
                 touchX = tx;
                 touchY = ty;
+                touchStartX = tx;
+                touchStartY = ty;
             }
         }
 
