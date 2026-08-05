@@ -416,8 +416,6 @@
         let lastTouchX = 0;
         let lastTouchY = 0;
         let touchTime = 0;
-        let touchStartX = 0;
-        let touchStartY = 0;
                 let releaseTime = 0;
         let touchHapticFrame = 0;
 
@@ -2229,13 +2227,13 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 누르면 터치 부위와 주변이 하수구처럼 속으로 쏙 함몰되는 3D Sinkhole
+                        // [탱글젤리 모드]: 누르면 터치 부위와 주변이 속으로 쏙 들어가는 깊은 3D 함몰 (Deep Sinkhole) + 당기기
                         let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
 
                         if (dragFromStart < 14.0) {
-                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 터치 부위와 주변이 하수구로 물이 빨려 들어가듯 깊게 3D 함몰
-                            let sinkRadius = width * 0.45;
-                            let sinkDepth = Math.min(58.0, 22.0 + touchTime * 1.8);
+                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 터치 부위와 주변이 깊은 3D 속으로 쏙 빨려 들어감!
+                            let sinkRadius = width * 0.46;
+                            let sinkDepth = Math.min(65.0, 28.0 + touchTime * 2.2);
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
@@ -2244,32 +2242,35 @@
                                 let dist = Math.hypot(dx, dy);
 
                                 if (dist < sinkRadius && dist > 0.1) {
-                                    let weight = Math.pow(1.0 - dist / sinkRadius, 1.6);
+                                    let weight = Math.pow(1.0 - dist / sinkRadius, 1.4);
                                     let nx = dx / dist;
                                     let ny = dy / dist;
 
-                                    p.x = p.ox - nx * weight * sinkDepth * 0.40;
-                                    p.y = p.oy - ny * weight * sinkDepth * 0.40;
+                                    let shift = weight * sinkDepth * 0.65;
+                                    p.x = p.ox - nx * shift;
+                                    p.y = p.oy - ny * shift;
 
+                                    p.oldx = p.x;
+                                    p.oldy = p.y;
                                     p.lastDx = p.x - p.ox;
                                     p.lastDy = p.y - p.oy;
                                 }
                             }
 
-                            // Render 3D Whirlpool Drain Concave Shadow (속으로 빨려 들어가는 깊은 3D 음영 - 흰색 원형 0%)
+                            // Render 3D Whirlpool Drain Concave Shadow
                             ctx.save();
-                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.60);
-                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.52)');
-                            sGrad.addColorStop(0.45, 'rgba(0, 0, 0, 0.25)');
+                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.62);
+                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.58)');
+                            sGrad.addColorStop(0.48, 'rgba(0, 0, 0, 0.28)');
                             sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
                             ctx.fillStyle = sGrad;
                             ctx.beginPath();
-                            ctx.arc(touchX, touchY, sinkRadius * 0.60, 0, Math.PI * 2);
+                            ctx.arc(touchX, touchY, sinkRadius * 0.62, 0, Math.PI * 2);
                             ctx.fill();
                             ctx.restore();
 
                         } else {
-                            // 2. 당기기 모드 (dragFromStart >= 14px): 원본 엘라스틱 당기기
+                            // 2. 당기기 모드 (dragFromStart >= 14px): 원본 엘라스틱 당기기 (100% 보존)
                             if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                                 let gNode = points[grabbedPointIndex];
                                 let dragDx = touchX - gNode.ox;

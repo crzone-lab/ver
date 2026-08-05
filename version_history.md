@@ -1660,3 +1660,12 @@
     1. Reverted `index.html` 100% back to today's successful release `v131.0.0`.
     2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
     3. Preserved bulletproof 3D convex dimple depression, smooth elasticity, single-mass envelope, and liquid slime engine.
+
+## Master Release v138.0.0 (2026-08-05) - RESTORED V132.0.0 ACTUAL 3D SINKHOLE RELEASE
+- **Version Checkpoint File**: `v138.0.0_RESTORED_V132_ACTUAL_3D_SINKHOLE.html`
+- **100% Restoration of Actual 3D Sinkhole Release (`v132.0.0`)**:
+  - Implemented the user's explicit directive: "v131 was the first one with a background radial ring. The one modified right after v131 is the actual 3D sinkhole! Go back to that one!"
+  - **Restoration Details**:
+    1. Reverted `index.html` 100% back to actual 3D sinkhole release `v132.0.0`.
+    2. Validated JS syntax across all 3 `<script>` blocks with 0 errors (`node --check`).
+    3. Preserved actual 3D Whirlpool Sinkhole where touched center and surrounding area sink together radially inward into 3D depth (`sinkRadius = 0.45w`, `sinkDepth = min(58px, 22 + touchTime * 1.8)`), seamless elastic pulling, and 2-3 damped sine bounce elasticity.
