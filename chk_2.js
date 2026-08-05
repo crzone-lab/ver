@@ -2258,16 +2258,7 @@
                             }
 
                             // Render 3D Whirlpool Drain Concave Shadow
-                            ctx.save();
-                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.62);
-                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.58)');
-                            sGrad.addColorStop(0.48, 'rgba(0, 0, 0, 0.28)');
-                            sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
-                            ctx.fillStyle = sGrad;
-                            ctx.beginPath();
-                            ctx.arc(touchX, touchY, sinkRadius * 0.62, 0, Math.PI * 2);
-                            ctx.fill();
-                            ctx.restore();
+                            // Background shadow removed per user request
 
                         } else {
                             // 2. 당기기 모드 (dragFromStart >= 14px): 원본 엘라스틱 당기기 (100% 보존)
