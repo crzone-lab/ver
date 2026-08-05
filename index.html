@@ -3704,97 +3704,64 @@
                 }
 
                 // 2. Solve internal springs every frame for realistic 3D jelly stretching and squishing
-                // 1. Physics Spring Solver (Jelly/Slime run original v157 physics, Mochi runs isolated slow viscous return)
-                if (currentMode === 'mochi') {
-                    if (!isTouching) {
-                        let tSec = releaseTime * 0.016;
-                        if (releaseTime <= 750) {
-                            let viscousDecay = Math.exp(-0.18 * tSec);
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                if (p) {
-                                    let baseDx = (p.lastDx !== undefined && !isNaN(p.lastDx)) ? p.lastDx : 0;
-                                    let baseDy = (p.lastDy !== undefined && !isNaN(p.lastDy)) ? p.lastDy : 0;
-                                    p.x = p.ox + baseDx * viscousDecay;
-                                    p.y = p.oy + baseDy * viscousDecay;
-                                    p.oldx = p.x;
-                                    p.oldy = p.y;
-                                }
-                            }
-                        } else {
-                            for (let i = 0; i < points.length; i++) {
-                                if (points[i]) {
-                                    points[i].x = points[i].ox;
-                                    points[i].y = points[i].oy;
-                                    points[i].oldx = points[i].ox;
-                                    points[i].oldy = points[i].oy;
-                                    points[i].vx = 0;
-                                    points[i].vy = 0;
-                                    points[i].lastDx = 0;
-                                    points[i].lastDy = 0;
-                                }
-                            }
+                // 1. Physics Spring Solver (Only run when touching or after release animation completes)
+                if (isTouching || releaseTime > 90) {
+                    for (let step = 0; step < 4; step++) {
+                        for (let i = 0; i < springs.length; i++) {
+                            springs[i].solve();
                         }
                     }
-                } else {
-                    // Original 100% v157 physics for Jelly and Slime!
-                    if (isTouching || releaseTime > 90) {
-                        for (let step = 0; step < 4; step++) {
-                            for (let i = 0; i < springs.length; i++) {
-                                springs[i].solve();
-                            }
-                        }
+                    for (let i = 0; i < points.length; i++) {
+                        points[i].update();
+                    }
+                }
+
+                // 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 릴리즈 엔진 (~7.5초)
+                if (!isTouching) {
+                    let tSec = releaseTime * 0.016; // Time in seconds
+
+                    if (releaseTime <= 450) {
+                        // 아주 완만하고 부드러운 감쇄 (gamma = 0.45): 7.5초 동안 여유롭고 재미있게 지속되는 롱 바운스
+                        let floatEnv = Math.exp(-0.45 * tSec); // 아주 여유로운 롱 릴리즈 감쇄
+                        let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0; // 높게 붕- 튀어오르는 96px 고공 점프!
+                        let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0; // 재미있고 크고 넉넉한 좌우 54px 흔들림!
+                        let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
+                        let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
+
+                        let centerX = 0, centerY = 0;
                         for (let i = 0; i < points.length; i++) {
-                            points[i].update();
+                            centerX += points[i].ox;
+                            centerY += points[i].oy;
                         }
-                    }
+                        centerX /= points.length;
+                        centerY /= points.length;
 
-                    if (!isTouching) {
-                        let tSec = releaseTime * 0.016;
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
+                            let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
 
-                        if (releaseTime <= 450) {
-                            let floatEnv = Math.exp(-0.45 * tSec);
-                            let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0;
-                            let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0;
-                            let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
-                            let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
+                            let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
+                            let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
 
-                            let centerX = 0, centerY = 0;
-                            for (let i = 0; i < points.length; i++) {
-                                centerX += points[i].ox;
-                                centerY += points[i].oy;
-                            }
-                            centerX /= points.length;
-                            centerY /= points.length;
+                            let relX = localX - centerX;
+                            let relY = localY - centerY;
 
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let baseDx = (p.lastDx !== undefined && currentMode !== 'jelly' && currentMode !== 'slime') ? p.lastDx : (p.x - p.ox);
-                                let baseDy = (p.lastDy !== undefined && currentMode !== 'jelly' && currentMode !== 'slime') ? p.lastDy : (p.y - p.oy);
+                            p.x = centerX + (relX * squishX) + swayX;
+                            p.y = centerY + (relY * squishY) - jumpHeight;
 
-                                let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
-                                let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
-
-                                let relX = localX - centerX;
-                                let relY = localY - centerY;
-
-                                p.x = centerX + (relX * squishX) + swayX;
-                                p.y = centerY + (relY * squishY) - jumpHeight;
-
-                                p.oldx = p.x;
-                                p.oldy = p.y;
-                            }
-                        } else {
-                            for (let i = 0; i < points.length; i++) {
-                                points[i].x = points[i].ox;
-                                points[i].y = points[i].oy;
-                                points[i].oldx = points[i].ox;
-                                points[i].oldy = points[i].oy;
-                                points[i].vx = 0;
-                                points[i].vy = 0;
-                                points[i].lastDx = 0;
-                                points[i].lastDy = 0;
-                            }
+                            p.oldx = p.x;
+                            p.oldy = p.y;
+                        }
+                    } else {
+                        // Bounces complete cleanly at zero amplitude after 7.5 seconds
+                        for (let i = 0; i < points.length; i++) {
+                            points[i].x = points[i].ox;
+                            points[i].y = points[i].oy;
+                            points[i].oldx = points[i].ox;
+                            points[i].oldy = points[i].oy;
+                            points[i].vx = 0;
+                            points[i].vy = 0;
                         }
                     }
                 }
@@ -4009,24 +3976,15 @@
             }
         }
 
-        const releaseGrab = (quiet = false) => {
-            if (grabbedPointIndex !== null && typeof points !== 'undefined' && points && points[grabbedPointIndex]) {
-                if (currentMode === 'mochi') {
-                    for (let i = 0; i < points.length; i++) {
-                        if (points[i]) {
-                            points[i].lastDx = (points[i].x !== undefined && points[i].ox !== undefined) ? (points[i].x - points[i].ox) : 0;
-                            points[i].lastDy = (points[i].y !== undefined && points[i].oy !== undefined) ? (points[i].y - points[i].oy) : 0;
-                        }
-                    }
-                } else {
-                    let impulse = 0.45;
-                    points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
-                    points[grabbedPointIndex].vy = (touchY - lastTouchY) * impulse;
-                }
+                const releaseGrab = (quiet = false) => {
+            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                // Give spring release velocity impulse to initiate 2-3 bounces!
+                let impulse = 0.45;
+                points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
+                points[grabbedPointIndex].vy = (touchY - lastTouchY) * impulse;
             }
             grabbedPointIndex = null;
             isTouching = false;
-            releaseTime = 0;
             if (!quiet) {
                 playReleaseSound();
             }
