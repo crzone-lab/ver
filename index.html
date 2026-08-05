@@ -3583,7 +3583,7 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 엄청 길게 늘어나고 점성이 강한 쫀득한 찹쌀떡 당기기 Engine
+                        // [쫀득모찌 모드]: 캐릭터 고정 + 아주 엄청 길게 잘 늘어나는 3.2x Ultra Stretch Engine
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -3594,12 +3594,12 @@
                                 let pdx = p.ox - gNode.ox;
                                 let pdy = p.oy - gNode.oy;
                                 let distSq = pdx * pdx + pdy * pdy;
-                                let sigma = 180.0;
+                                let sigma = 110.0; // 캐릭터 전체 이동을 방지하는 집중 가우시안 반경
                                 let weight = Math.exp(-distSq / (2.0 * sigma * sigma));
 
-                                // 엄청 길고 쫀~득하게 늘어남 (1.85x Stretch Multiplier)
-                                p.x = p.ox + dragDx * weight * 1.85;
-                                p.y = p.oy + dragDy * weight * 1.85;
+                                // 아주 엄청 길고 쫀~득하게 늘어남 (3.2x Ultra Long Stretch)
+                                p.x = p.ox + dragDx * weight * 3.20;
+                                p.y = p.oy + dragDy * weight * 3.20;
 
                                 p.lastDx = p.x - p.ox;
                                 p.lastDy = p.y - p.oy;
@@ -3723,9 +3723,9 @@
                     let tSec = releaseTime * 0.016; // Time in seconds
 
                     if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드 릴리즈]: 튕김 0%! 늘어난 형태를 0.4초 유지 후 엄청 느리고 묵직하게 원위치로 츠스스- 복원
-                        if (releaseTime <= 300) {
-                            let viscousDecay = (tSec < 0.4) ? 1.0 : Math.exp(-0.65 * (tSec - 0.4)); // 0.4초 뜸들인 후 5초간 초슬로우 복원
+                        // [쫀득모찌 모드 릴리즈]: 튕김 0%! 0.5초 뜸들인 후 8.5초 이상 아주 엄청 느리고 묵직하게 츠스스- 복원 (~8.5초)
+                        if (releaseTime <= 520) {
+                            let viscousDecay = (tSec < 0.5) ? 1.0 : Math.exp(-0.35 * (tSec - 0.5)); // 8.5초간 초슬로우 복원
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
