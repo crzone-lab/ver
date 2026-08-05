@@ -1701,3 +1701,13 @@
     1. **Tangle Jelly Working 3D Sinkhole Engine (`v133`)**: Preserved working 3D Whirlpool Sinkhole where touched center and surrounding area sink together inward into 3D depth, seamless elastic pulling, and 2-3 damped sine bounce elasticity.
     2. **Clean Background Aesthetics**: Removed background press shadow per user request.
     3. **Refactored Codebase**: Cleaned up all 26 temporary scratch files, validated JS syntax across all `<script>` tags with 0 errors (`node --check`), and committed clean master baseline to Git locally.
+
+## Master Release v157.0.0 (2026-08-05) - PERFECT HIGH JUMP (96px) & 7.5s LONG LINGERING BOUNCE MASTER
+- **Version Checkpoint File**: `v157.0.0_PERFECT_HIGH_JUMP_7_5S_LONG_BOUNCE_MASTER.html`
+- **100% High Air Jump (96px) & 7.5-Second Long Lingering Bounce Master Baseline**:
+  - Implemented the user's explicit directive: "Good! Save version!"
+  - **Engine Architecture Highlights**:
+    1. **High-Flying Zero-G Air Jump (`jumpHeight = 96.0px`)**: Character floats up 96px into the air with 55% higher elevation and stylish sway (`swayX = 54.0px`).
+    2. **Continuous 7.5-Second Lingering Tail (`floatEnv = exp(-0.45 * tSec)`)**: Elasticity fades out continuously and silkily over ~7.5 seconds without any artificial brakes or sudden snaps.
+    3. **Tangle Jelly Working 3D Bowl Sinkhole Engine (`v148`)**: Preserved smooth Cosine Bell Curve 3D round bowl sinkhole, seamless elastic pulling, and single-mass envelope.
+    4. **Refactored Codebase**: Validated JS syntax across all `<script>` tags with 0 errors (`node --check`), and committed clean master baseline to Git locally.
