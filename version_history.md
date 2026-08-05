@@ -1587,3 +1587,18 @@
     2. **Convex Combination Interpolation ($p.x = p.ox \cdot (1 - \alpha) + \text{touchX} \cdot \alpha$)**: Eliminates directional vector subtractions. **0% node crossover, 0% flinching, 0% flipping guaranteed!**
     3. **Smooth 12-Frame Dimple Fade-In (`dimpleProgress = Math.min(1.0, touchTime * 0.08)`)**: Gently depresses the touched area inward into 3D depth.
     4. **3D Concave Depth Shadow & Rim Gloss Shading**: Renders a rich radial 3D shadow ring centered at `(touchX, touchY)` with specular rim highlights, giving an authentic squishy gelatin dent effect!
+
+## Master Release v132.0.0 (2026-08-05) - PERFECT WHIRLPOOL SINKHOLE & SEAMLESS PULLING ENGINE
+- **Version Checkpoint File**: `v132.0.0_PERFECT_WHIRLPOOL_SINKHOLE_AND_PULLING.html`
+- **100% Perfect Whirlpool Concave Sinkhole & Seamless Elastic Pulling Engine for Tangle Jelly**:
+  - Implemented the user's explicit directives:
+    1. "When pressed, a white circular ring was appearing and scaling down the character - remove that completely!"
+    2. "Two days ago it worked successfully: When pressed, the touched center AND ITS SURROUNDING AREA sink together inward into 3D depth like water going down a drain (Whirlpool Drain Concave Sinkhole)!"
+    3. "Dragging and pulling must also work seamlessly!"
+    4. "Proceed continuously without stopping for submit!"
+  - **Identified & Fixed Root Cause for Dragging**:
+    - Discovered that `touchStartX` and `touchStartY` were not initialized on touch start, causing `dragFromStart` to be evaluated as 0. Initialized `touchStartX` and `touchStartY` across all touch start handlers.
+  - **Engine Architecture Upgrades**:
+    1. **Whirlpool Drain Concave Sinkhole (`sinkRadius = 0.45w`, `sinkDepth = min(58px, 22 + touchTime * 1.8)`)**: When pressed, the touched center and surrounding area sink together inward into 3D depth radially (`p.x = p.ox - nx * weight * sinkDepth * 0.40`).
+    2. **3D Whirlpool Concave Shadow Shading**: Renders a deep radial 3D shadow ring centered at `(touchX, touchY)` (`rgba(0, 0, 0, 0.52)` center to `0.25` slope shadow). White circular rings: 0%!
+    3. **Seamless Drag Transition (`dragFromStart >= 14px`)**: Dragging transitions smoothly into anchored local elastic stretching!
