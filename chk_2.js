@@ -2227,26 +2227,70 @@
                             }
                         }
                     } else {
-                        // [탱글젤리 모드]: 터치 부위가 길고 쫀쫀하게 당겨짐
-                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                            let gNode = points[grabbedPointIndex];
-                            let dragDx = touchX - gNode.ox;
-                            let dragDy = touchY - gNode.oy;
+                        // [탱글젤리 모드]: 누르면 터치 부위와 주변이 속으로 쏙 들어가는 깊은 3D 함몰 (Deep Sinkhole) + 당기기
+                        let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
+
+                        if (dragFromStart < 14.0) {
+                            // 1. 누름/홀드 상태 (dragFromStart < 14px): 터치 부위와 주변이 깊은 3D 속으로 쏙 빨려 들어감!
+                            let sinkRadius = width * 0.46;
+                            let sinkDepth = Math.min(65.0, 28.0 + touchTime * 2.2);
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
-                                let pdx = p.ox - gNode.ox;
-                                let pdy = p.oy - gNode.oy;
-                                let dist = Math.hypot(pdx, pdy);
+                                let dx = p.ox - touchX;
+                                let dy = p.oy - touchY;
+                                let dist = Math.hypot(dx, dy);
 
-                                let sigma = 100.0;
-                                let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
+                                if (dist < sinkRadius && dist > 0.1) {
+                                    let weight = Math.pow(1.0 - dist / sinkRadius, 1.4);
+                                    let nx = dx / dist;
+                                    let ny = dy / dist;
 
-                                p.x = p.ox + dragDx * weight * 1.35;
-                                p.y = p.oy + dragDy * weight * 1.35;
+                                    let shift = weight * sinkDepth * 0.65;
+                                    p.x = p.ox - nx * shift;
+                                    p.y = p.oy - ny * shift;
 
-                                p.lastDx = p.x - p.ox;
-                                p.lastDy = p.y - p.oy;
+                                    p.oldx = p.x;
+                                    p.oldy = p.y;
+                                    p.lastDx = p.x - p.ox;
+                                    p.lastDy = p.y - p.oy;
+                                }
+                            }
+
+                            // Render 3D Whirlpool Drain Concave Shadow
+                            ctx.save();
+                            let sGrad = ctx.createRadialGradient(touchX, touchY, 3, touchX, touchY, sinkRadius * 0.62);
+                            sGrad.addColorStop(0, 'rgba(0, 0, 0, 0.58)');
+                            sGrad.addColorStop(0.48, 'rgba(0, 0, 0, 0.28)');
+                            sGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                            ctx.fillStyle = sGrad;
+                            ctx.beginPath();
+                            ctx.arc(touchX, touchY, sinkRadius * 0.62, 0, Math.PI * 2);
+                            ctx.fill();
+                            ctx.restore();
+
+                        } else {
+                            // 2. 당기기 모드 (dragFromStart >= 14px): 원본 엘라스틱 당기기 (100% 보존)
+                            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                                let gNode = points[grabbedPointIndex];
+                                let dragDx = touchX - gNode.ox;
+                                let dragDy = touchY - gNode.oy;
+
+                                for (let i = 0; i < points.length; i++) {
+                                    let p = points[i];
+                                    let pdx = p.ox - gNode.ox;
+                                    let pdy = p.oy - gNode.oy;
+                                    let dist = Math.hypot(pdx, pdy);
+
+                                    let sigma = 100.0;
+                                    let weight = Math.exp(-(dist * dist) / (2.0 * sigma * sigma));
+
+                                    p.x = p.ox + dragDx * weight * 1.35;
+                                    p.y = p.oy + dragDy * weight * 1.35;
+
+                                    p.lastDx = p.x - p.ox;
+                                    p.lastDy = p.y - p.oy;
+                                }
                             }
                         }
                     }
@@ -2396,6 +2440,8 @@
             touchY = my;
             lastTouchX = mx;
             lastTouchY = my;
+            touchStartX = mx;
+            touchStartY = my;
             touchTime = 0;
         });
 
@@ -2578,6 +2624,8 @@
             touchY = pos.y;
             lastTouchX = pos.x;
             lastTouchY = pos.y;
+            touchStartX = pos.x;
+            touchStartY = pos.y;
             touchTime = 0;
         }, { passive: false });
 
