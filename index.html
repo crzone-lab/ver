@@ -4009,17 +4009,19 @@
         }
 
         const releaseGrab = (quiet = false) => {
-            if (currentMode === 'mochi' && typeof points !== 'undefined' && points && points.length > 0) {
-                for (let i = 0; i < points.length; i++) {
-                    if (points[i] && points[i].x !== undefined && points[i].ox !== undefined) {
-                        points[i].lastDx = points[i].x - points[i].ox;
-                        points[i].lastDy = points[i].y - points[i].oy;
+            if (grabbedPointIndex !== null && typeof points !== 'undefined' && points && points[grabbedPointIndex]) {
+                if (currentMode === 'mochi') {
+                    for (let i = 0; i < points.length; i++) {
+                        if (points[i] && points[i].x !== undefined && points[i].ox !== undefined) {
+                            points[i].lastDx = points[i].x - points[i].ox;
+                            points[i].lastDy = points[i].y - points[i].oy;
+                        }
                     }
+                } else {
+                    let impulse = 0.45;
+                    points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
+                    points[grabbedPointIndex].vy = (touchY - lastTouchY) * impulse;
                 }
-            } else if (grabbedPointIndex !== null && typeof points !== 'undefined' && points && points[grabbedPointIndex]) {
-                let impulse = 0.45;
-                points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
-                points[grabbedPointIndex].vy = (touchY - lastTouchY) * impulse;
             }
             grabbedPointIndex = null;
             isTouching = false;
