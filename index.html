@@ -3583,40 +3583,24 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 제일 먼 곳 100% 고정 + 고무줄처럼 말랑말랑 쫀~득하게 늘어나는 Rubber-Band Mochi Engine
-                        let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
+                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 당기기
+                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                            let gNode = points[grabbedPointIndex];
+                            let dragDx = touchX - gNode.ox;
+                            let dragDy = touchY - gNode.oy;
 
-                        if (dragFromStart >= 6.0) {
-                            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                                let gNode = points[grabbedPointIndex];
-                                let dragDx = touchX - gNode.ox;
-                                let dragDy = touchY - gNode.oy;
-
-                                let maxStretchRadius = width * 0.65;
-
-                                for (let i = 0; i < points.length; i++) {
-                                    let p = points[i];
-                                    let pdx = p.ox - gNode.ox;
-                                    let pdy = p.oy - gNode.oy;
-                                    let distFromTouch = Math.hypot(pdx, pdy);
-
-                                    // 먼 곳은 100% 0으로 수렴하여 제일 먼 곳은 고정되고 나머지만 고무줄처럼 늘어남!
-                                    let weight = Math.pow(1.0 - Math.min(1.0, distFromTouch / maxStretchRadius), 2.2);
-
-                                    p.x = p.ox + dragDx * weight * 1.75;
-                                    p.y = p.oy + dragDy * weight * 1.75;
-
-                                    p.lastDx = p.x - p.ox;
-                                    p.lastDy = p.y - p.oy;
-                                }
-                            }
-                        } else {
-                            // 누르기만 할 때 변형 0%
                             for (let i = 0; i < points.length; i++) {
-                                points[i].x = points[i].ox;
-                                points[i].y = points[i].oy;
-                                points[i].lastDx = 0;
-                                points[i].lastDy = 0;
+                                let p = points[i];
+                                let pdx = p.ox - gNode.ox;
+                                let pdy = p.oy - gNode.oy;
+                                let distSq = pdx * pdx + pdy * pdy;
+                                let weight = Math.exp(-distSq / (150.0 * 150.0));
+
+                                p.x = p.ox + dragDx * weight * 0.92;
+                                p.y = p.oy + dragDy * weight * 0.92;
+
+                                p.lastDx = p.x - p.ox;
+                                p.lastDy = p.y - p.oy;
                             }
                         }
                     } else {
@@ -3721,8 +3705,7 @@
 
                 // 2. Solve internal springs every frame for realistic 3D jelly stretching and squishing
                 // 1. Physics Spring Solver (Only run when touching or after release animation completes)
-                let maxReleaseFrames = (currentMode === "mochi") ? 600 : 450;
-                if (isTouching || releaseTime > maxReleaseFrames) {
+                if (isTouching || releaseTime > 90) {
                     for (let step = 0; step < 4; step++) {
                         for (let i = 0; i < springs.length; i++) {
                             springs[i].solve();
@@ -3733,68 +3716,52 @@
                     }
                 }
 
-                // 릴리즈 동작: 탱글젤리(고탄성 점프) vs 쫀득모찌(초슬로우 점성 복원) 차별화 엔진
+                // 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 릴리즈 엔진 (~7.5초)
                 if (!isTouching) {
                     let tSec = releaseTime * 0.016; // Time in seconds
 
-                    if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드 릴리즈]: 스냅 백 100% 완벽 방지 + 15초 동안 아주 엄청 느리고 묵직하게 츠스스- 초슬로우 점성 복원
-                        let viscousDecay = Math.exp(-0.18 * tSec); // 아주 엄청 느린 지수 감쇄 (15초 이상 츠스스- 복원)
+                    if (releaseTime <= 450) {
+                        // 아주 완만하고 부드러운 감쇄 (gamma = 0.45): 7.5초 동안 여유롭고 재미있게 지속되는 롱 바운스
+                        let floatEnv = Math.exp(-0.45 * tSec); // 아주 여유로운 롱 릴리즈 감쇄
+                        let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0; // 높게 붕- 튀어오르는 96px 고공 점프!
+                        let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0; // 재미있고 크고 넉넉한 좌우 54px 흔들림!
+                        let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
+                        let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
+
+                        let centerX = 0, centerY = 0;
+                        for (let i = 0; i < points.length; i++) {
+                            centerX += points[i].ox;
+                            centerY += points[i].oy;
+                        }
+                        centerX /= points.length;
+                        centerY /= points.length;
 
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
-                            let baseDx = (p.lastDx !== undefined) ? p.lastDx : 0;
-                            let baseDy = (p.lastDy !== undefined) ? p.lastDy : 0;
+                            let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
+                            let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
 
-                            p.x = p.ox + baseDx * viscousDecay;
-                            p.y = p.oy + baseDy * viscousDecay;
+                            let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
+                            let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
+
+                            let relX = localX - centerX;
+                            let relY = localY - centerY;
+
+                            p.x = centerX + (relX * squishX) + swayX;
+                            p.y = centerY + (relY * squishY) - jumpHeight;
 
                             p.oldx = p.x;
                             p.oldy = p.y;
                         }
                     } else {
-                        // [탱글젤리 모드 릴리즈]: 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 엔진
-                        if (releaseTime <= 450) {
-                            let floatEnv = Math.exp(-0.45 * tSec);
-                            let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0;
-                            let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0;
-                            let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
-                            let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
-
-                            let centerX = 0, centerY = 0;
-                            for (let i = 0; i < points.length; i++) {
-                                centerX += points[i].ox;
-                                centerY += points[i].oy;
-                            }
-                            centerX /= points.length;
-                            centerY /= points.length;
-
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
-                                let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
-
-                                let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
-                                let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
-
-                                let relX = localX - centerX;
-                                let relY = localY - centerY;
-
-                                p.x = centerX + (relX * squishX) + swayX;
-                                p.y = centerY + (relY * squishY) - jumpHeight;
-
-                                p.oldx = p.x;
-                                p.oldy = p.y;
-                            }
-                        } else {
-                            for (let i = 0; i < points.length; i++) {
-                                points[i].x = points[i].ox;
-                                points[i].y = points[i].oy;
-                                points[i].oldx = points[i].ox;
-                                points[i].oldy = points[i].oy;
-                                points[i].vx = 0;
-                                points[i].vy = 0;
-                            }
+                        // Bounces complete cleanly at zero amplitude after 7.5 seconds
+                        for (let i = 0; i < points.length; i++) {
+                            points[i].x = points[i].ox;
+                            points[i].y = points[i].oy;
+                            points[i].oldx = points[i].ox;
+                            points[i].oldy = points[i].oy;
+                            points[i].vx = 0;
+                            points[i].vy = 0;
                         }
                     }
                 }
@@ -4010,20 +3977,14 @@
         }
 
                 const releaseGrab = (quiet = false) => {
-            if (currentMode === 'mochi') {
-                // Save exact displacement offsets for all points so mochi restores ultra-slowly without snap back
-                for (let i = 0; i < points.length; i++) {
-                    points[i].lastDx = points[i].x - points[i].ox;
-                    points[i].lastDy = points[i].y - points[i].oy;
-                }
-            } else if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                // Give spring release velocity impulse to initiate 2-3 bounces!
                 let impulse = 0.45;
                 points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
                 points[grabbedPointIndex].vy = (touchY - lastTouchY) * impulse;
             }
             grabbedPointIndex = null;
             isTouching = false;
-            releaseTime = 0;
             if (!quiet) {
                 playReleaseSound();
             }
@@ -4557,11 +4518,7 @@
         function selectLobbyCharacter(index, element) {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             activeLobbyIndex = index;
-            try { syncCarouselSelection(index); } catch(err) {}
-
-            // 1. Switch screen mode IMMEDIATELY to playground so user sees zero delay!
-            try { setScreenMode("playground"); } catch(err) {}
-
+            syncCarouselSelection(index);
             const char = lobbyCharacters[index];
             if (!char) return;
 
@@ -4569,48 +4526,47 @@
             activeBase = char.base;
             activeHue = char.hue || 350;
 
+            // Hide splash screen if open
+            const splash = document.getElementById('start-splash-screen');
+            if (splash) {
+                splash.classList.add('fade-out');
+                splash.style.display = 'none';
+            }
+
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
-            try {
-                jellyImage.onload = function() {
-                    bakedJellyTexture = jellyImage;
-                    if (typeof bakeSingleCompositeTexture === 'function') {
-                        bakeSingleCompositeTexture(jellyImage);
-                    }
-                    initMesh();
-                    draw();
-                };
-
-                jellyImage.src = imageSrc;
-                bakedJellyTexture = jellyImage;
-
-                if (jellyImage.complete && jellyImage.naturalWidth > 0) {
-                    initMesh();
-                    draw();
+            jellyImage.onload = function() {
+                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
+                if (typeof bakeSingleCompositeTexture === 'function') {
+                    bakeSingleCompositeTexture(jellyImage);
                 }
-            } catch(err) {
-                console.error('Image load error in selectLobbyCharacter:', err);
+                initMesh();
+                draw();
+            };
+
+            jellyImage.src = imageSrc;
+            bakedJellyTexture = jellyImage; // Immediate fallback assignment
+
+            if (jellyImage.complete && jellyImage.naturalWidth > 0) {
+                initMesh();
+                draw();
             }
 
-            try { initMesh(); draw(); } catch(err) {}
-            try { generateDecoJellies(activeHue); } catch(err) {}
-
-            if (typeof showNotification === 'function') {
-                try { showNotification(); } catch(err) {}
-            }
+            initMesh();
+            generateDecoJellies(activeHue);
+            setScreenMode("playground");
+            showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
 
             // Highlight selected bubble
-            try {
-                document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
-                if (element) {
-                    element.classList.add('active');
-                } else {
-                    const bubbles = document.querySelectorAll('.grid-char-bubble');
-                    if (bubbles[index]) {
-                        bubbles[index].classList.add('active');
-                    }
+            document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
+            if (element) {
+                element.classList.add('active');
+            } else {
+                const bubbles = document.querySelectorAll('.grid-char-bubble');
+                if (bubbles[index]) {
+                    bubbles[index].classList.add('active');
                 }
-            } catch(err) {}
+            }
         }
 
         function selectFeelPill(feel) {
@@ -4651,9 +4607,6 @@
             const topUI = document.querySelector(".top-overlay-ui");
             const feelUI = document.querySelector(".lobby-feel-selector");
 
-            // Always hide all popups on mode change
-            document.querySelectorAll('.pop-overlay').forEach(el => el.style.display = 'none');
-
             if (mode === "splash") {
                 if (splash) {
                     splash.style.display = "flex";
@@ -4689,26 +4642,13 @@
                     btn.title = "나가기";
                 }
             } else if (mode === "playground") {
-                // Forcefully hide splash & lobby screens 100%
-                if (splash) { 
-                    splash.style.display = "none"; 
-                    splash.style.opacity = "0"; 
-                    splash.style.visibility = "hidden";
-                    splash.style.zIndex = "-1";
-                    splash.style.pointerEvents = "none"; 
-                }
+                if (splash) { splash.style.display = "none"; splash.style.opacity = "0"; splash.style.pointerEvents = "none"; }
                 if (lobby) {
                     lobby.style.display = "none";
                     lobby.style.opacity = "0";
                     lobby.style.visibility = "hidden";
                     lobby.style.zIndex = "-1";
                     lobby.style.pointerEvents = "none";
-                }
-                // Ensure main canvas is visible & interactive
-                const canvasEl = document.getElementById("main-canvas");
-                if (canvasEl) {
-                    canvasEl.style.display = "block";
-                    canvasEl.style.pointerEvents = "auto";
                 }
                 if (topUI) { topUI.style.display = "flex"; topUI.style.zIndex = "20000"; }
                 if (feelUI) { feelUI.style.display = "flex"; feelUI.style.zIndex = "20000"; }
@@ -5402,7 +5342,7 @@
             initMesh();
             draw();
             renderLobbyGrid();
-            setScreenMode("playground");
+            setScreenMode("splash");
         } catch(err) {
             console.error("Boot init error:", err);
         }
