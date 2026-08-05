@@ -1301,7 +1301,7 @@
         </div>
 
         <!-- 3. Game Start Splash Screen Stage (Bypassed) -->
-        <div id="start-splash-screen" class="start-splash-screen" onclick="startGameSession()" ontouchstart="startGameSession()" onpointerdown="startGameSession()">
+        <div id="start-splash-screen" class="start-splash-screen" style="display: none !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important;" onclick="startGameSession()" ontouchstart="startGameSession()" onpointerdown="startGameSession()">
             <div class="start-logo-container">
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
@@ -1313,7 +1313,7 @@
         </div>
 
         <!-- 6. Lobby / Main Selection Screen (Foreground Overlay) -->
-        <div id="lobby-screen" class="lobby-screen" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;">
+        <div id="lobby-screen" class="lobby-screen" style="display: none !important; opacity: 0 !important; pointer-events: none !important; z-index: -1 !important; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;">
             <div class="lobby-grid-container">
                 <div class="character-grid" id="lobby-character-grid">
                 </div>
