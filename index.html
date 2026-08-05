@@ -4557,10 +4557,10 @@
         function selectLobbyCharacter(index, element) {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             activeLobbyIndex = index;
-            syncCarouselSelection(index);
+            try { syncCarouselSelection(index); } catch(err) {}
 
             // 1. Switch screen mode IMMEDIATELY to playground so user sees zero delay!
-            setScreenMode("playground");
+            try { setScreenMode("playground"); } catch(err) {}
 
             const char = lobbyCharacters[index];
             if (!char) return;
@@ -4571,39 +4571,46 @@
 
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
-            jellyImage.onload = function() {
+            try {
+                jellyImage.onload = function() {
+                    bakedJellyTexture = jellyImage;
+                    if (typeof bakeSingleCompositeTexture === 'function') {
+                        bakeSingleCompositeTexture(jellyImage);
+                    }
+                    initMesh();
+                    draw();
+                };
+
+                jellyImage.src = imageSrc;
                 bakedJellyTexture = jellyImage;
-                if (typeof bakeSingleCompositeTexture === 'function') {
-                    bakeSingleCompositeTexture(jellyImage);
+
+                if (jellyImage.complete && jellyImage.naturalWidth > 0) {
+                    initMesh();
+                    draw();
                 }
-                initMesh();
-                draw();
-            };
-
-            jellyImage.src = imageSrc;
-            bakedJellyTexture = jellyImage;
-
-            if (jellyImage.complete && jellyImage.naturalWidth > 0) {
-                initMesh();
-                draw();
+            } catch(err) {
+                console.error('Image load error in selectLobbyCharacter:', err);
             }
 
-            initMesh();
-            generateDecoJellies(activeHue);
+            try { initMesh(); draw(); } catch(err) {}
+            try { generateDecoJellies(activeHue); } catch(err) {}
+
             if (typeof showNotification === 'function') {
-                showNotification();
+                try { showNotification(); } catch(err) {}
             }
 
             // Highlight selected bubble
-            document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
-            if (element) {
-                element.classList.add('active');
-            } else {
-                const bubbles = document.querySelectorAll('.grid-char-bubble');
-                if (bubbles[index]) {
-                    bubbles[index].classList.add('active');
+            try {
+                document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
+                if (element) {
+                    element.classList.add('active');
+                } else {
+                    const bubbles = document.querySelectorAll('.grid-char-bubble');
+                    if (bubbles[index]) {
+                        bubbles[index].classList.add('active');
+                    }
                 }
-            }
+            } catch(err) {}
         }
 
         function selectFeelPill(feel) {
