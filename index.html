@@ -4558,22 +4558,16 @@
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             activeLobbyIndex = index;
             syncCarouselSelection(index);
+
+            // 1. Switch screen mode IMMEDIATELY to playground so user sees zero delay!
+            setScreenMode("playground");
+
             const char = lobbyCharacters[index];
             if (!char) return;
 
             activeEmoji = char.emoji || '🐰';
             activeBase = char.base;
             activeHue = char.hue || 350;
-
-            // Close all popups & splash screen instantly to guarantee 100% navigation to playground!
-            document.querySelectorAll('.pop-overlay').forEach(el => el.style.display = 'none');
-            const splash = document.getElementById('start-splash-screen');
-            if (splash) {
-                splash.classList.add('fade-out');
-                splash.style.display = 'none';
-                splash.style.opacity = '0';
-                splash.style.pointerEvents = 'none';
-            }
 
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
@@ -4596,7 +4590,6 @@
 
             initMesh();
             generateDecoJellies(activeHue);
-            setScreenMode("playground");
             if (typeof showNotification === 'function') {
                 showNotification();
             }
@@ -4651,6 +4644,9 @@
             const topUI = document.querySelector(".top-overlay-ui");
             const feelUI = document.querySelector(".lobby-feel-selector");
 
+            // Always hide all popups on mode change
+            document.querySelectorAll('.pop-overlay').forEach(el => el.style.display = 'none');
+
             if (mode === "splash") {
                 if (splash) {
                     splash.style.display = "flex";
@@ -4686,13 +4682,26 @@
                     btn.title = "나가기";
                 }
             } else if (mode === "playground") {
-                if (splash) { splash.style.display = "none"; splash.style.opacity = "0"; splash.style.pointerEvents = "none"; }
+                // Forcefully hide splash & lobby screens 100%
+                if (splash) { 
+                    splash.style.display = "none"; 
+                    splash.style.opacity = "0"; 
+                    splash.style.visibility = "hidden";
+                    splash.style.zIndex = "-1";
+                    splash.style.pointerEvents = "none"; 
+                }
                 if (lobby) {
                     lobby.style.display = "none";
                     lobby.style.opacity = "0";
                     lobby.style.visibility = "hidden";
                     lobby.style.zIndex = "-1";
                     lobby.style.pointerEvents = "none";
+                }
+                // Ensure main canvas is visible & interactive
+                const canvasEl = document.getElementById("main-canvas");
+                if (canvasEl) {
+                    canvasEl.style.display = "block";
+                    canvasEl.style.pointerEvents = "auto";
                 }
                 if (topUI) { topUI.style.display = "flex"; topUI.style.zIndex = "20000"; }
                 if (feelUI) { feelUI.style.display = "flex"; feelUI.style.zIndex = "20000"; }
