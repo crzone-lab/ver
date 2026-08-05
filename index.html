@@ -3705,7 +3705,7 @@
 
                 // 2. Solve internal springs every frame for realistic 3D jelly stretching and squishing
                 // 1. Physics Spring Solver (Only run when touching or after release animation completes)
-                if (isTouching || releaseTime > 90) {
+                if (currentMode !== "mochi" && (isTouching || releaseTime > 90)) {
                     for (let step = 0; step < 4; step++) {
                         for (let i = 0; i < springs.length; i++) {
                             springs[i].solve();
@@ -3977,7 +3977,14 @@
         }
 
                 const releaseGrab = (quiet = false) => {
-            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+            if (currentMode === 'mochi' && typeof points !== 'undefined' && points && points.length > 0) {
+                for (let i = 0; i < points.length; i++) {
+                    if (points[i] && points[i].x !== undefined && points[i].ox !== undefined) {
+                        points[i].lastDx = points[i].x - points[i].ox;
+                        points[i].lastDy = points[i].y - points[i].oy;
+                    }
+                }
+            } else if (grabbedPointIndex !== null && typeof points !== 'undefined' && points && points[grabbedPointIndex]) {
                 // Give spring release velocity impulse to initiate 2-3 bounces!
                 let impulse = 0.45;
                 points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
@@ -4516,6 +4523,7 @@
         }
 
         function selectLobbyCharacter(index, element) {
+            try { if (window.AGY_DIAGNOSTICS) window.AGY_DIAGNOSTICS.log("Character selected: #" + index); } catch(e) {}
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             activeLobbyIndex = index;
             syncCarouselSelection(index);
@@ -4601,6 +4609,7 @@
         }
 
         function setScreenMode(mode) {
+            try { if (window.AGY_DIAGNOSTICS) window.AGY_DIAGNOSTICS.log("Screen mode -> " + mode); } catch(e) {}
             const lobby = document.getElementById("lobby-screen");
             const splash = document.getElementById("start-splash-screen");
             const btn = document.getElementById("global-home-exit-btn") || document.getElementById("home-btn");
@@ -5360,5 +5369,9 @@
             </filter>
         </defs>
     </svg>
+    <!-- Real-time Diagnostic Monitor Overlay -->
+    <div id="agy-diag-bar" style="position: fixed; bottom: 85px; right: 15px; background: rgba(15, 23, 42, 0.88); color: #60a5fa; font-family: Inter, sans-serif; font-size: 12px; padding: 6px 14px; border-radius: 20px; border: 1px solid rgba(96, 165, 250, 0.4); z-index: 999999; pointer-events: none;">
+        🔬 Real-time Diagnostic Monitor Active
+    </div>
 </body>
 </html>
