@@ -3721,20 +3721,22 @@
                     let tSec = releaseTime * 0.016;
 
                     if (currentMode === 'mochi') {
-                        // [쫀득모찌 릴리즈]: 튕김 0% 상태로 12초 동안 아주 느리고 묵직하게 츠스스- 복원
+                        // [쫀득모찌 릴리즈]: NaN 결함 100% 차단 + 12초 동안 캐릭터 사라짐 0% 초슬로우 점성 복원
                         if (releaseTime <= 750) {
-                            let viscousDecay = Math.exp(-0.15 * tSec); // 12초 초슬로우 점성 복원 감쇄율
+                            let viscousDecay = Math.exp(-0.15 * tSec);
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
-                                let baseDx = (p && p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
-                                let baseDy = (p && p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
+                                if (p) {
+                                    let baseDx = (typeof p.lastDx === 'number' && !isNaN(p.lastDx)) ? p.lastDx : 0;
+                                    let baseDy = (typeof p.lastDy === 'number' && !isNaN(p.lastDy)) ? p.lastDy : 0;
 
-                                p.x = p.ox + baseDx * viscousDecay;
-                                p.y = p.oy + baseDy * viscousDecay;
+                                    p.x = p.ox + baseDx * viscousDecay;
+                                    p.y = p.oy + baseDy * viscousDecay;
 
-                                p.oldx = p.x;
-                                p.oldy = p.y;
+                                    p.oldx = p.x;
+                                    p.oldy = p.y;
+                                }
                             }
                         } else {
                             for (let i = 0; i < points.length; i++) {
