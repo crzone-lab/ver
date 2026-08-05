@@ -3583,26 +3583,38 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 캐릭터 고정 + 아주 엄청 길게 잘 늘어나는 3.2x Ultra Stretch Engine
-                        if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
-                            let gNode = points[grabbedPointIndex];
-                            let dragDx = touchX - gNode.ox;
-                            let dragDy = touchY - gNode.oy;
+                        // [쫀득모찌 모드]: 1) 누르기만 할 때 변형 0%, 2) 당길 때 터치 위치 1:1 정확 일치 100% 쫀득 Engine
+                        let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
 
+                        if (dragFromStart >= 8.0) {
+                            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                                let gNode = points[grabbedPointIndex];
+                                let dragDx = touchX - gNode.ox;
+                                let dragDy = touchY - gNode.oy;
+
+                                for (let i = 0; i < points.length; i++) {
+                                    let p = points[i];
+                                    let pdx = p.ox - gNode.ox;
+                                    let pdy = p.oy - gNode.oy;
+                                    let distSq = pdx * pdx + pdy * pdy;
+                                    let sigma = 135.0;
+                                    let weight = Math.exp(-distSq / (2.0 * sigma * sigma));
+
+                                    // 1:1 정확한 터치 위치 추종 (터치한 곳과 당겨지는 젤리 위치 100% 완벽 일치!)
+                                    p.x = p.ox + dragDx * weight;
+                                    p.y = p.oy + dragDy * weight;
+
+                                    p.lastDx = p.x - p.ox;
+                                    p.lastDy = p.y - p.oy;
+                                }
+                            }
+                        } else {
+                            // 단순 누르기만 할 때는 형태 변형 0% (가만히 유지)
                             for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let pdx = p.ox - gNode.ox;
-                                let pdy = p.oy - gNode.oy;
-                                let distSq = pdx * pdx + pdy * pdy;
-                                let sigma = 110.0; // 캐릭터 전체 이동을 방지하는 집중 가우시안 반경
-                                let weight = Math.exp(-distSq / (2.0 * sigma * sigma));
-
-                                // 아주 엄청 길고 쫀~득하게 늘어남 (3.2x Ultra Long Stretch)
-                                p.x = p.ox + dragDx * weight * 3.20;
-                                p.y = p.oy + dragDy * weight * 3.20;
-
-                                p.lastDx = p.x - p.ox;
-                                p.lastDy = p.y - p.oy;
+                                points[i].x = points[i].ox;
+                                points[i].y = points[i].oy;
+                                points[i].lastDx = 0;
+                                points[i].lastDy = 0;
                             }
                         }
                     } else {
@@ -3723,9 +3735,9 @@
                     let tSec = releaseTime * 0.016; // Time in seconds
 
                     if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드 릴리즈]: 튕김 0%! 0.5초 뜸들인 후 8.5초 이상 아주 엄청 느리고 묵직하게 츠스스- 복원 (~8.5초)
-                        if (releaseTime <= 520) {
-                            let viscousDecay = (tSec < 0.5) ? 1.0 : Math.exp(-0.35 * (tSec - 0.5)); // 8.5초간 초슬로우 복원
+                        // [쫀득모찌 모드 릴리즈]: 튕김 0%! 0.6초 뜸들인 후 10초 이상 아주 엄청 느리고 묵직하게 츠스스- 복원 (~10초)
+                        if (releaseTime <= 620) {
+                            let viscousDecay = (tSec < 0.6) ? 1.0 : Math.exp(-0.25 * (tSec - 0.6)); // 10초 이상 초슬로우 복원
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
