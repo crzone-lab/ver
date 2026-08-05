@@ -2011,24 +2011,6 @@
         }
 
         function syncCarouselSelection(idx) {
-            try {
-                const cards = document.querySelectorAll('.carousel-char-card');
-                if (cards && cards.length > 0) {
-                    cards.forEach(c => c.classList.remove('active'));
-                    const activeCard = document.getElementById('carousel-card-' + idx);
-                    if (activeCard) {
-                        activeCard.classList.add('active');
-                        if (typeof activeCard.scrollIntoView === 'function') {
-                            activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-                        }
-                    }
-                }
-            } catch(err) {
-                // Ignore carousel sync errors silently
-            }
-            return;
-        }
-        function _legacy_syncCarouselSelection(idx) {
             document.querySelectorAll('.carousel-char-card').forEach(c => c.classList.remove('active'));
             const activeCard = document.getElementById(`carousel-card-${idx}`);
             if (activeCard) {
@@ -3601,7 +3583,7 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 홀드 중 자동 수축 0% + 2.2배 엄청 잘늘어나는 Ultra Soft Mochi Engine
+                        // [쫀득모찌 모드]: 찰떡처럼 쫀득하게 당기기
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -3612,15 +3594,11 @@
                                 let pdx = p.ox - gNode.ox;
                                 let pdy = p.oy - gNode.oy;
                                 let distSq = pdx * pdx + pdy * pdy;
-                                let sigma = 220.0;
-                                let weight = Math.exp(-distSq / (2.0 * sigma * sigma));
+                                let weight = Math.exp(-distSq / (150.0 * 150.0));
 
-                                // 2.2배 엄청 잘늘어나며, 손을 쥐고 있는 동안에는 절대 수축되지 않음!
-                                p.x = p.ox + dragDx * weight * 2.20;
-                                p.y = p.oy + dragDy * weight * 2.20;
+                                p.x = p.ox + dragDx * weight * 0.92;
+                                p.y = p.oy + dragDy * weight * 0.92;
 
-                                p.oldx = p.x; // Verlet 위치 동기화로 홀드 중 자동 수축 원천 차단!
-                                p.oldy = p.y;
                                 p.lastDx = p.x - p.ox;
                                 p.lastDy = p.y - p.oy;
                             }
@@ -3726,8 +3704,8 @@
                 }
 
                 // 2. Solve internal springs every frame for realistic 3D jelly stretching and squishing
-                // 1. Physics Spring Solver (Run for Jelly mode, skip spring solver for Mochi mode while holding touch so it NEVER auto-returns!)
-                if (currentMode !== 'mochi' && (isTouching || releaseTime > 90)) {
+                // 1. Physics Spring Solver (Only run when touching or after release animation completes)
+                if (isTouching || releaseTime > 90) {
                     for (let step = 0; step < 4; step++) {
                         for (let i = 0; i < springs.length; i++) {
                             springs[i].solve();
@@ -3737,79 +3715,53 @@
                         points[i].update();
                     }
                 }
-                // 릴리즈 동작: 탱글젤리(고공 96px 바운스) vs 쫀득모찌(12초 초슬로우 점성 복원) 차별화 Engine
+
+                // 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 릴리즈 엔진 (~7.5초)
                 if (!isTouching) {
                     let tSec = releaseTime * 0.016; // Time in seconds
 
-                    if (currentMode === 'mochi') {
-                        // [쫀득모찌 릴리즈]: 당기고 놨을 때 튕김 0%! 12초 동안 엄청 느리고 묵직하게 츠스스- 복원
-                        if (releaseTime <= 750) {
-                            let viscousDecay = Math.exp(-0.20 * tSec);
+                    if (releaseTime <= 450) {
+                        // 아주 완만하고 부드러운 감쇄 (gamma = 0.45): 7.5초 동안 여유롭고 재미있게 지속되는 롱 바운스
+                        let floatEnv = Math.exp(-0.45 * tSec); // 아주 여유로운 롱 릴리즈 감쇄
+                        let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0; // 높게 붕- 튀어오르는 96px 고공 점프!
+                        let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0; // 재미있고 크고 넉넉한 좌우 54px 흔들림!
+                        let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
+                        let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
 
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let baseDx = (p.lastDx !== undefined) ? p.lastDx : 0;
-                                let baseDy = (p.lastDy !== undefined) ? p.lastDy : 0;
+                        let centerX = 0, centerY = 0;
+                        for (let i = 0; i < points.length; i++) {
+                            centerX += points[i].ox;
+                            centerY += points[i].oy;
+                        }
+                        centerX /= points.length;
+                        centerY /= points.length;
 
-                                p.x = p.ox + baseDx * viscousDecay;
-                                p.y = p.oy + baseDy * viscousDecay;
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
+                            let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
 
-                                p.oldx = p.x;
-                                p.oldy = p.y;
-                            }
-                        } else {
-                            for (let i = 0; i < points.length; i++) {
-                                points[i].x = points[i].ox;
-                                points[i].y = points[i].oy;
-                                points[i].oldx = points[i].ox;
-                                points[i].oldy = points[i].oy;
-                                points[i].vx = 0;
-                                points[i].vy = 0;
-                            }
+                            let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
+                            let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
+
+                            let relX = localX - centerX;
+                            let relY = localY - centerY;
+
+                            p.x = centerX + (relX * squishX) + swayX;
+                            p.y = centerY + (relY * squishY) - jumpHeight;
+
+                            p.oldx = p.x;
+                            p.oldy = p.y;
                         }
                     } else {
-                        // [탱글젤리 릴리즈]: 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 엔진 (~7.5초)
-                        if (releaseTime <= 450) {
-                            let floatEnv = Math.exp(-0.45 * tSec);
-                            let jumpHeight = Math.abs(Math.sin(2.2 * tSec)) * floatEnv * 96.0;
-                            let swayX = Math.sin(1.5 * tSec) * floatEnv * 54.0;
-                            let squishY = 1.0 + (Math.cos(3.2 * tSec) * floatEnv * 0.28);
-                            let squishX = 1.0 - (Math.cos(3.2 * tSec) * floatEnv * 0.18);
-
-                            let centerX = 0, centerY = 0;
-                            for (let i = 0; i < points.length; i++) {
-                                centerX += points[i].ox;
-                                centerY += points[i].oy;
-                            }
-                            centerX /= points.length;
-                            centerY /= points.length;
-
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
-                                let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
-
-                                let localX = p.ox + baseDx * floatEnv * Math.cos(3.2 * tSec);
-                                let localY = p.oy + baseDy * floatEnv * Math.cos(3.2 * tSec);
-
-                                let relX = localX - centerX;
-                                let relY = localY - centerY;
-
-                                p.x = centerX + (relX * squishX) + swayX;
-                                p.y = centerY + (relY * squishY) - jumpHeight;
-
-                                p.oldx = p.x;
-                                p.oldy = p.y;
-                            }
-                        } else {
-                            for (let i = 0; i < points.length; i++) {
-                                points[i].x = points[i].ox;
-                                points[i].y = points[i].oy;
-                                points[i].oldx = points[i].ox;
-                                points[i].oldy = points[i].oy;
-                                points[i].vx = 0;
-                                points[i].vy = 0;
-                            }
+                        // Bounces complete cleanly at zero amplitude after 7.5 seconds
+                        for (let i = 0; i < points.length; i++) {
+                            points[i].x = points[i].ox;
+                            points[i].y = points[i].oy;
+                            points[i].oldx = points[i].ox;
+                            points[i].oldy = points[i].oy;
+                            points[i].vx = 0;
+                            points[i].vy = 0;
                         }
                     }
                 }
@@ -4025,20 +3977,14 @@
         }
 
                 const releaseGrab = (quiet = false) => {
-            if (currentMode === 'mochi') {
-                // 쫀득모찌 당긴 후 놨을 때 변위 오프셋 100% 보존 (스냅 백 방지)
-                for (let i = 0; i < points.length; i++) {
-                    points[i].lastDx = points[i].x - points[i].ox;
-                    points[i].lastDy = points[i].y - points[i].oy;
-                }
-            } else if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                // Give spring release velocity impulse to initiate 2-3 bounces!
                 let impulse = 0.45;
                 points[grabbedPointIndex].vx = (touchX - lastTouchX) * impulse;
                 points[grabbedPointIndex].vy = (touchY - lastTouchY) * impulse;
             }
             grabbedPointIndex = null;
             isTouching = false;
-            releaseTime = 0;
             if (!quiet) {
                 playReleaseSound();
             }
