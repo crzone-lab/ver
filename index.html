@@ -3583,7 +3583,7 @@
                         ctx.restore();
 
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]: 말랑말랑하게 엄청 길게 쭉- 늘어나는 Ultra Soft Mochi Stretch Engine
+                        // [쫀득모찌 모드]: 제일 먼 곳 100% 고정 + 고무줄처럼 말랑말랑 쫀~득하게 늘어나는 Rubber-Band Mochi Engine
                         let dragFromStart = (typeof touchStartX !== 'undefined' && touchStartX > 0) ? Math.hypot(touchX - touchStartX, touchY - touchStartY) : 0;
 
                         if (dragFromStart >= 6.0) {
@@ -3592,24 +3592,26 @@
                                 let dragDx = touchX - gNode.ox;
                                 let dragDy = touchY - gNode.oy;
 
+                                let maxStretchRadius = width * 0.65;
+
                                 for (let i = 0; i < points.length; i++) {
                                     let p = points[i];
                                     let pdx = p.ox - gNode.ox;
                                     let pdy = p.oy - gNode.oy;
-                                    let distSq = pdx * pdx + pdy * pdy;
-                                    let sigma = 220.0; // 넓고 말랑말랑하게 부드럽게 꺾이는 반경
-                                    let weight = Math.exp(-distSq / (2.0 * sigma * sigma));
+                                    let distFromTouch = Math.hypot(pdx, pdy);
 
-                                    // 말랑말랑하게 2.2배 엄청 길고 부드럽게 쭉- 늘어남!
-                                    p.x = p.ox + dragDx * weight * 2.20;
-                                    p.y = p.oy + dragDy * weight * 2.20;
+                                    // 먼 곳은 100% 0으로 수렴하여 제일 먼 곳은 고정되고 나머지만 고무줄처럼 늘어남!
+                                    let weight = Math.pow(1.0 - Math.min(1.0, distFromTouch / maxStretchRadius), 2.2);
+
+                                    p.x = p.ox + dragDx * weight * 1.75;
+                                    p.y = p.oy + dragDy * weight * 1.75;
 
                                     p.lastDx = p.x - p.ox;
                                     p.lastDy = p.y - p.oy;
                                 }
                             }
                         } else {
-                            // 단순 누르기만 할 때는 형태 변형 0%
+                            // 누르기만 할 때 변형 0%
                             for (let i = 0; i < points.length; i++) {
                                 points[i].x = points[i].ox;
                                 points[i].y = points[i].oy;
@@ -3736,30 +3738,19 @@
                     let tSec = releaseTime * 0.016; // Time in seconds
 
                     if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드 릴리즈]: 튕김 0%! 0.5초 뜸들인 후 10초 이상 아주 엄청 느리고 묵직하게 츠스스- 복원 (스냅 방지 게이트)
-                        if (releaseTime <= 600) {
-                            let viscousDecay = (tSec < 0.5) ? 1.0 : Math.exp(-0.22 * (tSec - 0.5)); // 10초 이상 초슬로우 점성 복원
+                        // [쫀득모찌 모드 릴리즈]: 스냅 백 100% 방지! 0.5초 뜸들인 후 10초 이상 초슬로우 츠스스- 점성 복원
+                        let viscousDecay = (tSec < 0.5) ? 1.0 : Math.exp(-0.22 * (tSec - 0.5));
 
-                            for (let i = 0; i < points.length; i++) {
-                                let p = points[i];
-                                let baseDx = (p.lastDx !== undefined) ? p.lastDx : (p.x - p.ox);
-                                let baseDy = (p.lastDy !== undefined) ? p.lastDy : (p.y - p.oy);
+                        for (let i = 0; i < points.length; i++) {
+                            let p = points[i];
+                            let baseDx = (p.lastDx !== undefined) ? p.lastDx : 0;
+                            let baseDy = (p.lastDy !== undefined) ? p.lastDy : 0;
 
-                                p.x = p.ox + baseDx * viscousDecay;
-                                p.y = p.oy + baseDy * viscousDecay;
+                            p.x = p.ox + baseDx * viscousDecay;
+                            p.y = p.oy + baseDy * viscousDecay;
 
-                                p.oldx = p.x;
-                                p.oldy = p.y;
-                            }
-                        } else {
-                            for (let i = 0; i < points.length; i++) {
-                                points[i].x = points[i].ox;
-                                points[i].y = points[i].oy;
-                                points[i].oldx = points[i].ox;
-                                points[i].oldy = points[i].oy;
-                                points[i].vx = 0;
-                                points[i].vy = 0;
-                            }
+                            p.oldx = p.x;
+                            p.oldy = p.y;
                         }
                     } else {
                         // [탱글젤리 모드 릴리즈]: 높은 96px 점프 + 7.5초 롱 바운스 재미있는 탄성 여운 엔진
