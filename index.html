@@ -2289,46 +2289,126 @@
             } catch (e) {}
         }
 
+        let activeTornHole = null;
+        let popFlashEffect = null;
+
+        function playPopSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                let now = audioCtx.currentTime;
+
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(680, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+
+                gain.gain.setValueAtTime(0.38, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.14);
+
+                let bufferSize = audioCtx.sampleRate * 0.08;
+                let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                let data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+                }
+                let noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+                let nGain = audioCtx.createGain();
+                nGain.gain.setValueAtTime(0.28, now);
+                nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                noise.connect(nGain);
+                nGain.connect(audioCtx.destination);
+                noise.start(now);
+            } catch (e) {}
+        }
+
         function activateNearbyControlPoints(clickX, clickY) {
             activeRBFs = [];
+            activeTornHole = null;
+            popFlashEffect = null;
             nextCycleTimer = 0;
 
-            // 5개의 독립된 3D 젤리 풍선 방울들이 '천천히' 다 함께 부풀어 옴!
-            let totalBalloons = 5;
-            let mainIndex = 0; // 중심 0번이 메인 방울, 주변 4개가 보조 방울
+            // 단 1개의 큼직하고 영롱한 메인 젤리 풍선 방울 생성!
+            activeRBFs.push({
+                x: clickX,
+                y: clickY,
+                currentRadius: 18.0,
+                burstThreshold: 90.0 + Math.random() * 10.0,
+                isPopped: false,
+                isMain: true,
+                colorScheme: { main: 'rgba(255, 105, 180, 0.65)', core: 'rgba(255, 200, 230, 0.9)', rim: 'rgba(255, 255, 255, 0.95)' }
+            });
+        }
 
-            let colors = [
-                { main: 'rgba(255, 105, 180, 0.45)', core: 'rgba(255, 200, 230, 0.8)', rim: 'rgba(255, 255, 255, 0.85)' }, // 핑크 메인
-                { main: 'rgba(100, 200, 255, 0.45)', core: 'rgba(200, 240, 255, 0.8)', rim: 'rgba(255, 255, 255, 0.85)' }, // 아쿠아 블루
-                { main: 'rgba(180, 120, 255, 0.45)', core: 'rgba(230, 200, 255, 0.8)', rim: 'rgba(255, 255, 255, 0.85)' }, // 라벤더
-                { main: 'rgba(255, 180, 80, 0.45)',  core: 'rgba(255, 230, 180, 0.8)', rim: 'rgba(255, 255, 255, 0.85)' }, // 피치
-                { main: 'rgba(120, 240, 160, 0.45)', core: 'rgba(200, 255, 220, 0.8)', rim: 'rgba(255, 255, 255, 0.85)' }  // 민트
+        function triggerMainPopWithTear(mainRBF) {
+            if (activeRBFs) {
+                activeRBFs.forEach(rbf => rbf.isPopped = true);
+            }
+            triggerHaptic(100);
+            playPopSound();
+
+            let px = mainRBF ? mainRBF.x : touchX;
+            let py = mainRBF ? mainRBF.y : touchY;
+            let pRadius = mainRBF ? mainRBF.currentRadius : 80;
+
+            // 1. 찢어진 젤리 구멍(Torn Rupture Mesh Hole) 생성
+            let spokes = [];
+            for (let a = 0; a < 14; a++) {
+                spokes.push(0.75 + Math.random() * 0.50);
+            }
+
+            activeTornHole = {
+                x: px,
+                y: py,
+                radius: pRadius * 1.10,
+                spokes: spokes,
+                life: 1.0,
+                decay: 0.015
+            };
+
+            // 2. 3D 링 Shockwave & 화이트 Flash 생성
+            popFlashEffect = {
+                x: px,
+                y: py,
+                radius: 15,
+                maxRadius: pRadius * 2.2,
+                life: 1.0
+            };
+
+            // 3. 50개 이상의 큼직하고 알록달록한 3D 젤리 조각 파편 폭발
+            let shardColors = [
+                'rgba(255, 90, 170, 0.95)',
+                'rgba(80, 200, 255, 0.95)',
+                'rgba(180, 110, 255, 0.95)',
+                'rgba(255, 190, 70, 0.95)',
+                'rgba(110, 240, 160, 0.95)',
+                'rgba(255, 255, 255, 0.98)',
+                'rgba(255, 140, 200, 0.90)'
             ];
 
-            let angles = [0, 1.25, 2.5, 3.75, 5.0];
-            angles.sort(() => Math.random() - 0.5);
-
-            for (let i = 0; i < totalBalloons; i++) {
-                let isMain = (i === mainIndex);
-                let ang = angles[i];
-                let dist = (i === 0) ? 0 : (60.0 + Math.random() * 20.0); // 60~80px 간격으로 뚜렷 배치
-
-                let bx = clickX + (i === 0 ? 0 : Math.cos(ang) * dist);
-                let by = clickY + (i === 0 ? 0 : Math.sin(ang) * dist);
-
-                // 5개 모두 큼직하고 뚜렷하게 보임 (메인: 1.0, 주변 4개: 0.80 ~ 0.92 차등 스케일)
-                let relScale = isMain ? 1.0 : (0.80 + Math.random() * 0.12);
-                let burstThreshold = isMain ? (90.0 + Math.random() * 15.0) : 75.0;
-
-                activeRBFs.push({
-                    x: bx,
-                    y: by,
-                    currentRadius: 10.0 * relScale,
-                    relativeScale: relScale,
-                    burstThreshold: burstThreshold,
-                    isPopped: false,
-                    isMain: isMain,
-                    colorScheme: colors[i % colors.length]
+            for (let i = 0; i < 52; i++) {
+                let ang = Math.random() * Math.PI * 2;
+                let spd = Math.random() * 22 + 6;
+                largeShards.push({
+                    x: px,
+                    y: py,
+                    vx: Math.cos(ang) * spd,
+                    vy: Math.sin(ang) * spd - 4.0,
+                    sizeW: 9 + Math.random() * 16,
+                    sizeH: 7 + Math.random() * 12,
+                    color: shardColors[Math.floor(Math.random() * shardColors.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.5,
+                    life: 1.0,
+                    decay: 0.018 + Math.random() * 0.015
                 });
             }
         }
@@ -2337,20 +2417,65 @@
             if (activeRBFs) {
                 activeRBFs.forEach(rbf => rbf.isPopped = true);
             }
-            triggerHaptic(80);
+            triggerHaptic(95);
+            playPopSound();
 
-            for (let i = 0; i < 28; i++) {
+            let px = mainRBF ? mainRBF.x : touchX;
+            let py = mainRBF ? mainRBF.y : touchY;
+            let pRadius = mainRBF ? mainRBF.currentRadius : 80;
+
+            // 1. 찢어진 젤리 구멍(Torn Rupture Mesh Hole) 생성
+            let spokes = [];
+            for (let a = 0; a < 14; a++) {
+                spokes.push(0.75 + Math.random() * 0.50);
+            }
+
+            activeTornHole = {
+                x: px,
+                y: py,
+                radius: pRadius * 1.15,
+                maxRadius: pRadius * 1.15,
+                spokes: spokes,
+                life: 1.0,
+                decay: 0.015
+            };
+
+            // 2. 3D 링 Shockwave & 화이트 Flash 생성
+            popFlashEffect = {
+                x: px,
+                y: py,
+                radius: 15,
+                maxRadius: pRadius * 2.2,
+                alpha: 1.0,
+                life: 1.0
+            };
+
+            // 3. 50개 이상의 큼직하고 알록달록한 3D 젤리 조각 파편 폭발
+            let shardColors = [
+                'rgba(255, 90, 170, 0.95)',
+                'rgba(80, 200, 255, 0.95)',
+                'rgba(180, 110, 255, 0.95)',
+                'rgba(255, 190, 70, 0.95)',
+                'rgba(110, 240, 160, 0.95)',
+                'rgba(255, 255, 255, 0.98)',
+                'rgba(255, 140, 200, 0.90)'
+            ];
+
+            for (let i = 0; i < 52; i++) {
                 let ang = Math.random() * Math.PI * 2;
-                let spd = Math.random() * 16 + 6;
+                let spd = Math.random() * 20 + 6;
                 largeShards.push({
-                    x: mainRBF ? mainRBF.x : touchX,
-                    y: mainRBF ? mainRBF.y : touchY,
+                    x: px,
+                    y: py,
                     vx: Math.cos(ang) * spd,
-                    vy: Math.sin(ang) * spd,
-                    radius: 3.5 + Math.random() * 5.0,
-                    alpha: 1.0,
+                    vy: Math.sin(ang) * spd - 3.5,
+                    sizeW: 8 + Math.random() * 15,
+                    sizeH: 6 + Math.random() * 11,
+                    color: shardColors[Math.floor(Math.random() * shardColors.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.45,
                     life: 1.0,
-                    decay: 0.035 + Math.random() * 0.02
+                    decay: 0.018 + Math.random() * 0.015
                 });
             }
         }
@@ -3761,61 +3886,148 @@
                             }
                         }
                     } else if (currentMode === 'bubble') {
-                        // [젤리팝 모드]: 화면을 누르고 있는 동안(Hold) 5개 독립된 풍선 방울들이 '천천히' 다 함께 부풀어 오름!
+                        // [젤리팝 모드]: 화면을 누르고 있는 동안(Hold) 단 1개의 영롱한 젤리 풍선이 매끈하게 부풀어 올라 터짐!
                         let mainRBF = activeRBFs.find(rbf => rbf.isMain);
                         let mainPopped = activeRBFs.some(rbf => rbf.isPopped);
 
-                        if (activeRBFs.length > 0 && !mainPopped) {
+                        if (mainRBF && !mainPopped) {
                             if (isTouching) {
-                                // 화면/터치를 누르고 있는 동안(Hold) 아주 천천히(+0.22px/frame) 팽창! (한번에 커지지 않음)
-                                if (mainRBF) {
-                                    mainRBF.currentRadius += 0.22; // 잔잔하고 천천히 부풀어 오르는 손맛 속도!
-                                    
-                                    // 5개 모든 방울들이 각자의 스케일 비율로 다 함께 천천히 부풀어 옴!
-                                    for (let rbf of activeRBFs) {
-                                        if (!rbf.isMain) {
-                                            rbf.currentRadius = mainRBF.currentRadius * rbf.relativeScale;
-                                        }
-                                    }
+                                // 화면/터치를 누르고 있는 동안 잔잔하고 천천히(+0.25px/frame) 팽창!
+                                mainRBF.currentRadius += 0.25;
 
-                                    // 누르고 있는 시간이 길어져 메인 방울이 한계점(90~105px)에 도달하면 팡! 터짐!
-                                    if (mainRBF.currentRadius >= mainRBF.burstThreshold) {
-                                        triggerMainPopWithTear(mainRBF);
-                                    }
+                                // 메인 방울 한계 크기 도달 시 팡! 터짐
+                                if (mainRBF.currentRadius >= mainRBF.burstThreshold) {
+                                    triggerMainPopWithTear(mainRBF);
                                 }
                             } else {
-                                // 누르다 터지기 전에 뗐을 경우: 풍선 공기가 빠지듯 서서히 원상 복구
-                                for (let rbf of activeRBFs) {
-                                    rbf.currentRadius *= 0.88;
-                                }
+                                // 누르다 뗐을 경우 풍선 공기가 빠지듯 서서히 원상 복구
+                                mainRBF.currentRadius *= 0.88;
                             }
                         }
 
-                        // 매끈한 가우시안 3D 원형 풍선 돔 팽창 (테두리 각짐 100% 제로 무한 완화)
+                        // 매끈하고 완전 대칭적인 가우시안 3D 원형 풍선 돔 팽창 (우그러짐 제로)
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
                             let totalDispX = 0, totalDispY = 0;
-                            for (let rbf of activeRBFs) {
-                                if (rbf.currentRadius > 0.5 && !rbf.isPopped) {
-                                    let dx = p.ox - rbf.x;
-                                    let dy = p.oy - rbf.y;
-                                    let dist = Math.hypot(dx, dy);
-                                    if (dist > 0.1) {
-                                        let sigma = Math.max(140, rbf.currentRadius * 2.0);
-                                        let weight = Math.exp(- (dist * dist) / (2.0 * sigma * sigma)); // 광범위 매끈한 가우시안 곡선
-                                        let nx = dx / dist;
-                                        let ny = dy / dist;
-                                        let swellAmount = rbf.currentRadius * weight * 0.85;
-                                        totalDispX += nx * swellAmount;
-                                        totalDispY += ny * swellAmount;
-                                    }
-                                }
+
+                            if (mainRBF && mainRBF.currentRadius > 0.5 && !mainRBF.isPopped) {
+                                let dx = p.ox - mainRBF.x;
+                                let dy = p.oy - mainRBF.y;
+                                let dist = Math.hypot(dx, dy);
+                                let sigma = mainRBF.currentRadius * 0.95;
+                                let weight = Math.exp(- (dist * dist) / (2.0 * sigma * sigma));
+                                
+                                let nx = (dist > 0.1) ? (dx / dist) : 0;
+                                let ny = (dist > 0.1) ? (dy / dist) : 0;
+                                let swellAmount = mainRBF.currentRadius * weight * 0.95;
+
+                                totalDispX += nx * swellAmount;
+                                totalDispY += ny * swellAmount;
                             }
+
                             p.x = p.ox + totalDispX;
                             p.y = p.oy + totalDispY;
                             p.oldx = p.x; p.oldy = p.y;
                             p.lastDx = p.x - p.ox; p.lastDy = p.y - p.oy;
                         }
+
+                        // 라플라시안 2D 메쉬 스무딩 2-Pass 적용
+                        for (let pass = 0; pass < 2; pass++) {
+                            for (let r = 1; r < rows - 1; r++) {
+                                for (let c = 1; c < cols - 1; c++) {
+                                    let idx = r * cols + c;
+                                    let top = points[(r - 1) * cols + c];
+                                    let bot = points[(r + 1) * cols + c];
+                                    let left = points[r * cols + (c - 1)];
+                                    let right = points[r * cols + (c + 1)];
+
+                                    points[idx].x = points[idx].x * 0.62 + 0.095 * (top.x + bot.x + left.x + right.x);
+                                    points[idx].y = points[idx].y * 0.62 + 0.095 * (top.y + bot.y + left.y + right.y);
+                                }
+                            }
+                        }
+
+                        // 3D 둥근 광택 하이라이트 투영
+                        ctx.save();
+                        if (mainRBF && mainRBF.currentRadius > 1.5 && !mainRBF.isPopped) {
+                            let hlGrad = ctx.createRadialGradient(
+                                mainRBF.x - mainRBF.currentRadius * 0.25, 
+                                mainRBF.y - mainRBF.currentRadius * 0.30, 
+                                2, 
+                                mainRBF.x, 
+                                mainRBF.y, 
+                                mainRBF.currentRadius * 0.95
+                            );
+                            hlGrad.addColorStop(0, 'rgba(255, 255, 255, 0.88)');
+                            hlGrad.addColorStop(0.35, 'rgba(255, 245, 220, 0.45)');
+                            hlGrad.addColorStop(0.8, 'rgba(255, 255, 255, 0.15)');
+                            hlGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                            ctx.fillStyle = hlGrad;
+                            ctx.beginPath();
+                            ctx.arc(mainRBF.x, mainRBF.y, mainRBF.currentRadius * 0.95, 0, Math.PI * 2);
+                            ctx.fill();
+                        }
+
+                        // 터진 젤리 구멍(Torn Rupture Hole) 테두리 및 찢어진 지점 렌더링
+                        if (activeTornHole && activeTornHole.life > 0) {
+                            ctx.save();
+                            ctx.translate(activeTornHole.x, activeTornHole.y);
+                            ctx.globalAlpha = activeTornHole.life;
+
+                            // 찢어진 구멍 내부 음영
+                            ctx.fillStyle = 'rgba(20, 10, 25, 0.75)';
+                            ctx.beginPath();
+                            let numSpokes = activeTornHole.spokes.length;
+                            for (let s = 0; s < numSpokes; s++) {
+                                let a = (s / numSpokes) * Math.PI * 2;
+                                let r = activeTornHole.radius * activeTornHole.spokes[s];
+                                let sx = Math.cos(a) * r;
+                                let sy = Math.sin(a) * r;
+                                if (s === 0) ctx.moveTo(sx, sy);
+                                else ctx.lineTo(sx, sy);
+                            }
+                            ctx.closePath();
+                            ctx.fill();
+
+                            // 찢어진 젤리 단면 하이라이트 림
+                            ctx.strokeStyle = 'rgba(255, 220, 240, 0.95)';
+                            ctx.lineWidth = 4;
+                            ctx.stroke();
+
+                            ctx.restore();
+
+                            activeTornHole.life -= activeTornHole.decay;
+                            if (activeTornHole.life <= 0) activeTornHole = null;
+                        }
+
+                        // 3D Shockwave & 화이트 Flash 렌더링
+                        if (popFlashEffect && popFlashEffect.life > 0) {
+                            ctx.save();
+                            ctx.globalAlpha = popFlashEffect.life;
+
+                            ctx.beginPath();
+                            ctx.arc(popFlashEffect.x, popFlashEffect.y, popFlashEffect.radius, 0, Math.PI * 2);
+                            ctx.strokeStyle = 'rgba(255, 255, 255, 0.95)';
+                            ctx.lineWidth = 9 * popFlashEffect.life;
+                            ctx.stroke();
+
+                            let flashGrad = ctx.createRadialGradient(popFlashEffect.x, popFlashEffect.y, 0, popFlashEffect.x, popFlashEffect.y, popFlashEffect.radius * 0.85);
+                            flashGrad.addColorStop(0, 'rgba(255, 255, 255, 0.92)');
+                            flashGrad.addColorStop(0.5, 'rgba(255, 210, 240, 0.55)');
+                            flashGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                            ctx.fillStyle = flashGrad;
+                            ctx.beginPath();
+                            ctx.arc(popFlashEffect.x, popFlashEffect.y, popFlashEffect.radius * 0.85, 0, Math.PI * 2);
+                            ctx.fill();
+
+                            ctx.restore();
+
+                            popFlashEffect.radius += (popFlashEffect.maxRadius - popFlashEffect.radius) * 0.28;
+                            popFlashEffect.life -= 0.045;
+                            if (popFlashEffect.life <= 0) popFlashEffect = null;
+                        }
+
+                        ctx.restore();
                     } else if (currentMode === 'mochi') {
                         // [쫀득모찌 모드]
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
