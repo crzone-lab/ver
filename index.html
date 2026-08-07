@@ -2293,6 +2293,48 @@
             } catch (e) {}
         }
 
+        function playJellyWallBounceSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                let now = audioCtx.currentTime;
+
+                // 1. Primary Bouncy "Boing" Tone (Refreshing Sine Pitch Sweep Up)
+                let mainOsc = audioCtx.createOscillator();
+                let mainGain = audioCtx.createGain();
+                mainOsc.type = 'sine';
+                mainOsc.frequency.setValueAtTime(520, now);
+                mainOsc.frequency.linearRampToValueAtTime(960, now + 0.04);
+                mainOsc.frequency.exponentialRampToValueAtTime(680, now + 0.12);
+
+                mainGain.gain.setValueAtTime(0.001, now);
+                mainGain.gain.linearRampToValueAtTime(0.25, now + 0.015);
+                mainGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                mainOsc.connect(mainGain);
+                mainGain.connect(audioCtx.destination);
+                mainOsc.start(now);
+                mainOsc.stop(now + 0.14);
+
+                // 2. Sparkling Refreshing "Tinkle" High Bell Harmonic (상큼한 통통 팅클 방울 소리)
+                let bellOsc = audioCtx.createOscillator();
+                let bellGain = audioCtx.createGain();
+                bellOsc.type = 'sine';
+                bellOsc.frequency.setValueAtTime(1760, now);
+                bellOsc.frequency.exponentialRampToValueAtTime(2200, now + 0.05);
+
+                bellGain.gain.setValueAtTime(0.001, now);
+                bellGain.gain.linearRampToValueAtTime(0.12, now + 0.008);
+                bellGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                bellOsc.connect(bellGain);
+                bellGain.connect(audioCtx.destination);
+                bellOsc.start(now);
+                bellOsc.stop(now + 0.08);
+            } catch (e) {}
+        }
+
         let activeTornHole = null;
         let popFlashEffect = null;
 
@@ -3102,83 +3144,121 @@
                     const y = (size - h) / 2;
                     imgCtx.drawImage(img, x, y, w, h);
 
-                    // Check if image is already a transparent PNG (e.g. imported character graphics)
+                    // Check if image is already a transparent PNG (inspect 4 corners of actual drawn image rect)
                     const imgData = imgCtx.getImageData(0, 0, size, size);
                     const pixels = imgData.data;
 
-                    // Inspect 4 corner pixels to detect if background is already transparent
-                    const cornerAlpha1 = pixels[3];
-                    const cornerAlpha2 = pixels[(size - 1) * 4 + 3];
-                    const cornerAlpha3 = pixels[((size - 1) * size) * 4 + 3];
-                    const cornerAlpha4 = pixels[(size * size - 1) * 4 + 3];
+                    const iX = Math.max(0, Math.min(size - 1, Math.round(x + 4)));
+                    const iY = Math.max(0, Math.min(size - 1, Math.round(y + 4)));
+                    const iR = Math.max(0, Math.min(size - 1, Math.round(x + w - 5)));
+                    const iB = Math.max(0, Math.min(size - 1, Math.round(y + h - 5)));
 
-                    const isAlreadyTransparent = (cornerAlpha1 === 0 || cornerAlpha2 === 0 || cornerAlpha3 === 0 || cornerAlpha4 === 0);
+                    const c1Alpha = pixels[(iY * size + iX) * 4 + 3];
+                    const c2Alpha = pixels[(iY * size + iR) * 4 + 3];
+                    const c3Alpha = pixels[(iB * size + iX) * 4 + 3];
+                    const c4Alpha = pixels[(iB * size + iR) * 4 + 3];
+
+                    const isAlreadyTransparent = (c1Alpha < 20 && c2Alpha < 20 && c3Alpha < 20 && c4Alpha < 20);
 
                     if (!isAlreadyTransparent) {
-                        // Image has solid opaque background (e.g. JPG photo) -> Run background keyer
-                        const solidOutline = new Uint8Array(size * size);
-                        for (let i = 0; i < pixels.length; i += 4) {
-                            const r = pixels[i];
-                            const g = pixels[i+1];
-                            const b = pixels[i+2];
-                            const a = pixels[i+3];
-                            if (a > 50 && (r < 220 || g < 220 || b < 220)) {
-                                solidOutline[i / 4] = 1;
-                            }
+                        // Sample background color strictly along the 4 edges of the drawn image rectangle
+                        let sampleR = 0, sampleG = 0, sampleB = 0, count = 0;
+                        const startX = Math.round(x), endX = Math.round(x + w);
+                        const startY = Math.round(y), endY = Math.round(y + h);
+
+                        for (let px = startX; px < endX; px++) {
+                            if (px < 0 || px >= size) continue;
+                            let topIdx = (startY * size + px) * 4;
+                            let botIdx = (Math.min(size - 1, endY - 1) * size + px) * 4;
+                            if (pixels[topIdx + 3] > 20) { sampleR += pixels[topIdx]; sampleG += pixels[topIdx + 1]; sampleB += pixels[topIdx + 2]; count++; }
+                            if (pixels[botIdx + 3] > 20) { sampleR += pixels[botIdx]; sampleG += pixels[botIdx + 1]; sampleB += pixels[botIdx + 2]; count++; }
+                        }
+                        for (let py = startY; py < endY; py++) {
+                            if (py < 0 || py >= size) continue;
+                            let leftIdx = (py * size + startX) * 4;
+                            let rightIdx = (py * size + Math.min(size - 1, endX - 1)) * 4;
+                            if (pixels[leftIdx + 3] > 20) { sampleR += pixels[leftIdx]; sampleG += pixels[leftIdx + 1]; sampleB += pixels[leftIdx + 2]; count++; }
+                            if (pixels[rightIdx + 3] > 20) { sampleR += pixels[rightIdx]; sampleG += pixels[rightIdx + 1]; sampleB += pixels[rightIdx + 2]; count++; }
                         }
 
-                        const closedOutline = new Uint8Array(size * size);
-                        const r_dilate = 3;
-                        for (let y = 0; y < size; y++) {
-                            for (let x = 0; x < size; x++) {
-                                if (solidOutline[y * size + x]) {
-                                    for (let dy = -r_dilate; dy <= r_dilate; dy++) {
-                                        const ny = y + dy;
-                                        if (ny >= 0 && ny < size) {
-                                            for (let dx = -r_dilate; dx <= r_dilate; dx++) {
-                                                const nx = x + dx;
-                                                if (nx >= 0 && nx < size) {
-                                                    closedOutline[ny * size + nx] = 1;
-                                                }
-                                            }
-                                        }
-                                    }
+                        const bgR = count > 0 ? sampleR / count : 255;
+                        const bgG = count > 0 ? sampleG / count : 255;
+                        const bgB = count > 0 ? sampleB / count : 255;
+
+                        function getBgDist(r, g, b) {
+                            return Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+                        }
+
+                        const isBarrier = new Uint8Array(size * size);
+                        for (let py = 0; py < size; py++) {
+                            for (let px = 0; px < size; px++) {
+                                let idx = py * size + px;
+                                if (px < startX || px >= endX || py < startY || py >= endY) {
+                                    isBarrier[idx] = 0; // Outside image rect -> Not a barrier
+                                    continue;
+                                }
+                                let pi = idx * 4;
+                                let r = pixels[pi], g = pixels[pi + 1], b = pixels[pi + 2], a = pixels[pi + 3];
+                                if (a <= 20) {
+                                    isBarrier[idx] = 0;
+                                    continue;
+                                }
+                                let lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                                let bgDist = getBgDist(r, g, b);
+
+                                // Character barrier: Dark outline OR distinct character color
+                                if (lum < 110 || bgDist > 65) {
+                                    isBarrier[idx] = 1;
                                 }
                             }
                         }
 
                         const transparentBackground = new Uint8Array(size * size);
                         const queue = [];
-                        
-                        for (let x = 0; x < size; x++) {
-                            if (!closedOutline[x]) { transparentBackground[x] = 1; queue.push(x); }
-                            const bottomIdx = (size - 1) * size + x;
-                            if (!closedOutline[bottomIdx]) { transparentBackground[bottomIdx] = 1; queue.push(bottomIdx); }
+
+                        // Seed queue with canvas boundaries and image rect boundaries
+                        for (let px = 0; px < size; px++) {
+                            let top = px, bot = (size - 1) * size + px;
+                            if (!isBarrier[top] && !transparentBackground[top]) { transparentBackground[top] = 1; queue.push(top); }
+                            if (!isBarrier[bot] && !transparentBackground[bot]) { transparentBackground[bot] = 1; queue.push(bot); }
                         }
-                        for (let y = 0; y < size; y++) {
-                            const leftIdx = y * size;
-                            if (!closedOutline[leftIdx]) { transparentBackground[leftIdx] = 1; queue.push(leftIdx); }
-                            const rightIdx = y * size + (size - 1);
-                            if (!closedOutline[rightIdx]) { transparentBackground[rightIdx] = 1; queue.push(rightIdx); }
+                        for (let py = 0; py < size; py++) {
+                            let left = py * size, right = py * size + (size - 1);
+                            if (!isBarrier[left] && !transparentBackground[left]) { transparentBackground[left] = 1; queue.push(left); }
+                            if (!isBarrier[right] && !transparentBackground[right]) { transparentBackground[right] = 1; queue.push(right); }
+                        }
+                        for (let px = startX; px < endX; px++) {
+                            if (px < 0 || px >= size) continue;
+                            let topImg = startY * size + px;
+                            let botImg = Math.min(size - 1, endY - 1) * size + px;
+                            if (!isBarrier[topImg] && !transparentBackground[topImg]) { transparentBackground[topImg] = 1; queue.push(topImg); }
+                            if (!isBarrier[botImg] && !transparentBackground[botImg]) { transparentBackground[botImg] = 1; queue.push(botImg); }
+                        }
+                        for (let py = startY; py < endY; py++) {
+                            if (py < 0 || py >= size) continue;
+                            let leftImg = py * size + startX;
+                            let rightImg = py * size + Math.min(size - 1, endX - 1);
+                            if (!isBarrier[leftImg] && !transparentBackground[leftImg]) { transparentBackground[leftImg] = 1; queue.push(leftImg); }
+                            if (!isBarrier[rightImg] && !transparentBackground[rightImg]) { transparentBackground[rightImg] = 1; queue.push(rightImg); }
                         }
 
-                        while (queue.length > 0) {
-                            const idx = queue.shift();
+                        let qHead = 0;
+                        while (qHead < queue.length) {
+                            const idx = queue[qHead++];
                             const cx = idx % size;
                             const cy = Math.floor(idx / size);
 
                             const neighbors = [
-                                {x: cx - 1, y: cy}, {x: cx + 1, y: cy},
-                                {x: cx, y: cy - 1}, {x: cx, y: cy + 1}
+                                cx > 0 ? idx - 1 : -1,
+                                cx < size - 1 ? idx + 1 : -1,
+                                cy > 0 ? idx - size : -1,
+                                cy < size - 1 ? idx + size : -1
                             ];
 
-                            for (const n of neighbors) {
-                                if (n.x >= 0 && n.x < size && n.y >= 0 && n.y < size) {
-                                    const nIdx = n.y * size + n.x;
-                                    if (!closedOutline[nIdx] && !transparentBackground[nIdx]) {
-                                        transparentBackground[nIdx] = 1;
-                                        queue.push(nIdx);
-                                    }
+                            for (const nIdx of neighbors) {
+                                if (nIdx >= 0 && !isBarrier[nIdx] && !transparentBackground[nIdx]) {
+                                    transparentBackground[nIdx] = 1;
+                                    queue.push(nIdx);
                                 }
                             }
                         }
@@ -4026,7 +4106,7 @@
                             // 벽 충돌 시 퐁! 효과음, 바운스 횟수 증가 및 파티클 스파크 연출
                             if (hitWall) {
                                 jellyBounceCount++;
-                                playPopSound();
+                                playJellyWallBounceSound();
                                 if (typeof largeShards !== 'undefined' && largeShards) {
                                     let sparkColor = `hsl(${activeHue}, 90%, 65%)`;
                                     for (let k = 0; k < 12; k++) {
@@ -5699,37 +5779,44 @@
                 // ==================================================================
                 logImportDiagnostic("✂️ [STEP 1] 100% 수밀 누끼 가공 (배경 투명화) 시작...");
 
-                // 1-1. Compute Sobel Edge Gradient Magnitude
-                const edgeMag = new Uint8Array(size * size);
-                for (let y = 1; y < size - 1; y++) {
-                    for (let x = 1; x < size - 1; x++) {
-                        let idx = y * size + x;
-                        let p1 = data[(idx - size - 1) * 4], p3 = data[(idx - size + 1) * 4];
-                        let p7 = data[(idx + size - 1) * 4], p9 = data[(idx + size + 1) * 4];
-                        let gx = (p3 - p1) + (p9 - p7);
-                        let gy = (p7 - p1) + (p9 - p3);
-                        edgeMag[idx] = Math.min(255, Math.sqrt(gx * gx + gy * gy));
-                    }
+                // 1-1. Sample Background Color from 4 Canvas Borders
+                let sampleR = 0, sampleG = 0, sampleB = 0, count = 0;
+                for (let x = 0; x < size; x++) {
+                    let topIdx = x * 4, botIdx = ((size - 1) * size + x) * 4;
+                    sampleR += data[topIdx] + data[botIdx];
+                    sampleG += data[topIdx + 1] + data[botIdx + 1];
+                    sampleB += data[topIdx + 2] + data[botIdx + 2];
+                    count += 2;
+                }
+                for (let y = 0; y < size; y++) {
+                    let leftIdx = (y * size) * 4, rightIdx = (y * size + size - 1) * 4;
+                    sampleR += data[leftIdx] + data[rightIdx];
+                    sampleG += data[leftIdx + 1] + data[rightIdx + 1];
+                    sampleB += data[leftIdx + 2] + data[rightIdx + 2];
+                    count += 2;
+                }
+                const bgR = sampleR / count, bgG = sampleG / count, bgB = sampleB / count;
+                logImportDiagnostic(`🎨 [배경 감지] 4면 테두리 감지 배경색 RGB: (${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`);
+
+                function getBgDist(r, g, b) {
+                    return Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
                 }
 
-                // 1-2. Identify Character Contour Barriers (Strokes, Eyes, Colors)
+                // 1-2. Identify Character Contour Barriers (Strokes, Eyes, Distinct Colors)
                 const isBarrier = new Uint8Array(size * size);
                 for (let i = 0; i < size * size; i++) {
                     let pi = i * 4;
                     let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
                     let lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                    let maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
-                    let sat = maxC > 0 ? (maxC - minC) / maxC : 0;
+                    let bgDist = getBgDist(r, g, b);
 
-                    // Barrier: High-saturation features (red ears, pink cheeks, green leaves)
-                    // OR dark stroke outlines (lum < 55)
-                    // OR strong edge gradient with low luminance (lum < 165 && edgeMag[i] > 20)
-                    if (a > 0 && (sat > 0.07 || lum < 55 || (lum < 165 && edgeMag[i] > 20))) {
+                    // Barrier if: Dark stroke outline (lum < 110) OR significantly different from background (bgDist > 60)
+                    if (a > 0 && (lum < 110 || bgDist > 60)) {
                         isBarrier[i] = 1;
                     }
                 }
 
-                // 1-3. Direct Floodfill from 4 Canvas Borders right up to 1px of Character Barrier
+                // 1-3. Direct Floodfill from 4 Canvas Borders right up to Character Barrier
                 const outerBg = new Uint8Array(size * size);
                 const queue = [];
                 for (let x = 0; x < size; x++) {
@@ -5763,8 +5850,11 @@
                     for (let nIdx of neighbors) {
                         if (nIdx >= 0 && !isBarrier[nIdx] && !outerBg[nIdx]) {
                             let nR = data[nIdx * 4], nG = data[nIdx * 4 + 1], nB = data[nIdx * 4 + 2];
-                            let diff = Math.abs(nR - currR) + Math.abs(nG - currG) + Math.abs(nB - currB);
-                            if (diff < 40) {
+                            let diffFromCurr = Math.abs(nR - currR) + Math.abs(nG - currG) + Math.abs(nB - currB);
+                            let distFromBg = getBgDist(nR, nG, nB);
+                            
+                            // Expand through smooth background gradient OR close to background color
+                            if (diffFromCurr < 45 || distFromBg < 75) {
                                 queue.push(nIdx);
                             }
                         }
