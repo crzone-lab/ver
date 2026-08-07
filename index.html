@@ -5936,12 +5936,11 @@
                 const height = maxY - minY;
                 const maxR = Math.max(width, height) / 2;
 
-                // Save original alpha mask on a separate canvas
-                const maskCanvas = document.createElement('canvas');
-                maskCanvas.width = size;
-                maskCanvas.height = size;
-                const maskCtx = maskCanvas.getContext('2d');
-                maskCtx.drawImage(canvas, 0, 0);
+                // Save original alpha mask array for 100% strict background preservation
+                const origAlpha = new Uint8Array(size * size);
+                for (let i = 0; i < size * size; i++) {
+                    origAlpha[i] = data[i * 4 + 3];
+                }
 
                 // 2. Perform 3D Spherical Refraction / Lens Distortion
                 const srcCanvas = document.createElement('canvas');
@@ -5957,15 +5956,15 @@
                 for (let y = 0; y < size; y++) {
                     for (let x = 0; x < size; x++) {
                         let idx = (y * size + x) * 4;
-                        let a = srcData[idx + 3];
-                        if (a < 10) continue;
+                        let pIdx = y * size + x;
+                        let a = origAlpha[pIdx];
+                        if (a < 10) continue; // Skip transparent background completely!
 
                         let dx = (x - cx) / (maxR || 1);
                         let dy = (y - cy) / (maxR || 1);
                         let rSq = dx * dx + dy * dy;
 
                         if (rSq < 1.4) {
-                            // Spherical lens refraction formula: magnifies center slightly, compresses edges
                             let factor = 1.0 - 0.18 * (1.0 - Math.min(1.0, rSq));
                             let srcX = Math.round(cx + dx * factor * maxR);
                             let srcY = Math.round(cy + dy * factor * maxR);
@@ -5977,68 +5976,74 @@
                             refPixels[idx] = srcData[srcIdx];
                             refPixels[idx + 1] = srcData[srcIdx + 1];
                             refPixels[idx + 2] = srcData[srcIdx + 2];
-                            refPixels[idx + 3] = srcData[srcIdx + 3];
+                            refPixels[idx + 3] = a; // Maintain exact original alpha!
                         } else {
                             refPixels[idx] = srcData[idx];
                             refPixels[idx + 1] = srcData[idx + 1];
                             refPixels[idx + 2] = srcData[idx + 2];
-                            refPixels[idx + 3] = srcData[idx + 3];
+                            refPixels[idx + 3] = a;
                         }
                     }
                 }
                 ctx.putImageData(refrData, 0, 0);
 
-                // 3. Apply 3D Glassy Shading (Inner Shadow & Gloss Specular Highlights)
+                // 3. Apply 3D Glassy Shading ONLY ON TOP OF SUBJECT (source-atop)
+                ctx.save();
+                ctx.globalCompositeMode = 'source-atop'; // STRICT: Draw ONLY on non-transparent character pixels!
+
                 // (A) 3D Inner Rim Shadow (볼록한 젤리 입체 음영)
-                let shadowGrad = ctx.createRadialGradient(cx, cy, maxR * 0.25, cx, cy, maxR * 1.05);
-                shadowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.08)');
-                shadowGrad.addColorStop(0.6, 'rgba(0, 0, 0, 0.0)');
-                shadowGrad.addColorStop(0.85, 'rgba(0, 0, 0, 0.22)');
-                shadowGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.50)');
+                let shadowGrad = ctx.createRadialGradient(cx, cy, maxR * 0.2, cx, cy, maxR * 1.0);
+                shadowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
+                shadowGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.0)');
+                shadowGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.18)');
+                shadowGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.45)');
 
                 ctx.fillStyle = shadowGrad;
                 ctx.fillRect(0, 0, size, size);
 
-                // (B) Main Crescent Specular Highlight (올려주신 물방울 이미지 스타일의 빛 반사)
+                // (B) Main Crescent Specular Highlight (빛 반사 하이라이트)
                 const hlX = cx - maxR * 0.28;
                 const hlY = cy - maxR * 0.32;
-                const hlR = maxR * 0.45;
+                const hlR = maxR * 0.42;
 
                 let hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR);
-                hlGrad.addColorStop(0, 'rgba(255, 255, 255, 0.88)');
-                hlGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.55)');
-                hlGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.15)');
+                hlGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
+                hlGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.50)');
+                hlGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.12)');
                 hlGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
-                ctx.save();
                 ctx.fillStyle = hlGrad;
                 ctx.beginPath();
                 ctx.arc(hlX, hlY, hlR, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.restore();
 
                 // (C) Secondary Rim Light Reflection (하단 반사광)
-                const rimX = cx + maxR * 0.32;
-                const rimY = cy + maxR * 0.35;
-                const rimR = maxR * 0.4;
+                const rimX = cx + maxR * 0.30;
+                const rimY = cy + maxR * 0.32;
+                const rimR = maxR * 0.38;
                 let rimGrad = ctx.createRadialGradient(rimX, rimY, 0, rimX, rimY, rimR);
-                rimGrad.addColorStop(0, 'rgba(255, 255, 255, 0.45)');
-                rimGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.12)');
+                rimGrad.addColorStop(0, 'rgba(255, 255, 255, 0.40)');
+                rimGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.10)');
                 rimGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
-                ctx.save();
                 ctx.fillStyle = rimGrad;
                 ctx.beginPath();
                 ctx.arc(rimX, rimY, rimR, 0, Math.PI * 2);
                 ctx.fill();
-                ctx.restore();
 
-                // 4. Perfect Masking: Retain strictly only original character boundary
-                ctx.globalCompositeMode = 'destination-in';
-                ctx.drawImage(maskCanvas, 0, 0);
-                ctx.globalCompositeMode = 'source-over';
+                ctx.restore(); // Restore globalCompositeMode to default
 
-                logImportDiagnostic("✨ [방법 B] 3D 젤리 렌즈 굴절 및 투명 물방울 광택 오버레이 가공 완료!");
+                // 4. Final Safety Pass: Restore original alpha strictly per pixel
+                const finalData = ctx.getImageData(0, 0, size, size);
+                const finalPixels = finalData.data;
+                for (let i = 0; i < size * size; i++) {
+                    if (origAlpha[i] === 0) {
+                        finalPixels[i * 4 + 3] = 0; // Force 100% transparent on background
+                    }
+                }
+                ctx.putImageData(finalData, 0, 0);
+
+                logImportDiagnostic("✨ [방법 B] 사각형 박스 완전 제거 & 3D 젤리 렌즈 오버레이 완성!");
             } catch (err) {
                 console.error("Failed to apply Method B Jelly effect:", err);
             }
