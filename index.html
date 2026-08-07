@@ -2357,12 +2357,77 @@
 
             let px = mainRBF ? mainRBF.x : touchX;
             let py = mainRBF ? mainRBF.y : touchY;
-            let pRadius = mainRBF ? mainRBF.currentRadius : 85;
+            let pRadius = mainRBF ? mainRBF.currentRadius : 80;
 
-            // 1. 가운데 찢어지는 젤리 구멍 (천천히 디테일하게 보이도록 decay: 0.005 적용)
+            // 1. 찢어진 젤리 구멍(Torn Rupture Mesh Hole) 생성
             let spokes = [];
-            for (let a = 0; a < 16; a++) {
-                spokes.push(0.70 + Math.random() * 0.60);
+            for (let a = 0; a < 14; a++) {
+                spokes.push(0.75 + Math.random() * 0.50);
+            }
+
+            activeTornHole = {
+                x: px,
+                y: py,
+                radius: pRadius * 1.10,
+                spokes: spokes,
+                life: 1.0,
+                decay: 0.015
+            };
+
+            // 2. 3D 링 Shockwave & 화이트 Flash 생성
+            popFlashEffect = {
+                x: px,
+                y: py,
+                radius: 15,
+                maxRadius: pRadius * 2.2,
+                life: 1.0
+            };
+
+            // 3. 50개 이상의 큼직하고 알록달록한 3D 젤리 조각 파편 폭발
+            let shardColors = [
+                'rgba(255, 90, 170, 0.95)',
+                'rgba(80, 200, 255, 0.95)',
+                'rgba(180, 110, 255, 0.95)',
+                'rgba(255, 190, 70, 0.95)',
+                'rgba(110, 240, 160, 0.95)',
+                'rgba(255, 255, 255, 0.98)',
+                'rgba(255, 140, 200, 0.90)'
+            ];
+
+            for (let i = 0; i < 52; i++) {
+                let ang = Math.random() * Math.PI * 2;
+                let spd = Math.random() * 22 + 6;
+                largeShards.push({
+                    x: px,
+                    y: py,
+                    vx: Math.cos(ang) * spd,
+                    vy: Math.sin(ang) * spd - 4.0,
+                    sizeW: 9 + Math.random() * 16,
+                    sizeH: 7 + Math.random() * 12,
+                    color: shardColors[Math.floor(Math.random() * shardColors.length)],
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.5,
+                    life: 1.0,
+                    decay: 0.018 + Math.random() * 0.015
+                });
+            }
+        }
+
+        function triggerMainPopWithTear(mainRBF) {
+            if (activeRBFs) {
+                activeRBFs.forEach(rbf => rbf.isPopped = true);
+            }
+            triggerHaptic(95);
+            playPopSound();
+
+            let px = mainRBF ? mainRBF.x : touchX;
+            let py = mainRBF ? mainRBF.y : touchY;
+            let pRadius = mainRBF ? mainRBF.currentRadius : 80;
+
+            // 1. 찢어진 젤리 구멍(Torn Rupture Mesh Hole) 생성
+            let spokes = [];
+            for (let a = 0; a < 14; a++) {
+                spokes.push(0.75 + Math.random() * 0.50);
             }
 
             activeTornHole = {
@@ -2372,44 +2437,45 @@
                 maxRadius: pRadius * 1.15,
                 spokes: spokes,
                 life: 1.0,
-                decay: 0.005 // 천천히 선명하게 찢어진 자국이 유지됨
+                decay: 0.015
             };
 
-            // 2. 3D 링 Shockwave & 은은한 Flash
+            // 2. 3D 링 Shockwave & 화이트 Flash 생성
             popFlashEffect = {
                 x: px,
                 y: py,
-                radius: 10,
-                maxRadius: pRadius * 2.0,
+                radius: 15,
+                maxRadius: pRadius * 2.2,
                 alpha: 1.0,
                 life: 1.0
             };
 
-            // 3. 풍선과 동일한 핑크/젤리 색상의 큼직한 3D 파편 조각 찢어져 날아감 (Slow-Motion)
+            // 3. 50개 이상의 큼직하고 알록달록한 3D 젤리 조각 파편 폭발
             let shardColors = [
-                'rgba(255, 90, 160, 0.96)',
-                'rgba(255, 120, 180, 0.96)',
-                'rgba(255, 160, 205, 0.96)',
-                'rgba(255, 60, 140, 0.96)',
-                'rgba(255, 200, 230, 0.98)',
-                'rgba(255, 140, 190, 0.95)'
+                'rgba(255, 90, 170, 0.95)',
+                'rgba(80, 200, 255, 0.95)',
+                'rgba(180, 110, 255, 0.95)',
+                'rgba(255, 190, 70, 0.95)',
+                'rgba(110, 240, 160, 0.95)',
+                'rgba(255, 255, 255, 0.98)',
+                'rgba(255, 140, 200, 0.90)'
             ];
 
-            for (let i = 0; i < 45; i++) {
+            for (let i = 0; i < 52; i++) {
                 let ang = Math.random() * Math.PI * 2;
-                let spd = Math.random() * 4.5 + 1.2; // 천천히 서서히 흩어지는 느린 속도!
+                let spd = Math.random() * 20 + 6;
                 largeShards.push({
                     x: px,
                     y: py,
                     vx: Math.cos(ang) * spd,
-                    vy: Math.sin(ang) * spd - 0.8,
-                    sizeW: 24 + Math.random() * 28, // 큼직한 젤리 풍선 조각 크기!
-                    sizeH: 18 + Math.random() * 22,
+                    vy: Math.sin(ang) * spd - 3.5,
+                    sizeW: 8 + Math.random() * 15,
+                    sizeH: 6 + Math.random() * 11,
                     color: shardColors[Math.floor(Math.random() * shardColors.length)],
                     rotation: Math.random() * Math.PI * 2,
-                    rotSpeed: (Math.random() - 0.5) * 0.06, // 천천히 회전
+                    rotSpeed: (Math.random() - 0.5) * 0.45,
                     life: 1.0,
-                    decay: 0.005 // 오랫동안 선명하게 보임
+                    decay: 0.018 + Math.random() * 0.015
                 });
             }
         }
@@ -4158,73 +4224,16 @@
 
 
 
-                    // Render and animate slow-motion torn hole & large pink jelly balloon shards
-                    if (activeTornHole && activeTornHole.life > 0) {
-                        ctx.save();
-                        ctx.translate(activeTornHole.x, activeTornHole.y);
-                        ctx.globalAlpha = activeTornHole.life;
-
-                        // 찢어진 구멍 내부 깊은 음영
-                        ctx.fillStyle = 'rgba(25, 10, 30, 0.85)';
-                        ctx.beginPath();
-                        let numSpokes = activeTornHole.spokes.length;
-                        for (let s = 0; s < numSpokes; s++) {
-                            let a = (s / numSpokes) * Math.PI * 2;
-                            let r = activeTornHole.radius * activeTornHole.spokes[s];
-                            let sx = Math.cos(a) * r;
-                            let sy = Math.sin(a) * r;
-                            if (s === 0) ctx.moveTo(sx, sy);
-                            else ctx.lineTo(sx, sy);
-                        }
-                        ctx.closePath();
-                        ctx.fill();
-
-                        // 찢어진 젤리 단면 또렷한 핑크 림 하이라이트
-                        ctx.strokeStyle = 'rgba(255, 180, 220, 0.98)';
-                        ctx.lineWidth = 6;
-                        ctx.stroke();
-
-                        ctx.restore();
-
-                        activeTornHole.life -= activeTornHole.decay;
-                        if (activeTornHole.life <= 0) activeTornHole = null;
-                    }
-
-                    if (popFlashEffect && popFlashEffect.life > 0) {
-                        ctx.save();
-                        ctx.globalAlpha = popFlashEffect.life;
-
-                        ctx.beginPath();
-                        ctx.arc(popFlashEffect.x, popFlashEffect.y, popFlashEffect.radius, 0, Math.PI * 2);
-                        ctx.strokeStyle = 'rgba(255, 230, 245, 0.95)';
-                        ctx.lineWidth = 8 * popFlashEffect.life;
-                        ctx.stroke();
-
-                        let flashGrad = ctx.createRadialGradient(popFlashEffect.x, popFlashEffect.y, 0, popFlashEffect.x, popFlashEffect.y, popFlashEffect.radius * 0.85);
-                        flashGrad.addColorStop(0, 'rgba(255, 255, 255, 0.95)');
-                        flashGrad.addColorStop(0.5, 'rgba(255, 180, 220, 0.50)');
-                        flashGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
-                        ctx.fillStyle = flashGrad;
-                        ctx.beginPath();
-                        ctx.arc(popFlashEffect.x, popFlashEffect.y, popFlashEffect.radius * 0.85, 0, Math.PI * 2);
-                        ctx.fill();
-
-                        ctx.restore();
-
-                        popFlashEffect.radius += (popFlashEffect.maxRadius - popFlashEffect.radius) * 0.08; // 슬로우 모션 링 팽창
-                        popFlashEffect.life -= 0.008; // 천천히 페이드 아웃
-                        if (popFlashEffect.life <= 0) popFlashEffect = null;
-                    }
-
+                    // Render and animate largeShards (pop particle explosion)
                     if (largeShards && largeShards.length > 0) {
                         ctx.save();
                         for (let i = largeShards.length - 1; i >= 0; i--) {
                             let s = largeShards[i];
                             s.x += s.vx;
                             s.y += s.vy;
-                            s.vy += 0.08; // 슬로우 모션 잔잔한 중력
+                            s.vy += 0.45; // gravity
                             s.rotation += s.rotSpeed;
-                            s.life -= (s.decay || 0.005);
+                            s.life -= 0.025;
 
                             if (s.life <= 0) {
                                 largeShards.splice(i, 1);
@@ -4234,26 +4243,11 @@
                             ctx.save();
                             ctx.translate(s.x, s.y);
                             ctx.rotate(s.rotation);
-                            ctx.globalAlpha = Math.max(0, s.life);
-
-                            // 큼직하고 풍선과 동일한 핑크/젤리 색상의 찢어진 파편 다각형
+                            ctx.globalAlpha = s.life;
                             ctx.fillStyle = s.color;
                             ctx.beginPath();
-                            let w = s.sizeW * (0.5 + 0.5 * s.life);
-                            let h = s.sizeH * (0.5 + 0.5 * s.life);
-                            ctx.moveTo(-w * 0.5, -h * 0.4);
-                            ctx.lineTo(w * 0.6, -h * 0.5);
-                            ctx.lineTo(w * 0.5, h * 0.4);
-                            ctx.lineTo(-w * 0.4, h * 0.5);
-                            ctx.lineTo(-w * 0.7, 0);
-                            ctx.closePath();
+                            ctx.ellipse(0, 0, s.sizeW * s.life, s.sizeH * s.life, 0, 0, Math.PI * 2);
                             ctx.fill();
-
-                            // 찢어진 젤리 단면 하이라이트 테두리
-                            ctx.strokeStyle = 'rgba(255, 235, 245, 0.95)';
-                            ctx.lineWidth = 2.5;
-                            ctx.stroke();
-
                             ctx.restore();
                         }
                         ctx.restore();
