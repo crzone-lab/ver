@@ -2300,38 +2300,72 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
-                // 1. Primary Bouncy "Boing" Tone (Refreshing Sine Pitch Sweep Up)
-                let mainOsc = audioCtx.createOscillator();
-                let mainGain = audioCtx.createGain();
-                mainOsc.type = 'sine';
-                mainOsc.frequency.setValueAtTime(520, now);
-                mainOsc.frequency.linearRampToValueAtTime(960, now + 0.04);
-                mainOsc.frequency.exponentialRampToValueAtTime(680, now + 0.12);
+                let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
-                mainGain.gain.setValueAtTime(0.001, now);
-                mainGain.gain.linearRampToValueAtTime(0.25, now + 0.015);
-                mainGain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                // 쇠소리의 원인이 되는 고주파 종소리(541Hz, 1058Hz) 대신 맑고 부드러운 Lowpass 필터 적용
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 420 : 750, now);
+                filter.connect(audioCtx.destination);
 
-                mainOsc.connect(mainGain);
-                mainGain.connect(audioCtx.destination);
-                mainOsc.start(now);
-                mainOsc.stop(now + 0.14);
+                if (mode === 'mochi') {
+                    // 🍡 쫀득모찌: 묵직하고 찰진 찹쌀떡 "쫠깃 / 찰싹" (Viscous Mochi Squish Impact)
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(130, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.16);
 
-                // 2. Sparkling Refreshing "Tinkle" High Bell Harmonic (상큼한 통통 팅클 방울 소리)
-                let bellOsc = audioCtx.createOscillator();
-                let bellGain = audioCtx.createGain();
-                bellOsc.type = 'sine';
-                bellOsc.frequency.setValueAtTime(1760, now);
-                bellOsc.frequency.exponentialRampToValueAtTime(2200, now + 0.05);
+                    gain.gain.setValueAtTime(0.30, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
-                bellGain.gain.setValueAtTime(0.001, now);
-                bellGain.gain.linearRampToValueAtTime(0.12, now + 0.008);
-                bellGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                    osc.connect(filter);
+                    osc.start(now);
+                    osc.stop(now + 0.16);
 
-                bellOsc.connect(bellGain);
-                bellGain.connect(audioCtx.destination);
-                bellOsc.start(now);
-                bellOsc.stop(now + 0.08);
+                    // Sub-bass thump
+                    let subOsc = audioCtx.createOscillator();
+                    let subGain = audioCtx.createGain();
+                    subOsc.type = 'triangle';
+                    subOsc.frequency.setValueAtTime(80, now);
+                    subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+                    subGain.gain.setValueAtTime(0.25, now);
+                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    subOsc.connect(filter);
+                    subOsc.start(now);
+                    subOsc.stop(now + 0.18);
+
+                } else {
+                    // 🍮 탱글젤리: 경쾌하고 통통 튀는 "뽀용~ / 퐁~" (Cute Organic Jelly Boing)
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    // Quick pitch jump up and bounce down (Boing sound)
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.exponentialRampToValueAtTime(360, now + 0.04);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
+
+                    gain.gain.setValueAtTime(0.32, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+
+                    osc.connect(filter);
+                    osc.start(now);
+                    osc.stop(now + 0.14);
+
+                    // Soft harmonic pop body
+                    let bodyOsc = audioCtx.createOscillator();
+                    let bodyGain = audioCtx.createGain();
+                    bodyOsc.type = 'sine';
+                    bodyOsc.frequency.setValueAtTime(270, now);
+                    bodyOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+
+                    bodyGain.gain.setValueAtTime(0.18, now);
+                    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                    bodyOsc.connect(filter);
+                    bodyOsc.start(now);
+                    bodyOsc.stop(now + 0.12);
+                }
             } catch (e) {}
         }
 
@@ -2849,7 +2883,7 @@
         }
 
         
-                const cameraShutterAudio = new Audio("data:audio/mp3;base64,//PkZAAAAAGkAAAAAAAAA0gAAAAATEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVTEFNRTMuMTAwVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//PkZAADWBAAAHf+AAAAA0gAAAAAOfBqMo4sPXGpJjGI0BJrENmiLOjtb9VOWsplMQU1FMy4xMDBVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVdFUKn5KmVuOKwpowUHzE8gOLHkt0qBMeUu2/wKEBIaDRekSPAQC2lqKrsia4iYtVPNBRwLuUOW/7SSWEtfeB9VKkgVdIGFn1hUAYwEXhDky7iT6ZxcRhS1FptyYgqSBL8dc1dbgMZW+4jtzU5U537lnCVwUoUW0GQwce1tXbgTsTd1t2GOi1dCQh+lcXoYZNuhm1xLxF8vkHGF2FTpUKzts8KSami73/ljYgcI/9eu3BfKQIKLAhRCeDWgkEOqDtDVDA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VVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVVV//PkZAAANAIAADwAAABwBAAAeAAACHANqYgpqKZlxiYGCqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//PkZAAAAAGkAAAAAAAAA0gAAAAATEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//PkZAAAAAGkAAAAAAAAA0gAAAAATEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//PkZAAAAAGkAAAAAAAAA0gAAAAATEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq//PkZAAAAAGkAAAAAAAAA0gAAAAATEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqTEFNRTMuMTAwqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqqq");
+        const cameraShutterAudio = new Audio("./camera_shutter.mp3");
         
         function playShutterSound() {
             try {
@@ -3910,7 +3944,7 @@
                             }
                         }
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 모드]
+                        // [쫀득모찌 모드]: 찰반죽 비대칭 당김 (Pinch & Stretch) + 점성 딜레이
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -3920,14 +3954,19 @@
                                 let pdx = p.ox - gNode.ox;
                                 let pdy = p.oy - gNode.oy;
                                 let distSq = pdx * pdx + pdy * pdy;
-                                let weight = Math.exp(-distSq / (150.0 * 150.0));
-                                p.x = p.ox + dragDx * weight * 0.92;
-                                p.y = p.oy + dragDy * weight * 0.92;
+                                // 잡은 부위는 뾰족하게 쭈욱 늘어나고 주변 바탕은 묵직하게 뒤따라오는 찹쌀떡 매커니즘
+                                let weightCenter = Math.exp(-distSq / (80.0 * 80.0)) * 1.35;
+                                let weightBase = Math.exp(-distSq / (180.0 * 180.0)) * 0.65;
+                                let weight = weightCenter + weightBase;
+                                let targetX = p.ox + dragDx * weight;
+                                let targetY = p.oy + dragDy * weight;
+                                p.x += (targetX - p.x) * 0.40;
+                                p.y += (targetY - p.y) * 0.40;
                                 p.lastDx = p.x - p.ox; p.lastDy = p.y - p.oy;
                             }
                         }
                     } else if (currentMode !== 'bubble') {
-                        // [탱글젤리 모드 (기본)]: Gaussian Mesh 당기기 (터치/마우스 100% 당기기 작동)
+                        // [탱글젤리 모드 (기본)]: 경쾌하고 탄력 있는 즉각적 반응성 (High Elasticity Drag)
                         if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                             let gNode = points[grabbedPointIndex];
                             let dragDx = touchX - gNode.ox;
@@ -3940,8 +3979,8 @@
                                 let distSq = pdx * pdx + pdy * pdy;
                                 let weight = Math.exp(-distSq / (140.0 * 140.0));
 
-                                p.x = p.ox + dragDx * weight * 1.15;
-                                p.y = p.oy + dragDy * weight * 1.15;
+                                p.x = p.ox + dragDx * weight * 1.25;
+                                p.y = p.oy + dragDy * weight * 1.25;
 
                                 p.lastDx = p.x - p.ox;
                                 p.lastDy = p.y - p.oy;
@@ -4193,15 +4232,17 @@
                                 }
                             }
                         } else if (releaseTime <= 300) {
-                            let env = Math.exp(-0.8 * tSec);
-                            let wobble = Math.cos(5.2 * tSec) * env;
+                            // [탱글젤리 릴리즈]: 빠르고 경쾌한 고주파 탄성 튕김 (Snap-Back: cos(16.0 * tSec)) + 체적 보정 파동
+                            let env = Math.exp(-0.85 * tSec);
+                            let wobble = Math.cos(16.0 * tSec) * env;
+                            let perpPulse = Math.sin(16.0 * tSec) * env * 0.15;
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
                                 if (p) {
                                     let baseDx = (p.lastDx !== undefined && Math.abs(p.lastDx) > 0.1) ? p.lastDx : (p.x - p.ox);
                                     let baseDy = (p.lastDy !== undefined && Math.abs(p.lastDy) > 0.1) ? p.lastDy : (p.y - p.oy);
-                                    p.x = p.ox + baseDx * wobble;
-                                    p.y = p.oy + baseDy * wobble;
+                                    p.x = p.ox + baseDx * wobble - baseDy * perpPulse;
+                                    p.y = p.oy + baseDy * wobble + baseDx * perpPulse;
                                     p.oldx = p.x;
                                     p.oldy = p.y;
                                 }
@@ -4219,17 +4260,30 @@
                             }
                         }
                     } else if (currentMode === 'mochi') {
-                        // [쫀득모찌 릴리즈]: 아주 느리고 쫀득하게 복원되는 릴리즈 탄성 (속도 감소)
-                        if (releaseTime <= 420) {
-                            let env = Math.exp(-0.45 * tSec);
-                            let wobble = Math.cos(3.6 * tSec) * env;
+                        // [쫀득모찌 릴리즈]: 튀지 않고 끈적하게 천천히 복원 (Slow Viscous Release) + 찹쌀떡 착지 찌그러짐 (Squish Bounce)
+                        if (releaseTime <= 450) {
+                            let viscousEnv = Math.exp(-0.35 * tSec); // 끈적하게 달라붙듯 천천히 돌아오는 비대칭 감쇄
+                            // 복원 중반 착지 찌그러짐 (Squish Landing Effect: 푹 찌그러졌다 천천히 팽창)
+                            let squishPhase = Math.sin(Math.min(Math.PI, tSec * 2.2));
+                            let squishFactor = squishPhase * viscousEnv * 0.20;
+
+                            let centerOx = width * 0.5;
+                            let centerOy = height * 0.48;
+
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
                                 if (p) {
                                     let baseDx = (p.lastDx !== undefined && Math.abs(p.lastDx) > 0.1) ? p.lastDx : (p.x - p.ox);
                                     let baseDy = (p.lastDy !== undefined && Math.abs(p.lastDy) > 0.1) ? p.lastDy : (p.y - p.oy);
-                                    p.x = p.ox + baseDx * wobble;
-                                    p.y = p.oy + baseDy * wobble;
+
+                                    let relOx = p.ox - centerOx;
+                                    let relOy = p.oy - centerOy;
+
+                                    let targetX = p.ox + baseDx * viscousEnv;
+                                    let targetY = p.oy + baseDy * viscousEnv;
+
+                                    p.x = targetX + relOx * squishFactor;
+                                    p.y = targetY - relOy * (squishFactor * 0.75);
                                     p.oldx = p.x;
                                     p.oldy = p.y;
                                 }
@@ -5779,23 +5833,28 @@
                 // ==================================================================
                 logImportDiagnostic("✂️ [STEP 1] 100% 수밀 누끼 가공 (배경 투명화) 시작...");
 
-                // 1-1. Sample Background Color from 4 Canvas Borders
+                // 1-1. Sample Background Color strictly along the drawn image rectangle edges
                 let sampleR = 0, sampleG = 0, sampleB = 0, count = 0;
-                for (let x = 0; x < size; x++) {
-                    let topIdx = x * 4, botIdx = ((size - 1) * size + x) * 4;
-                    sampleR += data[topIdx] + data[botIdx];
-                    sampleG += data[topIdx + 1] + data[botIdx + 1];
-                    sampleB += data[topIdx + 2] + data[botIdx + 2];
-                    count += 2;
+                const startX = Math.max(0, Math.min(size - 1, drawX));
+                const endX = Math.max(0, Math.min(size - 1, drawX + drawW));
+                const startY = Math.max(0, Math.min(size - 1, drawY));
+                const endY = Math.max(0, Math.min(size - 1, drawY + drawH));
+
+                for (let x = startX; x < endX; x++) {
+                    let topIdx = (startY * size + x) * 4;
+                    let botIdx = (Math.min(size - 1, endY - 1) * size + x) * 4;
+                    if (data[topIdx + 3] > 20) { sampleR += data[topIdx]; sampleG += data[topIdx + 1]; sampleB += data[topIdx + 2]; count++; }
+                    if (data[botIdx + 3] > 20) { sampleR += data[botIdx]; sampleG += data[botIdx + 1]; sampleB += data[botIdx + 2]; count++; }
                 }
-                for (let y = 0; y < size; y++) {
-                    let leftIdx = (y * size) * 4, rightIdx = (y * size + size - 1) * 4;
-                    sampleR += data[leftIdx] + data[rightIdx];
-                    sampleG += data[leftIdx + 1] + data[rightIdx + 1];
-                    sampleB += data[leftIdx + 2] + data[rightIdx + 2];
-                    count += 2;
+                for (let y = startY; y < endY; y++) {
+                    let leftIdx = (y * size + startX) * 4;
+                    let rightIdx = (y * size + Math.min(size - 1, endX - 1)) * 4;
+                    if (data[leftIdx + 3] > 20) { sampleR += data[leftIdx]; sampleG += data[leftIdx + 1]; sampleB += data[leftIdx + 2]; count++; }
+                    if (data[rightIdx + 3] > 20) { sampleR += data[rightIdx]; sampleG += data[rightIdx + 1]; sampleB += data[rightIdx + 2]; count++; }
                 }
-                const bgR = sampleR / count, bgG = sampleG / count, bgB = sampleB / count;
+                const bgR = count > 0 ? sampleR / count : 255;
+                const bgG = count > 0 ? sampleG / count : 255;
+                const bgB = count > 0 ? sampleB / count : 255;
                 logImportDiagnostic(`🎨 [배경 감지] 4면 테두리 감지 배경색 RGB: (${Math.round(bgR)}, ${Math.round(bgG)}, ${Math.round(bgB)})`);
 
                 function getBgDist(r, g, b) {
@@ -5807,16 +5866,20 @@
                 for (let i = 0; i < size * size; i++) {
                     let pi = i * 4;
                     let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
+                    if (a <= 20) {
+                        isBarrier[i] = 0; // Transparent padding is NOT a barrier
+                        continue;
+                    }
                     let lum = 0.299 * r + 0.587 * g + 0.114 * b;
                     let bgDist = getBgDist(r, g, b);
 
                     // Barrier if: Dark stroke outline (lum < 110) OR significantly different from background (bgDist > 60)
-                    if (a > 0 && (lum < 110 || bgDist > 60)) {
+                    if (lum < 110 || bgDist > 60) {
                         isBarrier[i] = 1;
                     }
                 }
 
-                // 1-3. Direct Floodfill from 4 Canvas Borders right up to Character Barrier
+                // 1-3. Direct Floodfill from 4 Canvas Borders & Image Rect Borders right up to Character Barrier
                 const outerBg = new Uint8Array(size * size);
                 const queue = [];
                 for (let x = 0; x < size; x++) {
@@ -5829,6 +5892,18 @@
                     if (!isBarrier[left]) queue.push(left);
                     let right = y * size + (size - 1);
                     if (!isBarrier[right]) queue.push(right);
+                }
+                for (let x = startX; x < endX; x++) {
+                    let topImg = startY * size + x;
+                    let botImg = Math.min(size - 1, endY - 1) * size + x;
+                    if (!isBarrier[topImg]) queue.push(topImg);
+                    if (!isBarrier[botImg]) queue.push(botImg);
+                }
+                for (let y = startY; y < endY; y++) {
+                    let leftImg = y * size + startX;
+                    let rightImg = y * size + Math.min(size - 1, endX - 1);
+                    if (!isBarrier[leftImg]) queue.push(leftImg);
+                    if (!isBarrier[rightImg]) queue.push(rightImg);
                 }
 
                 let qHead = 0;
