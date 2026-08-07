@@ -5670,16 +5670,17 @@
         // USER CUSTOM RABBIT CUTOUT (누끼 따기) & LOCAL STORAGE PHONE PERSISTENCE
         // ==========================================================================
                 // ------------------------------------------------------------------
-                // MORPHOLOGICAL CONTENT ENVELOPE (그림 영역과 배경 형태학적 완전 분리 누끼)
+                // SCANLINE SILHOUETTE ENVELOPE (그림 피사체 실루엣 100% 완벽 분리 누끼)
                 // ------------------------------------------------------------------
-                logImportDiagnostic("[누끼 모드] 그림 영역(Content Envelope)과 배경을 형태학적으로 완전 분리 가공");
+                logImportDiagnostic("[누끼 모드] 스캔라인 실루엣 엔벨롭 알고리즘 -> 캐릭터 내부 100% 밀폐 보호 & 배경 분리");
 
-                // Sample background color from the 4 corners of the canvas
+                // 1. Sample Background Color from 4 Canvas Corners
                 let cornerBgR = (data[0] + data[(size-1)*4] + data[(size*(size-1))*4] + data[(size*size-1)*4]) / 4;
                 let cornerBgG = (data[1] + data[(size-1)*4+1] + data[(size*(size-1))*4+1] + data[(size*size-1)*4+1]) / 4;
                 let cornerBgB = (data[2] + data[(size-1)*4+2] + data[(size*(size-1))*4+2] + data[(size*size-1)*4+2]) / 4;
+                let cornerBgLum = 0.299 * cornerBgR + 0.587 * cornerBgG + 0.114 * cornerBgB;
 
-                // 1. Detect Content / Drawing Pixels (All strokes, colors, facial features, details)
+                // 2. Identify Content Pixels (Strokes, Colors, Features, Details)
                 const isContent = new Uint8Array(size * size);
                 for (let i = 0; i < size * size; i++) {
                     let pi = i * 4;
@@ -5688,56 +5689,103 @@
                     let dR = r - cornerBgR, dG = g - cornerBgG, dB = b - cornerBgB;
                     let colorDist = Math.sqrt(dR * dR + dG * dG + dB * dB);
                     let lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                    let maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
+                    let sat = maxC > 0 ? (maxC - minC) / maxC : 0;
 
-                    // Content: Dark lines (lum < 185), vivid colors (colorDist > 20), or details
-                    if (a > 0 && (lum < 185 || colorDist > 20)) {
+                    // Content: Dark strokes (lum < 190), colored features (colorDist > 14 or sat > 0.08), or lum difference
+                    if (a > 0 && (lum < 190 || colorDist > 14 || sat > 0.08 || Math.abs(lum - cornerBgLum) > 18)) {
                         isContent[i] = 1;
                     }
                 }
 
-                // 2. Morphological Dilation (R = 18px) - Bridges open stroke gaps (like cheek-to-hand gap)
-                const R = 18;
-                const tempDilated = new Uint8Array(size * size);
+                // 3. Find Raw MinX / MaxX per Row y
+                const minX = new Int32Array(size).fill(9999);
+                const maxX = new Int32Array(size).fill(-1);
+
                 for (let y = 0; y < size; y++) {
                     let rowOffset = y * size;
                     for (let x = 0; x < size; x++) {
                         if (isContent[rowOffset + x]) {
-                            let minX = Math.max(0, x - R);
-                            let maxX = Math.min(size - 1, x + R);
-                            for (let nx = minX; nx <= maxX; nx++) {
-                                tempDilated[rowOffset + nx] = 1;
-                            }
+                            if (x < minX[y]) minX[y] = x;
+                            if (x > maxX[y]) maxX[y] = x;
                         }
                     }
                 }
 
-                const dilated = new Uint8Array(size * size);
+                // 4. Find Raw MinY / MaxY per Column x
+                const minY = new Int32Array(size).fill(9999);
+                const maxY = new Int32Array(size).fill(-1);
+
                 for (let x = 0; x < size; x++) {
                     for (let y = 0; y < size; y++) {
-                        if (tempDilated[y * size + x]) {
-                            let minY = Math.max(0, y - R);
-                            let maxY = Math.min(size - 1, y + R);
-                            for (let ny = minY; ny <= maxY; ny++) {
-                                dilated[ny * size + x] = 1;
+                        if (isContent[y * size + x]) {
+                            if (y < minY[x]) minY[x] = y;
+                            if (y > maxY[x]) maxY[x] = y;
+                        }
+                    }
+                }
+
+                // 5. Smooth Bounds with Window Radius (W = 20px) to bridge any gaps on outer contour
+                const W = 20;
+                const minX_smooth = new Int32Array(size);
+                const maxX_smooth = new Int32Array(size);
+                const minY_smooth = new Int32Array(size);
+                const maxY_smooth = new Int32Array(size);
+
+                for (let y = 0; y < size; y++) {
+                    let minVal = 9999, maxVal = -1;
+                    let startY = Math.max(0, y - W), endY = Math.min(size - 1, y + W);
+                    for (let k = startY; k <= endY; k++) {
+                        if (minX[k] < minVal) minVal = minX[k];
+                        if (maxX[k] > maxVal) maxVal = maxX[k];
+                    }
+                    minX_smooth[y] = minVal;
+                    maxX_smooth[y] = maxVal;
+                }
+
+                for (let x = 0; x < size; x++) {
+                    let minVal = 9999, maxVal = -1;
+                    let startX = Math.max(0, x - W), endX = Math.min(size - 1, x + W);
+                    for (let k = startX; k <= endX; k++) {
+                        if (minY[k] < minVal) minVal = minY[k];
+                        if (maxY[k] > maxVal) maxVal = maxY[k];
+                    }
+                    minY_smooth[x] = minVal;
+                    maxY_smooth[x] = maxVal;
+                }
+
+                // 6. Build Solid Subject Envelope Mask
+                const subjectMask = new Uint8Array(size * size);
+                for (let y = 0; y < size; y++) {
+                    let rowOffset = y * size;
+                    let leftB = minX_smooth[y];
+                    let rightB = maxX_smooth[y];
+
+                    if (leftB <= rightB) {
+                        for (let x = leftB; x <= rightB; x++) {
+                            let topB = minY_smooth[x];
+                            let botB = maxY_smooth[x];
+                            if (y >= topB && y <= botB) {
+                                subjectMask[rowOffset + x] = 1;
                             }
                         }
                     }
                 }
 
-                // 3. Flood Fill Outer Background on the Dilated Envelope
+                // 7. Flood fill pure outer background around subjectMask from canvas corners
                 const outerBg = new Uint8Array(size * size);
                 const queue = [];
 
                 for (let x = 0; x < size; x++) {
-                    if (!dilated[x]) queue.push(x);
+                    if (!subjectMask[x]) queue.push(x);
                     let bot = (size - 1) * size + x;
-                    if (!dilated[bot]) queue.push(bot);
+                    if (!subjectMask[bot]) queue.push(bot);
                 }
                 for (let y = 0; y < size; y++) {
                     let left = y * size;
-                    if (!dilated[left]) queue.push(left);
+                    if (!subjectMask[left]) queue.push(left);
                     let right = y * size + (size - 1);
-                    if (!dilated[right]) queue.push(right);
+                    if (!subjectMask[right]) queue.push(right);
                 }
 
                 let qHead = 0;
@@ -5749,63 +5797,20 @@
                     let px = idx % size;
                     let py = Math.floor(idx / size);
 
-                    if (px > 0 && !dilated[idx - 1] && !outerBg[idx - 1]) queue.push(idx - 1);
-                    if (px < size - 1 && !dilated[idx + 1] && !outerBg[idx + 1]) queue.push(idx + 1);
-                    if (py > 0 && !dilated[idx - size] && !outerBg[idx - size]) queue.push(idx - size);
-                    if (py < size - 1 && !dilated[idx + size] && !outerBg[idx + size]) queue.push(idx + size);
+                    if (px > 0 && !subjectMask[idx - 1] && !outerBg[idx - 1]) queue.push(idx - 1);
+                    if (px < size - 1 && !subjectMask[idx + 1] && !outerBg[idx + 1]) queue.push(idx + 1);
+                    if (py > 0 && !subjectMask[idx - size] && !outerBg[idx - size]) queue.push(idx - size);
+                    if (py < size - 1 && !subjectMask[idx + size] && !outerBg[idx + size]) queue.push(idx + size);
                 }
 
-                // 4. Solid Character Hull (Zero Holes Inside!)
-                const solidHull = new Uint8Array(size * size);
+                // 8. Apply Final Alpha Cutout
                 for (let i = 0; i < size * size; i++) {
-                    if (!outerBg[i]) solidHull[i] = 1;
-                }
-
-                // 5. Morphological Erosion back by R = 18px to match exact outer contour
-                const tempEroded = new Uint8Array(size * size);
-                for (let y = 0; y < size; y++) {
-                    let rowOffset = y * size;
-                    for (let x = 0; x < size; x++) {
-                        let isSolid = true;
-                        let minX = Math.max(0, x - R);
-                        let maxX = Math.min(size - 1, x + R);
-                        for (let nx = minX; nx <= maxX; nx++) {
-                            if (!solidHull[rowOffset + nx]) {
-                                isSolid = false;
-                                break;
-                            }
-                        }
-                        if (isSolid) tempEroded[rowOffset + x] = 1;
-                    }
-                }
-
-                const subjectMask = new Uint8Array(size * size);
-                for (let x = 0; x < size; x++) {
-                    for (let y = 0; y < size; y++) {
-                        let isSolid = true;
-                        let minY = Math.max(0, y - R);
-                        let maxY = Math.min(size - 1, y + R);
-                        for (let ny = minY; ny <= maxY; ny++) {
-                            if (!tempEroded[ny * size + x]) {
-                                isSolid = false;
-                                break;
-                            }
-                        }
-                        if (isSolid) subjectMask[y * size + x] = 1;
-                    }
-                }
-
-                // 6. Apply Final Cutout to Image Data with Smooth Edge Alpha
-                for (let y = 0; y < size; y++) {
-                    for (let x = 0; x < size; x++) {
-                        let idx = y * size + x;
-                        let pi = idx * 4;
-                        if (!subjectMask[idx]) {
-                            // Pure Outer Background -> Transparent
-                            data[pi + 3] = 0;
-                        } else {
-                            // Drawing / Character Area -> Keep 100% solid & opaque!
-                        }
+                    let pi = i * 4;
+                    if (outerBg[i]) {
+                        data[pi + 3] = 0; // Outer background transparent!
+                    } else {
+                        // Inside character envelope -> 100% Solid & Opaque!
+                        // White face, white belly, and open stroke gaps are 100% preserved!
                     }
                 }
 
