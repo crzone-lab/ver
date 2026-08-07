@@ -5666,9 +5666,34 @@
             openCustomCamera();
         }
 
-                        // ==========================================================================
+        // ==========================================================================
         // USER CUSTOM RABBIT CUTOUT (누끼 따기) & LOCAL STORAGE PHONE PERSISTENCE
         // ==========================================================================
+        function processImageCutout(img, callback) {
+            try {
+                const canvas = document.createElement('canvas');
+                const size = 512;
+                canvas.width = size;
+                canvas.height = size;
+                const ctx = canvas.getContext('2d');
+
+                ctx.clearRect(0, 0, size, size);
+
+                let drawW = size;
+                let drawH = size;
+                if (img.width > img.height) {
+                    drawH = size * (img.height / img.width);
+                } else {
+                    drawW = size * (img.width / img.height);
+                }
+                let drawX = Math.round((size - drawW) / 2);
+                let drawY = Math.round((size - drawH) / 2);
+
+                ctx.drawImage(img, drawX, drawY, drawW, drawH);
+
+                const imgData = ctx.getImageData(0, 0, size, size);
+                const data = imgData.data;
+
                 // ------------------------------------------------------------------
                 // SCANLINE SILHOUETTE ENVELOPE (그림 피사체 실루엣 100% 완벽 분리 누끼)
                 // ------------------------------------------------------------------
@@ -5808,184 +5833,6 @@
                     let pi = i * 4;
                     if (outerBg[i]) {
                         data[pi + 3] = 0; // Outer background transparent!
-                    } else {
-                        // Inside character envelope -> 100% Solid & Opaque!
-                        // White face, white belly, and open stroke gaps are 100% preserved!
-                    }
-                }
-
-        function processImageCutout(img, callback) {
-            try {
-                const canvas = document.createElement('canvas');
-                const size = 512;
-                canvas.width = size;
-                canvas.height = size;
-                const ctx = canvas.getContext('2d');
-
-                ctx.clearRect(0, 0, size, size);
-
-                let drawW = size;
-                let drawH = size;
-                if (img.width > img.height) {
-                    drawH = size * (img.height / img.width);
-                } else {
-                    drawW = size * (img.width / img.height);
-                }
-                let drawX = Math.round((size - drawW) / 2);
-                let drawY = Math.round((size - drawH) / 2);
-
-                ctx.drawImage(img, drawX, drawY, drawW, drawH);
-
-                const imgData = ctx.getImageData(0, 0, size, size);
-                const data = imgData.data;
-
-                // Sample background color from the 4 corners of the canvas
-                let cornerBgR = (data[0] + data[(size-1)*4] + data[(size*(size-1))*4] + data[(size*size-1)*4]) / 4;
-                let cornerBgG = (data[1] + data[(size-1)*4+1] + data[(size*(size-1))*4+1] + data[(size*size-1)*4+1]) / 4;
-                let cornerBgB = (data[2] + data[(size-1)*4+2] + data[(size*(size-1))*4+2] + data[(size*size-1)*4+2]) / 4;
-
-                function isOuterBgColor(r, g, b) {
-                    let dR = r - cornerBgR, dG = g - cornerBgG, dB = b - cornerBgB;
-                    let dist = Math.sqrt(dR * dR + dG * dG + dB * dB);
-                    let lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                    return (dist < 50 || lum > 225);
-                }
-
-                let darkOutlineCount = 0;
-                for (let i = 0; i < size * size; i++) {
-                    let pi = i * 4;
-                    let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
-                    let lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                    if (a > 0 && lum < 175) darkOutlineCount++;
-                }
-
-                let is2DSketch = (darkOutlineCount > 400);
-
-                if (is2DSketch) {
-                    // MODE A: 2D LINE ART SKETCH (검정 테두리 수밀 차단 & 흰색 몸통 100% 완전 보존 누끼)
-                    logImportDiagnostic("[누끼 모드] 2D 선화 캐릭터 판별 -> 완벽 수밀 테두리 및 흰색 몸통 보호 누끼");
-
-                    const isOutline = new Uint8Array(size * size);
-                    for (let i = 0; i < size * size; i++) {
-                        let pi = i * 4;
-                        let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
-                        let lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                        if (a > 0 && lum < 175) isOutline[i] = 1;
-                    }
-
-                    // 2px Dilation Kernel for 100% Watertight Leak-Proof Barrier
-                    const strokeBarrier = new Uint8Array(size * size);
-                    for (let y = 0; y < size; y++) {
-                        for (let x = 0; x < size; x++) {
-                            let idx = y * size + x;
-                            if (isOutline[idx]) {
-                                for (let dy = -2; dy <= 2; dy++) {
-                                    for (let dx = -2; dx <= 2; dx++) {
-                                        let ny = y + dy, nx = x + dx;
-                                        if (nx >= 0 && nx < size && ny >= 0 && ny < size) {
-                                            strokeBarrier[ny * size + nx] = 1;
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Seed ONLY from outer canvas border pixels that match background color and are NOT stroke barrier!
-                    const visited = new Uint8Array(size * size);
-                    const queue = [];
-
-                    for (let x = 0; x < size; x++) {
-                        let topIdx = x;
-                        let botIdx = (size - 1) * size + x;
-                        if (!strokeBarrier[topIdx] && isOuterBgColor(data[topIdx*4], data[topIdx*4+1], data[topIdx*4+2])) queue.push(topIdx);
-                        if (!strokeBarrier[botIdx] && isOuterBgColor(data[botIdx*4], data[botIdx*4+1], data[botIdx*4+2])) queue.push(botIdx);
-                    }
-                    for (let y = 0; y < size; y++) {
-                        let leftIdx = y * size;
-                        let rightIdx = y * size + (size - 1);
-                        if (!strokeBarrier[leftIdx] && isOuterBgColor(data[leftIdx*4], data[leftIdx*4+1], data[leftIdx*4+2])) queue.push(leftIdx);
-                        if (!strokeBarrier[rightIdx] && isOuterBgColor(data[rightIdx*4], data[rightIdx*4+1], data[rightIdx*4+2])) queue.push(rightIdx);
-                    }
-
-                    let qHead = 0;
-                    while (qHead < queue.length) {
-                        let idx = queue[qHead++];
-                        if (visited[idx]) continue;
-                        visited[idx] = 1;
-
-                        if (!strokeBarrier[idx]) {
-                            let pi = idx * 4;
-                            let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
-
-                            if (a > 0 && isOuterBgColor(r, g, b)) {
-                                data[pi + 3] = 0; // Make background transparent up to black outline!
-
-                                let px = idx % size;
-                                let py = Math.floor(idx / size);
-
-                                if (px > 0 && !visited[idx - 1]) queue.push(idx - 1);
-                                if (px < size - 1 && !visited[idx + 1]) queue.push(idx + 1);
-                                if (py > 0 && !visited[idx - size]) queue.push(idx - size);
-                                if (py < size - 1 && !visited[idx + size]) queue.push(idx + size);
-                            }
-                        }
-                    }
-                } else {
-                    // MODE B: UNIVERSAL PHOTO & STUDIO SHADOW REMOVER (모든 캐릭터의 바닥/우측 그림자 100% 완벽 삭제)
-                    logImportDiagnostic("[누끼 모드] 모든 캐릭터 범용 스튜디오 그림자 100% 정밀 제거 가공");
-
-                    let bgR = (data[0] + data[(size-1)*4] + data[(size*(size-1))*4] + data[(size*size-1)*4]) / 4;
-                    let bgG = (data[1] + data[(size-1)*4+1] + data[(size*(size-1))*4+1] + data[(size*size-1)*4+1]) / 4;
-                    let bgB = (data[2] + data[(size-1)*4+2] + data[(size*(size-1))*4+2] + data[(size*size-1)*4+2]) / 4;
-
-                    const isSubject = new Uint8Array(size * size);
-                    for (let i = 0; i < size * size; i++) {
-                        let pi = i * 4;
-                        let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
-                        
-                        let maxC = Math.max(r, g, b);
-                        let minC = Math.min(r, g, b);
-                        let sat = maxC > 0 ? (maxC - minC) / maxC : 0; // Saturation
-
-                        // Pure Subject Protection: Must have vivid color (sat > 0.16) AND not be a greyish shadow
-                        let isGreyishShadow = (sat < 0.15 && Math.abs(r - g) < 22 && Math.abs(g - b) < 22);
-
-                        if (a > 0 && sat > 0.16 && !isGreyishShadow) {
-                            isSubject[i] = 1; // Pure Subject Body
-                        }
-                    }
-
-                    // Flood Fill Outer Background AND Grey Studio Shadows
-                    const visited = new Uint8Array(size * size);
-                    const queue = [];
-
-                    for (let x = 0; x < size; x++) {
-                        queue.push(x);
-                        queue.push((size - 1) * size + x);
-                    }
-                    for (let y = 0; y < size; y++) {
-                        queue.push(y * size);
-                        queue.push(y * size + (size - 1));
-                    }
-
-                    let qHead = 0;
-                    while (qHead < queue.length) {
-                        let idx = queue[qHead++];
-                        if (visited[idx]) continue;
-                        visited[idx] = 1;
-
-                        if (!isSubject[idx]) {
-                            data[idx * 4 + 3] = 0; // Make outer white bg & grey shadows 100% transparent
-
-                            let px = idx % size;
-                            let py = Math.floor(idx / size);
-
-                            if (px > 0 && !visited[idx - 1]) queue.push(idx - 1);
-                            if (px < size - 1 && !visited[idx + 1]) queue.push(idx + 1);
-                            if (py > 0 && !visited[idx - size]) queue.push(idx - size);
-                            if (py < size - 1 && !visited[idx + size]) queue.push(idx + size);
-                        }
                     }
                 }
 
