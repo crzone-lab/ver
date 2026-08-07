@@ -5782,20 +5782,20 @@
                 let is2DSketch = (darkOutlineCount > 600);
 
                 if (is2DSketch) {
-                    // MODE A: 2D LINE ART SKETCH (레몬 토끼 등 선화 그림)
-                    logImportDiagnostic("[누끼 모드] 2D 선화 그림 판별 -> 외각선 차단 누끼 가공");
+                    // MODE A: 2D LINE ART SKETCH (검정 테두리 캐릭터 정밀 외각선 추적 누끼)
+                    logImportDiagnostic("[누끼 모드] 2D 선화 캐릭터 판별 -> 검정 테두리 추적 플러드필 가공");
 
                     const isOutline = new Uint8Array(size * size);
                     for (let i = 0; i < size * size; i++) {
                         let pi = i * 4;
                         let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
                         let lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                        if (a > 0 && lum < 165) isOutline[i] = 1;
+                        if (a > 0 && lum < 160) isOutline[i] = 1;
                     }
 
                     const strokeBarrier = new Uint8Array(size * size);
-                    for (let y = 2; y < size - 2; y++) {
-                        for (let x = 2; x < size - 2; x++) {
+                    for (let y = 1; y < size - 1; y++) {
+                        for (let x = 1; x < size - 1; x++) {
                             let idx = y * size + x;
                             if (isOutline[idx] || isOutline[idx-1] || isOutline[idx+1] || isOutline[idx-size] || isOutline[idx+size]) {
                                 strokeBarrier[idx] = 1;
@@ -5803,26 +5803,40 @@
                         }
                     }
 
+                    // Flood fill strictly from canvas outer boundaries up to strokeBarrier (ZERO vertical face lines!)
+                    const visited = new Uint8Array(size * size);
+                    const queue = [];
+
+                    for (let x = 0; x < size; x++) {
+                        queue.push(x);
+                        queue.push((size - 1) * size + x);
+                    }
                     for (let y = 0; y < size; y++) {
-                        for (let x = 0; x < size; x++) {
-                            let idx = y * size + x;
+                        queue.push(y * size);
+                        queue.push(y * size + (size - 1));
+                    }
+
+                    let qHead = 0;
+                    while (qHead < queue.length) {
+                        let idx = queue[qHead++];
+                        if (visited[idx]) continue;
+                        visited[idx] = 1;
+
+                        if (!strokeBarrier[idx]) {
                             let pi = idx * 4;
                             let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
                             let lum = 0.299 * r + 0.587 * g + 0.114 * b;
 
-                            if (a > 0 && lum > 185 && !strokeBarrier[idx]) {
-                                let reachLeft = true;
-                                for (let rx = x; rx >= 0; rx--) { if (strokeBarrier[y * size + rx]) { reachLeft = false; break; } }
-                                let reachRight = true;
-                                for (let rx = x; rx < size; rx++) { if (strokeBarrier[y * size + rx]) { reachRight = false; break; } }
-                                let reachTop = true;
-                                for (let ry = y; ry >= 0; ry--) { if (strokeBarrier[ry * size + x]) { reachTop = false; break; } }
-                                let reachBottom = true;
-                                for (let ry = y; ry < size; ry++) { if (strokeBarrier[ry * size + x]) { reachBottom = false; break; } }
+                            if (a > 0 && lum > 170) {
+                                data[pi + 3] = 0; // Make background transparent up to black outline!
 
-                                if (reachLeft || reachRight || reachTop || reachBottom) {
-                                    data[pi + 3] = 0;
-                                }
+                                let px = idx % size;
+                                let py = Math.floor(idx / size);
+
+                                if (px > 0 && !visited[idx - 1]) queue.push(idx - 1);
+                                if (px < size - 1 && !visited[idx + 1]) queue.push(idx + 1);
+                                if (py > 0 && !visited[idx - size]) queue.push(idx - size);
+                                if (py < size - 1 && !visited[idx + size]) queue.push(idx + size);
                             }
                         }
                     }
@@ -5899,7 +5913,7 @@
         }
 
         // ==========================================================================
-        // METHOD B: 3D LENS REFRACTION + GLOSSY SPECULAR WATER-DROPLET TRANSFORM
+        // METHOD B: 3D GLOSSY SPECULAR WATER-DROPLET TRANSFORM
         // (업로드 이미지를 올려주신 3D 입체 투명 물방울 젤리 텍스처로 자동 변환)
         // ==========================================================================
         function applyMethodBJellyTransform(canvas, size) {
@@ -5942,52 +5956,7 @@
                     origAlpha[i] = data[i * 4 + 3];
                 }
 
-                // 2. Perform 3D Spherical Refraction / Lens Distortion
-                const srcCanvas = document.createElement('canvas');
-                srcCanvas.width = size;
-                srcCanvas.height = size;
-                const srcCtx = srcCanvas.getContext('2d');
-                srcCtx.drawImage(canvas, 0, 0);
-                const srcData = srcCtx.getImageData(0, 0, size, size).data;
-
-                const refrData = ctx.createImageData(size, size);
-                const refPixels = refrData.data;
-
-                for (let y = 0; y < size; y++) {
-                    for (let x = 0; x < size; x++) {
-                        let idx = (y * size + x) * 4;
-                        let pIdx = y * size + x;
-                        let a = origAlpha[pIdx];
-                        if (a < 10) continue; // Skip transparent background completely!
-
-                        let dx = (x - cx) / (maxR || 1);
-                        let dy = (y - cy) / (maxR || 1);
-                        let rSq = dx * dx + dy * dy;
-
-                        if (rSq < 1.4) {
-                            let factor = 1.0 - 0.18 * (1.0 - Math.min(1.0, rSq));
-                            let srcX = Math.round(cx + dx * factor * maxR);
-                            let srcY = Math.round(cy + dy * factor * maxR);
-
-                            srcX = Math.max(0, Math.min(size - 1, srcX));
-                            srcY = Math.max(0, Math.min(size - 1, srcY));
-
-                            let srcIdx = (srcY * size + srcX) * 4;
-                            refPixels[idx] = srcData[srcIdx];
-                            refPixels[idx + 1] = srcData[srcIdx + 1];
-                            refPixels[idx + 2] = srcData[srcIdx + 2];
-                            refPixels[idx + 3] = a; // Maintain exact original alpha!
-                        } else {
-                            refPixels[idx] = srcData[idx];
-                            refPixels[idx + 1] = srcData[idx + 1];
-                            refPixels[idx + 2] = srcData[idx + 2];
-                            refPixels[idx + 3] = a;
-                        }
-                    }
-                }
-                ctx.putImageData(refrData, 0, 0);
-
-                // 3. Apply 3D Glassy Shading ONLY ON TOP OF SUBJECT (source-atop)
+                // 2. Apply 3D Glassy Shading ONLY ON TOP OF SUBJECT (source-atop)
                 ctx.save();
                 ctx.globalCompositeMode = 'source-atop'; // STRICT: Draw ONLY on non-transparent character pixels!
 
@@ -5995,8 +5964,8 @@
                 let shadowGrad = ctx.createRadialGradient(cx, cy, maxR * 0.2, cx, cy, maxR * 1.0);
                 shadowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
                 shadowGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.0)');
-                shadowGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.18)');
-                shadowGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.45)');
+                shadowGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.16)');
+                shadowGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.42)');
 
                 ctx.fillStyle = shadowGrad;
                 ctx.fillRect(0, 0, size, size);
@@ -6033,7 +6002,7 @@
 
                 ctx.restore(); // Restore globalCompositeMode to default
 
-                // 4. Final Safety Pass: Restore original alpha strictly per pixel
+                // 3. Final Safety Pass: Restore original alpha strictly per pixel
                 const finalData = ctx.getImageData(0, 0, size, size);
                 const finalPixels = finalData.data;
                 for (let i = 0; i < size * size; i++) {
@@ -6043,7 +6012,7 @@
                 }
                 ctx.putImageData(finalData, 0, 0);
 
-                logImportDiagnostic("✨ [방법 B] 사각형 박스 완전 제거 & 3D 젤리 렌즈 오버레이 완성!");
+                logImportDiagnostic("✨ [방법 B] 사각형 박스 & 얼굴 세로줄 100% 제거 완료!");
             } catch (err) {
                 console.error("Failed to apply Method B Jelly effect:", err);
             }
