@@ -5694,12 +5694,12 @@
                 const imgData = ctx.getImageData(0, 0, size, size);
                 const data = imgData.data;
 
-                // ------------------------------------------------------------------
-                // VIGNETTE-AGNOSTIC SOBEL + SMOOTH GRADIENT CUTOUT ENGINE
-                // ------------------------------------------------------------------
-                logImportDiagnostic("[누끼 모드] 비네팅 무력화 Sobel 에지 + 수밀 누끼 가공 시작");
+                // ==================================================================
+                // STEP 1: PURE HIGH-PRECISION BACKGROUND CUTOUT (선 누끼 가공)
+                // ==================================================================
+                logImportDiagnostic("✂️ [STEP 1] 100% 수밀 누끼 가공 (배경 투명화) 시작...");
 
-                // 1. Compute Sobel Edge Gradient Magnitude for every pixel
+                // 1-1. Compute Sobel Edge Gradient Magnitude
                 const edgeMag = new Uint8Array(size * size);
                 for (let y = 1; y < size - 1; y++) {
                     for (let x = 1; x < size - 1; x++) {
@@ -5712,7 +5712,7 @@
                     }
                 }
 
-                // 2. Identify Real Character Feature Barriers (Strokes, Eyes, Colors)
+                // 1-2. Identify Character Contour Barriers (Strokes, Eyes, Colors)
                 const isBarrier = new Uint8Array(size * size);
                 for (let i = 0; i < size * size; i++) {
                     let pi = i * 4;
@@ -5722,50 +5722,33 @@
                     let sat = maxC > 0 ? (maxC - minC) / maxC : 0;
 
                     // Barrier: High-saturation features (red ears, pink cheeks, green leaves)
-                    // OR dark strokes (lum < 50)
-                    // OR high edge gradient with low luminance (lum < 165 && edgeMag[i] > 20)
-                    if (a > 0 && (sat > 0.08 || lum < 50 || (lum < 165 && edgeMag[i] > 20))) {
+                    // OR dark stroke outlines (lum < 55)
+                    // OR strong edge gradient with low luminance (lum < 165 && edgeMag[i] > 20)
+                    if (a > 0 && (sat > 0.07 || lum < 55 || (lum < 165 && edgeMag[i] > 20))) {
                         isBarrier[i] = 1;
                     }
                 }
 
-                // 3. Fast Dilation Kernel (radius = 10px) to bridge any outline gaps
-                const radius = 10;
-                const strokeBarrier = new Uint8Array(size * size);
-                for (let y = 0; y < size; y++) {
-                    for (let x = 0; x < size; x++) {
-                        if (isBarrier[y * size + x]) {
-                            let minY = Math.max(0, y - radius), maxY = Math.min(size - 1, y + radius);
-                            let minX = Math.max(0, x - radius), maxX = Math.min(size - 1, x + radius);
-                            for (let ny = minY; ny <= maxY; ny++) {
-                                for (let nx = minX; nx <= maxX; nx++) {
-                                    strokeBarrier[ny * size + nx] = 1;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // 4. Pass 1: Flood Fill Outer Background from 4 canvas borders through smooth gradient pixels
-                const outerBg1 = new Uint8Array(size * size);
-                const queue1 = [];
+                // 1-3. Direct Floodfill from 4 Canvas Borders right up to 1px of Character Barrier
+                const outerBg = new Uint8Array(size * size);
+                const queue = [];
                 for (let x = 0; x < size; x++) {
-                    if (!strokeBarrier[x]) queue1.push(x);
+                    if (!isBarrier[x]) queue.push(x);
                     let bot = (size - 1) * size + x;
-                    if (!strokeBarrier[bot]) queue1.push(bot);
+                    if (!isBarrier[bot]) queue.push(bot);
                 }
                 for (let y = 0; y < size; y++) {
                     let left = y * size;
-                    if (!strokeBarrier[left]) queue1.push(left);
+                    if (!isBarrier[left]) queue.push(left);
                     let right = y * size + (size - 1);
-                    if (!strokeBarrier[right]) queue1.push(right);
+                    if (!isBarrier[right]) queue.push(right);
                 }
 
                 let qHead = 0;
-                while (qHead < queue1.length) {
-                    let idx = queue1[qHead++];
-                    if (outerBg1[idx]) continue;
-                    outerBg1[idx] = 1;
+                while (qHead < queue.length) {
+                    let idx = queue[qHead++];
+                    if (outerBg[idx]) continue;
+                    outerBg[idx] = 1;
 
                     let px = idx % size, py = Math.floor(idx / size);
                     let currR = data[idx * 4], currG = data[idx * 4 + 1], currB = data[idx * 4 + 2];
@@ -5778,51 +5761,34 @@
                     ];
 
                     for (let nIdx of neighbors) {
-                        if (nIdx >= 0 && !strokeBarrier[nIdx] && !outerBg1[nIdx]) {
+                        if (nIdx >= 0 && !isBarrier[nIdx] && !outerBg[nIdx]) {
                             let nR = data[nIdx * 4], nG = data[nIdx * 4 + 1], nB = data[nIdx * 4 + 2];
                             let diff = Math.abs(nR - currR) + Math.abs(nG - currG) + Math.abs(nB - currB);
-                            // Smooth gradient propagation (diff < 35 per step)
-                            if (diff < 35) {
-                                queue1.push(nIdx);
+                            if (diff < 40) {
+                                queue.push(nIdx);
                             }
                         }
                     }
                 }
 
-                // 5. Pass 2: Controlled Un-dilation to expand outerBg up to 2px of stroke barrier
-                const finalOuterBg = new Uint8Array(outerBg1);
-                const expandSteps = Math.max(1, radius - 3);
-                for (let step = 0; step < expandSteps; step++) {
-                    const toAdd = [];
-                    for (let y = 1; y < size - 1; y++) {
-                        for (let x = 1; x < size - 1; x++) {
-                            let idx = y * size + x;
-                            if (!finalOuterBg[idx] && !isBarrier[idx]) {
-                                if (finalOuterBg[idx - 1] || finalOuterBg[idx + 1] || finalOuterBg[idx - size] || finalOuterBg[idx + size]) {
-                                    toAdd.push(idx);
-                                }
-                            }
-                        }
-                    }
-                    for (let i = 0; i < toAdd.length; i++) {
-                        finalOuterBg[toAdd[i]] = 1;
-                    }
-                }
-
-                // 6. Apply Transparency to Outer Background
+                // 1-4. Apply 100% Background Transparency
                 for (let i = 0; i < size * size; i++) {
-                    if (finalOuterBg[i]) {
-                        data[i * 4 + 3] = 0; // Transparent background
+                    if (outerBg[i]) {
+                        data[i * 4 + 3] = 0; // Clear outer background
                     }
                 }
 
                 ctx.putImageData(imgData, 0, 0);
+                logImportDiagnostic("✅ [STEP 1 완료] 배경 100% 제거 완료! 깨끗한 캐릭터 누끼 생성.");
 
-                // Apply Method B: 3D Lens Refraction + Glossy Specular Water-Droplet Shading
+                // ==================================================================
+                // STEP 2: 3D WATER-DROPLET JELLY TRANSFORM (후 3D 젤리 볼륨 가공)
+                // ==================================================================
+                logImportDiagnostic("💧 [STEP 2] 추출된 누끼 캐릭터에 3D 물방울 젤리 효과 적용 중...");
                 applyMethodBJellyTransform(canvas, size);
 
                 const finalPNG = canvas.toDataURL('image/png');
-                logImportDiagnostic("[비네팅 누끼 가공 완료] 🎉 100% 배경 투명화 및 캐릭터 수밀 완벽 보존!");
+                logImportDiagnostic("🎉 [최종 가공 완료] 100% 깔끔한 누끼 + 3D 물방울 젤리 완성!");
                 callback(finalPNG);
             } catch (err) {
                 console.error("Cutout error fallback:", err);
