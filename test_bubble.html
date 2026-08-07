@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🫧 Multi-Bubble Slime Swell & Main Pop Engine</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #07080a; color: #fff; font-family: sans-serif; overflow: hidden; width: 100vw; height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; touch-action: none; user-select: none; }
+        #canvas { width: 100vw; height: 100dvh; display: block; }
+        .info-panel { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.85); color: #ec4899; font-size: 14px; padding: 10px 20px; border-radius: 20px; border: 1px solid rgba(236,72,153,0.3); z-index: 100; pointer-events: none; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="info-panel">🎯 3~4개 연쇄 부풀어 오름 완성: 서로 다른 크기 팽창 -> 제일 큰 메인 방울 팡! 폭발</div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const rows = 35, cols = 35;
+        let points = [];
+        let isTouching = false;
+        let touchX = 0, touchY = 0;
+
+        let controlPoints = [];
+        let activeRBFs = [];
+        let largeShards = [];
+        let nextCycleTimer = 0;
+
+        let audioCtx = null;
+
+        function initAudio() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
+            }
+        }
+
+        // 🔊 1. 누를 때: 부풀어 오르는 고무 피치 상승 사운드
+        function playInflateTone(progressRatio) {
+            if (!audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                let startFreq = 200 + progressRatio * 350;
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(startFreq + 50, now + 0.08);
+
+                gain.gain.setValueAtTime(0.06, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } catch (e) {}
+        }
+
+        // 💥 2. 터질 때: 대형 고무 풍선 폭발 사운드 (팡!)
+        function playLoudBalloonPopSound() {
+            if (!audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+
+                let subOsc = audioCtx.createOscillator();
+                let subGain = audioCtx.createGain();
+                subOsc.type = 'triangle';
+                subOsc.frequency.setValueAtTime(170, now);
+                subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.22);
+                subGain.gain.setValueAtTime(0.70, now);
+                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+                subOsc.connect(subGain);
+                subGain.connect(audioCtx.destination);
+                subOsc.start(now);
+                subOsc.stop(now + 0.22);
+
+                let snapOsc = audioCtx.createOscillator();
+                let snapGain = audioCtx.createGain();
+                snapOsc.type = 'sawtooth';
+                snapOsc.frequency.setValueAtTime(920, now);
+                snapOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
+                snapGain.gain.setValueAtTime(0.50, now);
+                snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                snapOsc.connect(snapGain);
+                snapGain.connect(audioCtx.destination);
+                snapOsc.start(now);
+                snapOsc.stop(now + 0.12);
+
+                let bufferSize = audioCtx.sampleRate * 0.16;
+                let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                let data = buffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1;
+                }
+
+                let noise = audioCtx.createBufferSource();
+                noise.buffer = buffer;
+
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'highpass';
+                filter.frequency.setValueAtTime(800, now);
+
+                let noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.55, now);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+
+                noise.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+
+                noise.start(now);
+            } catch (e) {}
+        }
+
+        // 📳 3. 햅틱 진동 피드백
+        function triggerHaptic(type) {
+            if (navigator.vibrate) {
+                if (type === 'inflate') {
+                    navigator.vibrate(10);
+                } else if (type === 'pop') {
+                    navigator.vibrate([40, 50, 80]);
+                }
+            }
+        }
+
+        const rabbitImg = new Image();
+        rabbitImg.src = 'strawberry_rabbit_jelly.png';
+        let imgLoaded = false;
+        rabbitImg.onload = () => { imgLoaded = true; };
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initMesh();
+        });
+
+        function initMesh() {
+            points = [];
+            controlPoints = [];
+
+            let centerX = width / 2;
+            let centerY = height / 2;
+            let size = Math.min(width, height) * 0.52;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    let u = c / (cols - 1);
+                    let v = r / (rows - 1);
+                    let ox = centerX + (u - 0.5) * size;
+                    let oy = centerY + (v - 0.5) * size;
+                    let distFromCenter = Math.hypot(ox - centerX, oy - centerY);
+                    let normDist = distFromCenter / (size * 0.5);
+
+                    let isOuterBoundary = (r <= 1 || r >= rows - 2 || c <= 1 || c >= cols - 2 || normDist >= 0.62);
+
+                    points.push({
+                        x: ox, y: oy,
+                        ox: ox, oy: oy,
+                        u: u, v: v,
+                        oldx: ox, oldy: oy,
+                        isInsideBody: normDist <= 0.95,
+                        isOuterBoundary: isOuterBoundary
+                    });
+                }
+            }
+
+            for (let i = 0; i < points.length; i += 10) {
+                let p = points[i];
+                if (p.isInsideBody && !p.isOuterBoundary) {
+                    controlPoints.push({ x: p.ox, y: p.oy, index: i });
+                }
+            }
+        }
+
+        // 🎯 [핵심] 3~4개 서로 다른 크기(대·중·소·미니) 방울이 연쇄 부풀고 가장 큰 메인 방울만 팡!
+        function activateNearbyControlPoints(clickX, clickY) {
+            activeRBFs = [];
+            nextCycleTimer = 0;
+
+            let candidates = controlPoints.filter(cp => Math.hypot(cp.x - clickX, cp.y - clickY) < 140.0);
+            if (candidates.length === 0) candidates = controlPoints;
+
+            let shuffled = [...candidates].sort(() => Math.random() - 0.5).slice(0, 4);
+            let targetSizes = [72.0, 50.0, 32.0, 22.0]; // 🎯 대·중·소·미니 차별화 크기!
+
+            for (let i = 0; i < shuffled.length; i++) {
+                let cp = shuffled[i];
+                activeRBFs.push({
+                    x: cp.x,
+                    y: cp.y,
+                    currentRadius: 0,
+                    maxRadius: targetSizes[i] || 30.0,
+                    growSpeed: 2.4 + Math.random() * 0.5, // 🎯 터치 즉시 팡팡 부풀어오르는 빠른 속도
+                    delayFrames: i * 4, // 🎯 리드미컬 시차 팽창
+                    activeTimer: 0,
+                    isPopped: false,
+                    isMain: i === 0 // 🎯 제일 큰 0번 방울이 터짐!
+                });
+            }
+        }
+
+        function triggerMainPopWithTear(mainRBF) {
+            mainRBF.isPopped = true;
+
+            playLoudBalloonPopSound();
+            triggerHaptic('pop');
+
+            for (let i = 0; i < 22; i++) {
+                let ang = Math.random() * Math.PI * 2;
+                let spd = Math.random() * 14 + 6;
+                largeShards.push({
+                    x: mainRBF.x,
+                    y: mainRBF.y,
+                    vx: Math.cos(ang) * spd,
+                    vy: Math.sin(ang) * spd - 4,
+                    sizeW: Math.random() * 18 + 12,
+                    sizeH: Math.random() * 22 + 14,
+                    rotation: Math.random() * Math.PI * 2,
+                    rotSpeed: (Math.random() - 0.5) * 0.28,
+                    color: Math.random() > 0.3 ? '#ff4757' : '#ff6b81',
+                    life: 1.0
+                });
+            }
+        }
+
+        function handleTouchStart(clickX, clickY) {
+            initAudio();
+
+            isTouching = true;
+            touchX = clickX;
+            touchY = clickY;
+
+            activateNearbyControlPoints(touchX, touchY);
+        }
+
+        window.addEventListener('pointerdown', (e) => {
+            handleTouchStart(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('pointermove', (e) => {
+            if (!isTouching) return;
+            touchX = e.clientX;
+            touchY = e.clientY;
+        });
+
+        const releaseGrab = () => {
+            isTouching = false;
+        };
+
+        window.addEventListener('pointerup', releaseGrab);
+        window.addEventListener('pointercancel', releaseGrab);
+
+        function drawWarpedTriangle(ctx, img, p0, p1, p2, iw, ih) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.closePath();
+            ctx.clip();
+
+            let u0 = p0.u * iw, v0 = p0.v * ih;
+            let u1 = p1.u * iw, v1 = p1.v * ih;
+            let u2 = p2.u * iw, v2 = p2.v * ih;
+
+            let delta = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
+            if (Math.abs(delta) < 0.0001) {
+                delta = delta < 0 ? -0.0001 : 0.0001;
+            }
+
+            let a = (p0.x * (v1 - v2) + p1.x * (v2 - v0) + p2.x * (v0 - v1)) / delta;
+            let b = (p0.x * (u2 - u1) + p1.x * (u0 - u2) + p2.x * (u1 - u0)) / delta;
+            let c = (p0.x * (u1 * v2 - u2 * v1) + p1.x * (u2 * v0 - u0 * v2) + p2.x * (u0 * v1 - u1 * v0)) / delta;
+            let d = (p0.y * (v1 - v2) + p1.y * (v2 - v0) + p2.y * (v0 - v1)) / delta;
+            let e = (p0.y * (u2 - u1) + p1.y * (u0 - u2) + p2.y * (u1 - u0)) / delta;
+            let f = (p0.y * (u1 * v2 - u2 * v1) + p1.y * (u2 * v0 - u0 * v2) + p2.y * (u0 * v1 - u1 * v0)) / delta;
+
+            ctx.transform(a, d, b, e, c, f);
+            ctx.drawImage(img, 0, 0, iw, ih);
+            ctx.restore();
+        }
+
+        let soundPulseTimer = 0;
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            let mainPopped = activeRBFs.some(rbf => rbf.isMain && rbf.isPopped);
+
+            if (activeRBFs.length > 0) {
+                if (!mainPopped) {
+                    soundPulseTimer++;
+                    for (let rbf of activeRBFs) {
+                        rbf.activeTimer++;
+                        if (rbf.activeTimer >= rbf.delayFrames && !rbf.isPopped) {
+                            rbf.currentRadius += rbf.growSpeed;
+
+                            if (soundPulseTimer % 4 === 0) {
+                                let ratio = Math.min(1.0, rbf.currentRadius / rbf.maxRadius);
+                                playInflateTone(ratio);
+                                triggerHaptic('inflate');
+                            }
+
+                            if (rbf.isMain && rbf.currentRadius >= rbf.maxRadius) {
+                                triggerMainPopWithTear(rbf);
+                            }
+                        }
+                    }
+                } else {
+                    if (isTouching) {
+                        nextCycleTimer++;
+                        if (nextCycleTimer > 10) {
+                            activateNearbyControlPoints(touchX, touchY);
+                        }
+                    } else {
+                        for (let rbf of activeRBFs) {
+                            rbf.currentRadius += (0 - rbf.currentRadius) * 0.15;
+                        }
+                    }
+                }
+            }
+
+            for (let i = 0; i < points.length; i++) {
+                let p = points[i];
+
+                if (p.isOuterBoundary) {
+                    p.x = p.ox;
+                    p.y = p.oy;
+                    continue;
+                }
+
+                let totalDispX = 0, totalDispY = 0;
+
+                for (let rbf of activeRBFs) {
+                    if (rbf.currentRadius > 0.5 && !rbf.isPopped) {
+                        let dist = Math.hypot(p.ox - rbf.x, p.oy - rbf.y);
+                        let sigma = rbf.currentRadius * 0.85;
+
+                        let gWeight = Math.exp(- (dist * dist) / (2 * sigma * sigma));
+                        let angle = Math.atan2(p.oy - rbf.y, p.ox - rbf.x);
+
+                        let disp = gWeight * (rbf.currentRadius * 0.65);
+
+                        totalDispX += Math.cos(angle) * disp;
+                        totalDispY += Math.sin(angle) * disp;
+                    }
+                }
+
+                p.targetX = p.ox + totalDispX;
+                p.targetY = p.oy + totalDispY;
+            }
+
+            for (let pass = 0; pass < 2; pass++) {
+                for (let r = 1; r < rows - 1; r++) {
+                    for (let c = 1; c < cols - 1; c++) {
+                        let idx = r * cols + c;
+                        let p = points[idx];
+                        if (p.isOuterBoundary) continue;
+
+                        let pL = points[r * cols + (c - 1)];
+                        let pR = points[r * cols + (c + 1)];
+                        let pU = points[(r - 1) * cols + c];
+                        let pD = points[(r + 1) * cols + c];
+
+                        let avgX = (pL.targetX + pR.targetX + pU.targetX + pD.targetX) * 0.25;
+                        let avgY = (pL.targetY + pR.targetY + pU.targetY + pD.targetY) * 0.25;
+
+                        p.targetX = p.targetX * 0.6 + avgX * 0.4;
+                        p.targetY = p.targetY * 0.6 + avgY * 0.4;
+                    }
+                }
+            }
+
+            for (let i = 0; i < points.length; i++) {
+                let p = points[i];
+                if (p.isOuterBoundary) {
+                    p.x = p.ox;
+                    p.y = p.oy;
+                    continue;
+                }
+                p.x += (p.targetX - p.x) * 0.25;
+                p.y += (p.targetY - p.y) * 0.25;
+            }
+
+            // 1. 단일 캐릭터 메쉬 렌더링
+            if (imgLoaded && points.length === rows * cols) {
+                let iw = rabbitImg.naturalWidth || 512;
+                let ih = rabbitImg.naturalHeight || 512;
+
+                for (let r = 0; r < rows - 1; r++) {
+                    for (let c = 0; c < cols - 1; c++) {
+                        let pTL = points[r * cols + c];
+                        let pTR = points[r * cols + (c + 1)];
+                        let pBL = points[(r + 1) * cols + c];
+                        let pBR = points[(r + 1) * cols + (c + 1)];
+
+                        if (pTL && pTR && pBL && pBR) {
+                            drawWarpedTriangle(ctx, rabbitImg, pTL, pTR, pBL, iw, ih);
+                            drawWarpedTriangle(ctx, rabbitImg, pTR, pBR, pBL, iw, ih);
+                        }
+                    }
+                }
+            }
+
+            // 2. 대형 찢어진 조각 파티클 렌더링
+            for (let i = largeShards.length - 1; i >= 0; i--) {
+                let sh = largeShards[i];
+                sh.x += sh.vx;
+                sh.y += sh.vy;
+                sh.vy += 0.35;
+                sh.rotation += sh.rotSpeed;
+                sh.life -= 0.02;
+
+                if (sh.life <= 0) {
+                    largeShards.splice(i, 1);
+                    continue;
+                }
+
+                ctx.save();
+                ctx.translate(sh.x, sh.y);
+                ctx.rotate(sh.rotation);
+                ctx.globalAlpha = sh.life;
+
+                ctx.fillStyle = sh.color;
+                ctx.beginPath();
+                ctx.moveTo(-sh.sizeW * 0.5, -sh.sizeH * 0.5);
+                ctx.lineTo(sh.sizeW * 0.6, -sh.sizeH * 0.3);
+                ctx.lineTo(sh.sizeW * 0.4, sh.sizeH * 0.5);
+                ctx.lineTo(-sh.sizeW * 0.5, sh.sizeH * 0.4);
+                ctx.closePath();
+                ctx.fill();
+
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                ctx.lineWidth = 1.5;
+                ctx.stroke();
+
+                ctx.restore();
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        initMesh();
+        draw();
+    </script>
+</body>
+</html>

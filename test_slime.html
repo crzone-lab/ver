@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>🍯 Live Mesh Gated Slime Laboratory</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { background: #07080a; color: #fff; font-family: sans-serif; overflow: hidden; width: 100vw; height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        #canvas { width: 100vw; height: 100dvh; display: block; }
+        .info-panel { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: rgba(15,23,42,0.85); color: #f59e0b; font-size: 14px; padding: 10px 20px; border-radius: 20px; border: 1px solid rgba(245,158,11,0.3); z-index: 100; pointer-events: none; text-align: center; }
+    </style>
+</head>
+<body>
+    <div class="info-panel">🎯 커진 상태 바탕 무반응 완전 수리: 캐릭터가 퍼진 상태에서도 바깥 바탕 클릭 시 100% 무반응!</div>
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById('canvas');
+        const ctx = canvas.getContext('2d');
+        let width = canvas.width = window.innerWidth;
+        let height = canvas.height = window.innerHeight;
+
+        const rows = 19, cols = 19;
+        let points = [];
+        let isTouching = false;
+        let isDragging = false;
+        let grabbedPointIndex = null;
+        let releaseTime = 0;
+        let touchX = 0, touchY = 0;
+        let touchStartTime = 0;
+
+        const rabbitImg = new Image();
+        rabbitImg.src = 'strawberry_rabbit_jelly.png';
+        let imgLoaded = false;
+        rabbitImg.onload = () => { imgLoaded = true; };
+
+        window.addEventListener('resize', () => {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            initMesh();
+        });
+
+        function initMesh() {
+            points = [];
+            let centerX = width / 2;
+            let centerY = height / 2;
+            let size = Math.min(width, height) * 0.52;
+
+            for (let r = 0; r < rows; r++) {
+                for (let c = 0; c < cols; c++) {
+                    let u = c / (cols - 1);
+                    let v = r / (rows - 1);
+                    let ox = centerX + (u - 0.5) * size;
+                    let oy = centerY + (v - 0.5) * size;
+
+                    let distFromCenter = Math.hypot(ox - centerX, oy - centerY) / (size * 0.5);
+
+                    points.push({
+                        x: ox, y: oy,
+                        ox: ox, oy: oy,
+                        u: u, v: v,
+                        oldx: ox, oldy: oy,
+                        lastDx: 0, lastDy: 0,
+                        isInsideBody: distFromCenter <= 0.88
+                    });
+                }
+            }
+        }
+
+        // 🎯 커진 상태에서도 실시간 현재 매쉬 위치(p.x, p.y) 기준으로 바탕 클릭 100% 무반응 차단
+        canvas.addEventListener('pointerdown', (e) => {
+            let clickX = e.clientX;
+            let clickY = e.clientY;
+
+            let minDist = 99999;
+            let candidateIndex = -1;
+            for (let i = 0; i < points.length; i++) {
+                // 🎯 핵심: 실시간 현재 위치(p.x, p.y)와의 거리를 계산!
+                let d = Math.hypot(points[i].x - clickX, points[i].y - clickY);
+                if (d < minDist) {
+                    minDist = d;
+                    candidateIndex = i;
+                }
+            }
+
+            // 🎯 커진 상태든 원래 상태든 실시간 라이브 노드와의 거리가 35px 초과거나 몸통 밖이면 100% 차단!
+            if (minDist > 35.0 || candidateIndex === -1 || !points[candidateIndex].isInsideBody) {
+                grabbedPointIndex = null;
+                isTouching = false;
+                isDragging = false;
+                return; // 캐릭터 바깥쪽 바탕 클릭 시 100% 완벽 무반응!
+            }
+
+            isTouching = true;
+            isDragging = false;
+            touchX = clickX;
+            touchY = clickY;
+            touchStartTime = Date.now();
+            releaseTime = 0;
+            grabbedPointIndex = candidateIndex;
+        });
+
+        canvas.addEventListener('pointermove', (e) => {
+            if (!isTouching) return;
+            let moveDist = Math.hypot(e.clientX - touchX, e.clientY - touchY);
+            if (moveDist > 4.0) {
+                isDragging = true;
+            }
+            touchX = e.clientX;
+            touchY = e.clientY;
+        });
+
+        const releaseGrab = () => {
+            if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                for (let i = 0; i < points.length; i++) {
+                    if (points[i]) {
+                        points[i].lastDx = points[i].x - points[i].ox;
+                        points[i].lastDy = points[i].y - points[i].oy;
+                    }
+                }
+            }
+            grabbedPointIndex = null;
+            isTouching = false;
+            isDragging = false;
+            releaseTime = 0;
+        };
+
+        canvas.addEventListener('pointerup', releaseGrab);
+        canvas.addEventListener('pointercancel', releaseGrab);
+
+        function drawWarpedTriangle(ctx, img, p0, p1, p2, iw, ih) {
+            ctx.save();
+            ctx.beginPath();
+            ctx.moveTo(p0.x, p0.y);
+            ctx.lineTo(p1.x, p1.y);
+            ctx.lineTo(p2.x, p2.y);
+            ctx.closePath();
+            ctx.clip();
+
+            let u0 = p0.u * iw, v0 = p0.v * ih;
+            let u1 = p1.u * iw, v1 = p1.v * ih;
+            let u2 = p2.u * iw, v2 = p2.v * ih;
+
+            let delta = u0 * (v1 - v2) + u1 * (v2 - v0) + u2 * (v0 - v1);
+            if (Math.abs(delta) < 0.0001) { ctx.restore(); return; }
+
+            let a = (p0.x * (v1 - v2) + p1.x * (v2 - v0) + p2.x * (v0 - v1)) / delta;
+            let b = (p0.x * (u2 - u1) + p1.x * (u0 - u2) + p2.x * (u1 - u0)) / delta;
+            let c = (p0.x * (u1 * v2 - u2 * v1) + p1.x * (u2 * v0 - u0 * v2) + p2.x * (u0 * v1 - u1 * v0)) / delta;
+            let d = (p0.y * (v1 - v2) + p1.y * (v2 - v0) + p2.y * (v0 - v1)) / delta;
+            let e = (p0.y * (u2 - u1) + p1.y * (u0 - u2) + p2.y * (u1 - u0)) / delta;
+            let f = (p0.y * (u1 * v2 - u2 * v1) + p1.y * (u2 * v0 - u0 * v2) + p2.y * (u0 * v1 - u1 * v0)) / delta;
+
+            ctx.transform(a, d, b, e, c, f);
+            ctx.drawImage(img, 0, 0, iw, ih);
+            ctx.restore();
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, width, height);
+
+            if (isTouching && grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                let gNode = points[grabbedPointIndex];
+
+                if (!isDragging) {
+                    let holdDuration = Math.min(1.0, (Date.now() - touchStartTime) * 0.0035);
+
+                    for (let i = 0; i < points.length; i++) {
+                        let p = points[i];
+                        let relX = p.ox - gNode.ox;
+                        let relY = p.oy - gNode.oy;
+                        let dist = Math.hypot(relX, relY);
+                        let angle = Math.atan2(relY, relX);
+
+                        let viscousFlow = (1.0 - Math.exp(-dist / 95.0)) * holdDuration * 155.0;
+                        let wave = Math.sin(dist * 0.030 - holdDuration * 3.2) * Math.exp(-dist / 160.0) * holdDuration * 52.0;
+
+                        let netDisplacement = dist + viscousFlow + wave;
+
+                        p.x = gNode.ox + Math.cos(angle) * netDisplacement;
+                        p.y = gNode.oy + Math.sin(angle) * netDisplacement;
+
+                        p.oldx = p.x;
+                        p.oldy = p.y;
+                        p.lastDx = p.x - p.ox;
+                        p.lastDy = p.y - p.oy;
+                    }
+                } else {
+                    let dragDx = touchX - gNode.ox;
+                    let dragDy = touchY - gNode.oy;
+
+                    for (let i = 0; i < points.length; i++) {
+                        let p = points[i];
+                        let dist = Math.hypot(p.ox - gNode.ox, p.oy - gNode.oy);
+                        let decay = Math.exp(-dist / 85.0);
+
+                        p.x = p.ox + dragDx * decay;
+                        p.y = p.oy + dragDy * decay;
+
+                        p.oldx = p.x;
+                        p.oldy = p.y;
+                        p.lastDx = p.x - p.ox;
+                        p.lastDy = p.y - p.oy;
+                    }
+                }
+            } else if (!isTouching) {
+                releaseTime++;
+                let tSec = releaseTime * 0.016;
+
+                if (releaseTime <= 900) {
+                    let honeyDecay = Math.exp(-0.08 * tSec);
+                    for (let i = 0; i < points.length; i++) {
+                        let p = points[i];
+                        if (p) {
+                            let baseDx = (typeof p.lastDx === 'number' && !isNaN(p.lastDx)) ? p.lastDx : 0;
+                            let baseDy = (typeof p.lastDy === 'number' && !isNaN(p.lastDy)) ? p.lastDy : 0;
+
+                            p.x = p.ox + baseDx * honeyDecay;
+                            p.y = p.oy + baseDy * honeyDecay;
+                            p.oldx = p.x;
+                            p.oldy = p.y;
+                        }
+                    }
+                } else {
+                    for (let i = 0; i < points.length; i++) {
+                        if (points[i]) {
+                            points[i].x = points[i].ox;
+                            points[i].y = points[i].oy;
+                            points[i].oldx = points[i].ox;
+                            points[i].oldy = points[i].oy;
+                            points[i].lastDx = 0;
+                            points[i].lastDy = 0;
+                        }
+                    }
+                }
+            }
+
+            if (imgLoaded && points.length === rows * cols) {
+                let iw = rabbitImg.naturalWidth || 512;
+                let ih = rabbitImg.naturalHeight || 512;
+
+                for (let r = 0; r < rows - 1; r++) {
+                    for (let c = 0; c < cols - 1; c++) {
+                        let pTL = points[r * cols + c];
+                        let pTR = points[r * cols + (c + 1)];
+                        let pBL = points[(r + 1) * cols + c];
+                        let pBR = points[(r + 1) * cols + (c + 1)];
+
+                        if (pTL && pTR && pBL && pBR) {
+                            drawWarpedTriangle(ctx, rabbitImg, pTL, pTR, pBL, iw, ih);
+                            drawWarpedTriangle(ctx, rabbitImg, pTR, pBR, pBL, iw, ih);
+                        }
+                    }
+                }
+            } else {
+                ctx.fillStyle = '#f59e0b';
+                ctx.font = '2.5rem Inter';
+                ctx.textAlign = 'center';
+                ctx.fillText('🍯 꿀 슬라임 로딩 중...', width/2, height/2);
+            }
+
+            requestAnimationFrame(draw);
+        }
+
+        initMesh();
+        draw();
+    </script>
+</body>
+</html>

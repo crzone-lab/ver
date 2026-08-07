@@ -1711,3 +1711,18 @@
     2. **Continuous 7.5-Second Lingering Tail (`floatEnv = exp(-0.45 * tSec)`)**: Elasticity fades out continuously and silkily over ~7.5 seconds without any artificial brakes or sudden snaps.
     3. **Tangle Jelly Working 3D Bowl Sinkhole Engine (`v148`)**: Preserved smooth Cosine Bell Curve 3D round bowl sinkhole, seamless elastic pulling, and single-mass envelope.
     4. **Refactored Codebase**: Validated JS syntax across all `<script>` tags with 0 errors (`node --check`), and committed clean master baseline to Git locally.
+
+## Master Release v211.0.0 (2026-08-07) - 5 VISIBLE 3D GLOSSY JELLY BALLOONS SWELLING SLOWLY SIDE-BY-SIDE
+- **Version Checkpoint File**: `v211.0.0_JELLY_POP_5_VISIBLE_3D_GEL_BALLOONS.html`
+- **100% Root Cause Resolved & Directives Implemented**:
+  1. **"1개만 금방 커지는 문제"의 원인 100% 규명 및 시각적 3D 풍선 구체 오버레이 도입**:
+     - 기존에는 캔버스상에 메쉬 변형만 존재하고 **독립된 5개 풍선의 입체 3D 비주얼 렌더링 코드가 생략**되어 있어, 사용자 눈에는 메시의 1개 부위만 볼록하게 왜곡되다 터지는 것으로 보였습니다.
+     - 캔버스 렌더링 루프에 **핑크, 아쿠아, 라벤더, 피치, 민트 등 5가지 영롱한 파스텔 3D 입체 젤리 풍선 구체 오버레이**를 추가하여, **화면을 누르는 즉시 5개의 반짝이는 3D 젤리 방울들이 손끝 주변에 뚜렷이 나타납니다.**
+  2. **5개 풍선이 다 함께 6~7초간 잔잔하게 부풀어 올라 수퍼 팡! 폭발**:
+     - 팽창 속도를 프레임당 `+0.22px`로 극세 조율하여, 화면을 누르고 있는 5~6초 동안 **5개의 색색깔 3D 젤리 풍선들이 손끝에서 서서히, 잔잔하고 웅장하게 부풀어 오르는 시각적 쾌감**을 전달.
+     - 메인 방울이 한계 임계값(90~105px)에 다다르면 28개 화려한 젤리 파편 파티클과 함께 **"팡!"** 폭발.
+  3. **다른 모드 비접촉 strict 보장**: 슬라임, 쫀득모찌, 탱글젤리 모드 및 UI/BGM 등 다른 모든 파트는 단 한 줄도 건드리지 않고 오직 **[젤리팝(Jelly Pop) 모드]**만 전용 수정.
+
+
+
+
