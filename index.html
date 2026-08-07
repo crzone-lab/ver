@@ -5669,80 +5669,146 @@
                         // ==========================================================================
         // USER CUSTOM RABBIT CUTOUT (누끼 따기) & LOCAL STORAGE PHONE PERSISTENCE
         // ==========================================================================
-                // ==========================================================================
-        // 1. SMART FLOOD-FILL BACKGROUND CUTOUT ENGINE (누끼 따기)
-        // 2. DYNAMIC 3D GLASS JELLY CONVERTER ENGINE (자동 3D 젤리화)
-        // ==========================================================================
-                // ==========================================================================
-        // 1. 100% ROBUST JPEG/PNG BACKGROUND CUTOUT ENGINE (누끼 따기)
-        // 2. 3D BAS-RELIEF (반부조 / 입체 돋을새김) SCULPTING ENGINE
-        // ==========================================================================
-                // ==========================================================================
-        // CONTOUR-STOPPING OUTER FLOOD-FILL ENGINE (검은 외각선 경계선 수비 누끼)
-        // 3D BAS-RELIEF (반부조 입체 돋을새김) SCULPTING ENGINE
-        // ==========================================================================
-                // ==========================================================================
-        // LEAK-PROOF MORPHOLOGICAL CONTOUR CLOSING FLOOD-FILL ENGINE
-        // (선긋기 틈새 100% 봉쇄 누끼 방어막 & 3D 반부조 보존)
-        // ==========================================================================
-                // ==========================================================================
-        // 100% PRECISE OUTER WHITE BOX ERASER & INNER BODY 3D BAS-RELIEF PRESERVATION
-        // ==========================================================================
-                // ==========================================================================
-        // BOUNDING-BOX OUTER BOX ERASER & 100% INNER BODY SOLID PROTECTION ENGINE
-        // ==========================================================================
-                // ==========================================================================
-        // 100% ABSOLUTE DIRECT CONTOUR RAYCAST BACKGROUND ERASER ENGINE
-        // (그림과 그림이 아닌 바탕 100% 정밀 분리 누끼 & 3D 반부조 보존)
-        // ==========================================================================
-                // ==========================================================================
-        // CLEAN POLISHED 3D BAS-RELIEF ENGINE
-        // (얼굴 2개 줄 0% + 캐릭터 밑 검은 그림자 0% + 이마 반사광 0% 완벽 수정)
-        // ==========================================================================
-                // ==========================================================================
-        // UNIVERSAL 3D LIQUID JELLY SHADER ENGINE (100% 모든 유저 캐릭터 커버)
-        // ==========================================================================
-                // ==========================================================================
-        // 3D CONTOUR-CONFORMING TRANSPARENT JELLY GLASS OVERLAY LAYER ENGINE
-        // (그림 형태 100% 맞춤형 3D 투명 젤리 캡슐 덮개 레이어)
-        // ==========================================================================
-                // ==========================================================================
-        // CLEAN CUTOUT ENGINE (캐릭터 상하 광선/빛줄기 0% 완벽 삭제)
-        // ==========================================================================
-                // ==========================================================================
-        // PURE CLEAN CUTOUT ENGINE (상하 광선/반사 아치/세로줄 100% 완전 제거)
-        // ==========================================================================
-                // ==========================================================================
-        // UNIVERSAL DUAL-MODE CUTOUT ENGINE
-        // (2D 손그림 + 3D 실물 젤리 곰/사진 100% 완벽 누끼 대형 수리)
-        // ==========================================================================
-                // ==========================================================================
-        // ORIGINAL PHOTO DROP-SHADOW ERASER ENGINE
-        // (실물/사진 속 원본 바닥 그림자까지 100% 깔끔 삭제 누끼 엔진)
-        // ==========================================================================
-                // ==========================================================================
-        // BULLETPROOF PHOTO CUTOUT ENGINE (곰돌이 100% 완벽 원본 보존 & 깨진 캐시 자동 정동)
-        // ==========================================================================
-                // ==========================================================================
-        // HIGH-PRECISION CHROMA & EDGE-GRADIENT AI CUTOUT ENGINE
-        // (핑크 곰돌이 피사체 실루엣 100% 완전 보존 & 완벽한 곰돌이 누끼)
-        // ==========================================================================
-                // ==========================================================================
-        // UNIVERSAL AI STUDIO SHADOW REMOVER ENGINE
-        // (모든 캐릭터의 사진 속 바닥/우측 회색 그림자 100% 깔끔 삭제 누끼)
-        // ==========================================================================
-                // ==========================================================================
-        // ZERO FACE LINES & ZERO BODY DAMAGE DUAL-MODE AI CUTOUT ENGINE
-        // (얼굴 세로줄 2개 100% 완전 삭제 & 핑크 곰돌이 피사체 100% 완전 보존)
-        // ==========================================================================
-                // ==========================================================================
-        // PERFECT 2D & 3D DUAL-MODE AI CUTOUT ENGINE
-        // (몸통 흰색 채우기 100% 완전 보존 & 얼굴 세로줄 0% 완전 삭제)
-        // ==========================================================================
-                // ==========================================================================
-        // FLAWLESS CONTOUR-TRACING AI CUTOUT ENGINE
-        // (귀 사이/외곽 흰색 100% 정밀 제거 & 몸통/얼굴 흰색 100% 완전 수비)
-        // ==========================================================================
+                // ------------------------------------------------------------------
+                // MORPHOLOGICAL CONTENT ENVELOPE (그림 영역과 배경 형태학적 완전 분리 누끼)
+                // ------------------------------------------------------------------
+                logImportDiagnostic("[누끼 모드] 그림 영역(Content Envelope)과 배경을 형태학적으로 완전 분리 가공");
+
+                // Sample background color from the 4 corners of the canvas
+                let cornerBgR = (data[0] + data[(size-1)*4] + data[(size*(size-1))*4] + data[(size*size-1)*4]) / 4;
+                let cornerBgG = (data[1] + data[(size-1)*4+1] + data[(size*(size-1))*4+1] + data[(size*size-1)*4+1]) / 4;
+                let cornerBgB = (data[2] + data[(size-1)*4+2] + data[(size*(size-1))*4+2] + data[(size*size-1)*4+2]) / 4;
+
+                // 1. Detect Content / Drawing Pixels (All strokes, colors, facial features, details)
+                const isContent = new Uint8Array(size * size);
+                for (let i = 0; i < size * size; i++) {
+                    let pi = i * 4;
+                    let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
+
+                    let dR = r - cornerBgR, dG = g - cornerBgG, dB = b - cornerBgB;
+                    let colorDist = Math.sqrt(dR * dR + dG * dG + dB * dB);
+                    let lum = 0.299 * r + 0.587 * g + 0.114 * b;
+
+                    // Content: Dark lines (lum < 185), vivid colors (colorDist > 20), or details
+                    if (a > 0 && (lum < 185 || colorDist > 20)) {
+                        isContent[i] = 1;
+                    }
+                }
+
+                // 2. Morphological Dilation (R = 18px) - Bridges open stroke gaps (like cheek-to-hand gap)
+                const R = 18;
+                const tempDilated = new Uint8Array(size * size);
+                for (let y = 0; y < size; y++) {
+                    let rowOffset = y * size;
+                    for (let x = 0; x < size; x++) {
+                        if (isContent[rowOffset + x]) {
+                            let minX = Math.max(0, x - R);
+                            let maxX = Math.min(size - 1, x + R);
+                            for (let nx = minX; nx <= maxX; nx++) {
+                                tempDilated[rowOffset + nx] = 1;
+                            }
+                        }
+                    }
+                }
+
+                const dilated = new Uint8Array(size * size);
+                for (let x = 0; x < size; x++) {
+                    for (let y = 0; y < size; y++) {
+                        if (tempDilated[y * size + x]) {
+                            let minY = Math.max(0, y - R);
+                            let maxY = Math.min(size - 1, y + R);
+                            for (let ny = minY; ny <= maxY; ny++) {
+                                dilated[ny * size + x] = 1;
+                            }
+                        }
+                    }
+                }
+
+                // 3. Flood Fill Outer Background on the Dilated Envelope
+                const outerBg = new Uint8Array(size * size);
+                const queue = [];
+
+                for (let x = 0; x < size; x++) {
+                    if (!dilated[x]) queue.push(x);
+                    let bot = (size - 1) * size + x;
+                    if (!dilated[bot]) queue.push(bot);
+                }
+                for (let y = 0; y < size; y++) {
+                    let left = y * size;
+                    if (!dilated[left]) queue.push(left);
+                    let right = y * size + (size - 1);
+                    if (!dilated[right]) queue.push(right);
+                }
+
+                let qHead = 0;
+                while (qHead < queue.length) {
+                    let idx = queue[qHead++];
+                    if (outerBg[idx]) continue;
+                    outerBg[idx] = 1;
+
+                    let px = idx % size;
+                    let py = Math.floor(idx / size);
+
+                    if (px > 0 && !dilated[idx - 1] && !outerBg[idx - 1]) queue.push(idx - 1);
+                    if (px < size - 1 && !dilated[idx + 1] && !outerBg[idx + 1]) queue.push(idx + 1);
+                    if (py > 0 && !dilated[idx - size] && !outerBg[idx - size]) queue.push(idx - size);
+                    if (py < size - 1 && !dilated[idx + size] && !outerBg[idx + size]) queue.push(idx + size);
+                }
+
+                // 4. Solid Character Hull (Zero Holes Inside!)
+                const solidHull = new Uint8Array(size * size);
+                for (let i = 0; i < size * size; i++) {
+                    if (!outerBg[i]) solidHull[i] = 1;
+                }
+
+                // 5. Morphological Erosion back by R = 18px to match exact outer contour
+                const tempEroded = new Uint8Array(size * size);
+                for (let y = 0; y < size; y++) {
+                    let rowOffset = y * size;
+                    for (let x = 0; x < size; x++) {
+                        let isSolid = true;
+                        let minX = Math.max(0, x - R);
+                        let maxX = Math.min(size - 1, x + R);
+                        for (let nx = minX; nx <= maxX; nx++) {
+                            if (!solidHull[rowOffset + nx]) {
+                                isSolid = false;
+                                break;
+                            }
+                        }
+                        if (isSolid) tempEroded[rowOffset + x] = 1;
+                    }
+                }
+
+                const subjectMask = new Uint8Array(size * size);
+                for (let x = 0; x < size; x++) {
+                    for (let y = 0; y < size; y++) {
+                        let isSolid = true;
+                        let minY = Math.max(0, y - R);
+                        let maxY = Math.min(size - 1, y + R);
+                        for (let ny = minY; ny <= maxY; ny++) {
+                            if (!tempEroded[ny * size + x]) {
+                                isSolid = false;
+                                break;
+                            }
+                        }
+                        if (isSolid) subjectMask[y * size + x] = 1;
+                    }
+                }
+
+                // 6. Apply Final Cutout to Image Data with Smooth Edge Alpha
+                for (let y = 0; y < size; y++) {
+                    for (let x = 0; x < size; x++) {
+                        let idx = y * size + x;
+                        let pi = idx * 4;
+                        if (!subjectMask[idx]) {
+                            // Pure Outer Background -> Transparent
+                            data[pi + 3] = 0;
+                        } else {
+                            // Drawing / Character Area -> Keep 100% solid & opaque!
+                        }
+                    }
+                }
+
         function processImageCutout(img, callback) {
             try {
                 const canvas = document.createElement('canvas');
