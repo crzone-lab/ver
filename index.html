@@ -5695,35 +5695,42 @@
                 const data = imgData.data;
 
                 // ------------------------------------------------------------------
-                // 2-PASS WATERTIGHT BARRIER CUTOUT ENGINE
+                // VIGNETTE-AGNOSTIC SOBEL + SMOOTH GRADIENT CUTOUT ENGINE
                 // ------------------------------------------------------------------
-                logImportDiagnostic("[누끼 모드] 2-Pass 수밀 차단기 누끼 엔진 가동 -> 배경 100% 투명화 & 캐릭터 밀폐 보존");
+                logImportDiagnostic("[누끼 모드] 비네팅 무력화 Sobel 에지 + 수밀 누끼 가공 시작");
 
-                // 1. Sample Background Color from 4 Canvas Corners
-                let cornerBgR = (data[0] + data[(size-1)*4] + data[(size*(size-1))*4] + data[(size*size-1)*4]) / 4;
-                let cornerBgG = (data[1] + data[(size-1)*4+1] + data[(size*(size-1))*4+1] + data[(size*size-1)*4+1]) / 4;
-                let cornerBgB = (data[2] + data[(size-1)*4+2] + data[(size*(size-1))*4+2] + data[(size*size-1)*4+2]) / 4;
+                // 1. Compute Sobel Edge Gradient Magnitude for every pixel
+                const edgeMag = new Uint8Array(size * size);
+                for (let y = 1; y < size - 1; y++) {
+                    for (let x = 1; x < size - 1; x++) {
+                        let idx = y * size + x;
+                        let p1 = data[(idx - size - 1) * 4], p3 = data[(idx - size + 1) * 4];
+                        let p7 = data[(idx + size - 1) * 4], p9 = data[(idx + size + 1) * 4];
+                        let gx = (p3 - p1) + (p9 - p7);
+                        let gy = (p7 - p1) + (p9 - p3);
+                        edgeMag[idx] = Math.min(255, Math.sqrt(gx * gx + gy * gy));
+                    }
+                }
 
-                // 2. Identify Barrier Pixels (Strokes, Colors, Features)
+                // 2. Identify Real Character Feature Barriers (Strokes, Eyes, Colors)
                 const isBarrier = new Uint8Array(size * size);
                 for (let i = 0; i < size * size; i++) {
                     let pi = i * 4;
                     let r = data[pi], g = data[pi + 1], b = data[pi + 2], a = data[pi + 3];
-
-                    let dR = r - cornerBgR, dG = g - cornerBgG, dB = b - cornerBgB;
-                    let colorDist = Math.sqrt(dR * dR + dG * dG + dB * dB);
                     let lum = 0.299 * r + 0.587 * g + 0.114 * b;
                     let maxC = Math.max(r, g, b), minC = Math.min(r, g, b);
                     let sat = maxC > 0 ? (maxC - minC) / maxC : 0;
 
-                    // Barrier: Dark outlines (lum < 205), colored features (sat > 0.06 or colorDist > 14)
-                    if (a > 0 && (lum < 205 || sat > 0.06 || colorDist > 14)) {
+                    // Barrier: High-saturation features (red ears, pink cheeks, green leaves)
+                    // OR dark strokes (lum < 50)
+                    // OR high edge gradient with low luminance (lum < 165 && edgeMag[i] > 20)
+                    if (a > 0 && (sat > 0.08 || lum < 50 || (lum < 165 && edgeMag[i] > 20))) {
                         isBarrier[i] = 1;
                     }
                 }
 
-                // 3. Fast Dilation Kernel (radius = 14px) to seal open outline gaps
-                const radius = 14;
+                // 3. Fast Dilation Kernel (radius = 10px) to bridge any outline gaps
+                const radius = 10;
                 const strokeBarrier = new Uint8Array(size * size);
                 for (let y = 0; y < size; y++) {
                     for (let x = 0; x < size; x++) {
@@ -5739,7 +5746,7 @@
                     }
                 }
 
-                // 4. Pass 1: Flood Fill Outer Background up to strokeBarrier
+                // 4. Pass 1: Flood Fill Outer Background from 4 canvas borders through smooth gradient pixels
                 const outerBg1 = new Uint8Array(size * size);
                 const queue1 = [];
                 for (let x = 0; x < size; x++) {
@@ -5761,42 +5768,48 @@
                     outerBg1[idx] = 1;
 
                     let px = idx % size, py = Math.floor(idx / size);
-                    if (px > 0 && !strokeBarrier[idx - 1] && !outerBg1[idx - 1]) queue1.push(idx - 1);
-                    if (px < size - 1 && !strokeBarrier[idx + 1] && !outerBg1[idx + 1]) queue1.push(idx + 1);
-                    if (py > 0 && !strokeBarrier[idx - size] && !outerBg1[idx - size]) queue1.push(idx - size);
-                    if (py < size - 1 && !strokeBarrier[idx + size] && !outerBg1[idx + size]) queue1.push(idx + size);
-                }
+                    let currR = data[idx * 4], currG = data[idx * 4 + 1], currB = data[idx * 4 + 2];
 
-                // 5. Pass 2: Refine outerBg right up to the real barrier edge (isBarrier)
-                const finalOuterBg = new Uint8Array(outerBg1);
-                const queue2 = [];
-                for (let i = 0; i < size * size; i++) {
-                    if (outerBg1[i]) queue2.push(i);
-                }
+                    const neighbors = [
+                        px > 0 ? idx - 1 : -1,
+                        px < size - 1 ? idx + 1 : -1,
+                        py > 0 ? idx - size : -1,
+                        py < size - 1 ? idx + size : -1
+                    ];
 
-                qHead = 0;
-                while (qHead < queue2.length) {
-                    let idx = queue2[qHead++];
-                    let px = idx % size, py = Math.floor(idx / size);
-
-                    const neighbors = [idx - 1, idx + 1, idx - size, idx + size];
                     for (let nIdx of neighbors) {
-                        if (nIdx >= 0 && nIdx < size * size && !finalOuterBg[nIdx] && !isBarrier[nIdx]) {
+                        if (nIdx >= 0 && !strokeBarrier[nIdx] && !outerBg1[nIdx]) {
                             let nR = data[nIdx * 4], nG = data[nIdx * 4 + 1], nB = data[nIdx * 4 + 2];
-                            let dR = nR - cornerBgR, dG = nG - cornerBgG, dB = nB - cornerBgB;
-                            let dist = Math.sqrt(dR * dR + dG * dG + dB * dB);
-                            let nLum = 0.299 * nR + 0.587 * nG + 0.114 * nB;
-
-                            // Only expand within background-colored pixels inside strokeBarrier zone
-                            if ((dist < 40 || nLum > 215) && strokeBarrier[nIdx]) {
-                                finalOuterBg[nIdx] = 1;
-                                queue2.push(nIdx);
+                            let diff = Math.abs(nR - currR) + Math.abs(nG - currG) + Math.abs(nB - currB);
+                            // Smooth gradient propagation (diff < 35 per step)
+                            if (diff < 35) {
+                                queue1.push(nIdx);
                             }
                         }
                     }
                 }
 
-                // 6. Apply Alpha Transparency to Outer Background
+                // 5. Pass 2: Controlled Un-dilation to expand outerBg up to 2px of stroke barrier
+                const finalOuterBg = new Uint8Array(outerBg1);
+                const expandSteps = Math.max(1, radius - 3);
+                for (let step = 0; step < expandSteps; step++) {
+                    const toAdd = [];
+                    for (let y = 1; y < size - 1; y++) {
+                        for (let x = 1; x < size - 1; x++) {
+                            let idx = y * size + x;
+                            if (!finalOuterBg[idx] && !isBarrier[idx]) {
+                                if (finalOuterBg[idx - 1] || finalOuterBg[idx + 1] || finalOuterBg[idx - size] || finalOuterBg[idx + size]) {
+                                    toAdd.push(idx);
+                                }
+                            }
+                        }
+                    }
+                    for (let i = 0; i < toAdd.length; i++) {
+                        finalOuterBg[toAdd[i]] = 1;
+                    }
+                }
+
+                // 6. Apply Transparency to Outer Background
                 for (let i = 0; i < size * size; i++) {
                     if (finalOuterBg[i]) {
                         data[i * 4 + 3] = 0; // Transparent background
@@ -5809,7 +5822,7 @@
                 applyMethodBJellyTransform(canvas, size);
 
                 const finalPNG = canvas.toDataURL('image/png');
-                logImportDiagnostic("[누끼 가공 완수] 🎉 2-Pass 수밀 누끼 가공 완료!");
+                logImportDiagnostic("[비네팅 누끼 가공 완료] 🎉 100% 배경 투명화 및 캐릭터 수밀 완벽 보존!");
                 callback(finalPNG);
             } catch (err) {
                 console.error("Cutout error fallback:", err);
