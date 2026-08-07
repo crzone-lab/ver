@@ -3801,11 +3801,11 @@
                                     let dy = p.oy - rbf.y;
                                     let dist = Math.hypot(dx, dy);
                                     if (dist > 0.1) {
-                                        let sigma = rbf.currentRadius * 0.92;
-                                        let weight = Math.exp(- (dist * dist) / (2.0 * sigma * sigma)); // 무한대 영역으로 부드럽게 감쇄되는 매끈한 가우시안 곡선
+                                        let sigma = Math.max(140, rbf.currentRadius * 2.0);
+                                        let weight = Math.exp(- (dist * dist) / (2.0 * sigma * sigma)); // 광범위 매끈한 가우시안 곡선
                                         let nx = dx / dist;
                                         let ny = dy / dist;
-                                        let swellAmount = rbf.currentRadius * weight * 0.95;
+                                        let swellAmount = rbf.currentRadius * weight * 0.85;
                                         totalDispX += nx * swellAmount;
                                         totalDispY += ny * swellAmount;
                                     }
