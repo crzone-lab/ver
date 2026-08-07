@@ -3791,33 +3791,28 @@
                             }
                         }
 
-                        // 5개의 각 방울들이 뭉치지 않고 '독립된 5개 원형 3D 풍선'으로 뚜렷하게 부풀어 오르도록 우세 방울 변형 적용
+                        // 매끈한 가우시안 3D 원형 풍선 돔 팽창 (테두리 각짐 100% 제로 무한 완화)
                         for (let i = 0; i < points.length; i++) {
                             let p = points[i];
-                            let maxWeight = 0;
-                            let dispX = 0, dispY = 0;
-
+                            let totalDispX = 0, totalDispY = 0;
                             for (let rbf of activeRBFs) {
                                 if (rbf.currentRadius > 0.5 && !rbf.isPopped) {
                                     let dx = p.ox - rbf.x;
                                     let dy = p.oy - rbf.y;
                                     let dist = Math.hypot(dx, dy);
-                                    let R = rbf.currentRadius * 1.35; // 각 풍선 방울 영역
-
-                                    if (dist < R && R > 0.5) {
-                                        let rNorm = dist / R;
-                                        let weight = (1.0 - rNorm * rNorm) * (1.0 - rNorm * rNorm);
-                                        if (weight > maxWeight) {
-                                            maxWeight = weight;
-                                            let swell = rbf.currentRadius * weight * 0.85;
-                                            dispX = (dist > 0.001) ? (dx / dist) * swell : 0;
-                                            dispY = (dist > 0.001) ? (dy / dist) * swell : 0;
-                                        }
+                                    if (dist > 0.1) {
+                                        let sigma = rbf.currentRadius * 0.92;
+                                        let weight = Math.exp(- (dist * dist) / (2.0 * sigma * sigma)); // 무한대 영역으로 부드럽게 감쇄되는 매끈한 가우시안 곡선
+                                        let nx = dx / dist;
+                                        let ny = dy / dist;
+                                        let swellAmount = rbf.currentRadius * weight * 0.95;
+                                        totalDispX += nx * swellAmount;
+                                        totalDispY += ny * swellAmount;
                                     }
                                 }
                             }
-                            p.x = p.ox + dispX;
-                            p.y = p.oy + dispY;
+                            p.x = p.ox + totalDispX;
+                            p.y = p.oy + totalDispY;
                             p.oldx = p.x; p.oldy = p.y;
                             p.lastDx = p.x - p.ox; p.lastDy = p.y - p.oy;
                         }
