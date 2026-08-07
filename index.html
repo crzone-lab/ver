@@ -3747,6 +3747,7 @@
         let jellyRotation = 0;
         let jellySpinSpeed = 0;
         let jellyBounceCount = 0;
+        let jellyTargetBounces = 4;
 
         // Draw loop
         let lastDrawErrorTime = 0;
@@ -3888,8 +3889,13 @@
                             if (maxDistSq > 25) {
                                 jellyIsFlying = true;
                                 jellyBounceCount = 0;
-                                // 발사 방향 계산 및 적절한 일정한 순항 속도(2.2px/frame)로 유유히 4개 벽을 순회하도록 설정
+                                
                                 let dragDist = Math.hypot(maxDragX, maxDragY);
+                                // 당김 거리에 따라 벽 튕김 횟수 dynamic 설정: 기본 4회부터 멀리 당길수록 6회, 8회, 10회... (최대 12회)
+                                let extraBounces = Math.floor(Math.max(0, dragDist - 30) / 16);
+                                jellyTargetBounces = Math.min(12, 4 + extraBounces);
+
+                                // 발사 방향 계산 및 일정한 순항 속도(2.2px/frame) 설정
                                 let cruiseSpeed = 2.2;
                                 jellyFlightVx = (-maxDragX / (dragDist || 1)) * cruiseSpeed;
                                 jellyFlightVy = (-maxDragY / (dragDist || 1)) * cruiseSpeed;
@@ -4030,8 +4036,8 @@
                                 }
                             }
 
-                            // 2. 최소 4회 이상 벽을 부딪칠 때까지 속도를 일정하게 유지, 4회 부딪친 후 복원력에 의해 중앙 복귀!
-                            if (jellyBounceCount < 4) {
+                            // 2. 당김 거리에 따른 목표 바운스 횟수(jellyTargetBounces)까지 속도를 일정하게 유지하며 벽면을 튕김!
+                            if (jellyBounceCount < jellyTargetBounces) {
                                 let spd = Math.hypot(jellyFlightVx, jellyFlightVy);
                                 if (spd < 1.8 || spd > 2.8) {
                                     let targetSpd = 2.2;
@@ -4042,7 +4048,7 @@
                                     jellySpinSpeed = (jellySpinSpeed >= 0 ? 0.015 : -0.015);
                                 }
                             } else {
-                                // 4회 이상 부딪친 후 부드럽게 복원력 작동하며 중앙 귀환
+                                // 목표 바운스 횟수 달성 후 부드럽게 복원력 작동하며 중앙 귀환
                                 jellyFlightVx += -jellyCenterX * 0.00035;
                                 jellyFlightVy += -jellyCenterY * 0.00035;
                                 jellyFlightVx *= 0.992;
