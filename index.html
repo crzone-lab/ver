@@ -3748,6 +3748,7 @@
         let jellySpinSpeed = 0;
         let jellyBounceCount = 0;
         let jellyTargetBounces = 4;
+        let jellyCruiseSpeed = 2.2;
 
         // Draw loop
         let lastDrawErrorTime = 0;
@@ -3891,14 +3892,26 @@
                                 jellyBounceCount = 0;
                                 
                                 let dragDist = Math.hypot(maxDragX, maxDragY);
-                                // 당김 거리에 따라 벽 튕김 횟수 dynamic 설정: 기본 4회부터 멀리 당길수록 6회, 8회, 10회... (최대 12회)
-                                let extraBounces = Math.floor(Math.max(0, dragDist - 30) / 16);
-                                jellyTargetBounces = Math.min(12, 4 + extraBounces);
+                                // 당김 거리에 따른 튕김 횟수(Target Bounces) 및 순항 속도(Cruise Speed) 뚜렷하게 차등 부여
+                                if (dragDist < 40) {
+                                    // 살짝 당겼을 때: 2회만 튕기고 빠르게 귀환!
+                                    jellyTargetBounces = 2;
+                                    jellyCruiseSpeed = 1.8;
+                                } else if (dragDist < 90) {
+                                    // 보통 당겼을 때: 4~6회 튕김
+                                    let norm = (dragDist - 40) / 50;
+                                    jellyTargetBounces = Math.round(4 + norm * 2);
+                                    jellyCruiseSpeed = 2.2 + norm * 0.4;
+                                } else {
+                                    // 멀리/길게 당겼을 때 (90px 이상): 8회 ~ 16회까지 신나게 튕김!
+                                    let norm = Math.min(1.0, (dragDist - 90) / 110);
+                                    jellyTargetBounces = Math.round(8 + norm * 8);
+                                    jellyCruiseSpeed = 2.6 + norm * 1.0;
+                                }
 
-                                // 발사 방향 계산 및 일정한 순항 속도(2.2px/frame) 설정
-                                let cruiseSpeed = 2.2;
-                                jellyFlightVx = (-maxDragX / (dragDist || 1)) * cruiseSpeed;
-                                jellyFlightVy = (-maxDragY / (dragDist || 1)) * cruiseSpeed;
+                                // 발사 방향 및 계산된 순항 속도 적용
+                                jellyFlightVx = (-maxDragX / (dragDist || 1)) * jellyCruiseSpeed;
+                                jellyFlightVy = (-maxDragY / (dragDist || 1)) * jellyCruiseSpeed;
                                 jellyCenterX = maxDragX * 0.2;
                                 jellyCenterY = maxDragY * 0.2;
                                 jellyRotation = 0;
@@ -4039,10 +4052,11 @@
                             // 2. 당김 거리에 따른 목표 바운스 횟수(jellyTargetBounces)까지 속도를 일정하게 유지하며 벽면을 튕김!
                             if (jellyBounceCount < jellyTargetBounces) {
                                 let spd = Math.hypot(jellyFlightVx, jellyFlightVy);
-                                if (spd < 1.8 || spd > 2.8) {
-                                    let targetSpd = 2.2;
-                                    jellyFlightVx = (jellyFlightVx / (spd || 1)) * targetSpd;
-                                    jellyFlightVy = (jellyFlightVy / (spd || 1)) * targetSpd;
+                                let minSpd = jellyCruiseSpeed * 0.85;
+                                let maxSpd = jellyCruiseSpeed * 1.15;
+                                if (spd < minSpd || spd > maxSpd) {
+                                    jellyFlightVx = (jellyFlightVx / (spd || 1)) * jellyCruiseSpeed;
+                                    jellyFlightVy = (jellyFlightVy / (spd || 1)) * jellyCruiseSpeed;
                                 }
                                 if (Math.abs(jellySpinSpeed) < 0.008) {
                                     jellySpinSpeed = (jellySpinSpeed >= 0 ? 0.015 : -0.015);
