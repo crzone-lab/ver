@@ -5832,7 +5832,7 @@
 
         // ==========================================================================
         // METHOD B: 3D GLOSSY SPECULAR WATER-DROPLET TRANSFORM
-        // (업로드 이미지를 올려주신 3D 입체 투명 물방울 젤리 텍스처로 자동 변환)
+        // (하드웨어 가속 인셋 윤곽선 3D 젤리 볼륨 마감)
         // ==========================================================================
         function applyMethodBJellyTransform(canvas, size) {
             try {
@@ -5860,7 +5860,7 @@
                     }
                 }
 
-                if (nonZeroCount < 100) return; // Too small or empty
+                if (nonZeroCount < 100) return;
 
                 const cx = sumX / nonZeroCount;
                 const cy = sumY / nonZeroCount;
@@ -5868,35 +5868,42 @@
                 const height = maxY - minY;
                 const maxR = Math.max(width, height) / 2;
 
-                // Save original alpha mask array for 100% strict background preservation
+                // Save original alpha mask array for 100% background transparency preservation
                 const origAlpha = new Uint8Array(size * size);
                 for (let i = 0; i < size * size; i++) {
                     origAlpha[i] = data[i * 4 + 3];
                 }
 
-                // 2. Apply 3D Glassy Shading ONLY ON TOP OF SUBJECT (source-atop)
+                // 2. Hardware-Accelerated 3D Inset Contour Shadow (귀 상단 어두운 테두리 완벽 방지)
+                const insetCanvas = document.createElement('canvas');
+                insetCanvas.width = size;
+                insetCanvas.height = size;
+                const insetCtx = insetCanvas.getContext('2d');
+
+                insetCtx.drawImage(canvas, 0, 0);
+                insetCtx.globalCompositeMode = 'source-out';
+                insetCtx.shadowColor = 'rgba(0, 0, 0, 0.25)';
+                insetCtx.shadowBlur = 10;
+                insetCtx.shadowOffsetX = -2;
+                insetCtx.shadowOffsetY = 4;
+                insetCtx.drawImage(canvas, 0, 0);
+
+                // Blend Inset Contour Shadow onto main canvas (source-atop)
                 ctx.save();
-                ctx.globalCompositeMode = 'source-atop'; // STRICT: Draw ONLY on non-transparent character pixels!
+                ctx.globalCompositeMode = 'source-atop';
+                ctx.globalAlpha = 0.65;
+                ctx.drawImage(insetCanvas, 0, 0);
+                ctx.globalAlpha = 1.0;
 
-                // (A) 3D Inner Rim Shadow (볼록한 젤리 입체 음영)
-                let shadowGrad = ctx.createRadialGradient(cx, cy, maxR * 0.2, cx, cy, maxR * 1.0);
-                shadowGrad.addColorStop(0, 'rgba(255, 255, 255, 0.05)');
-                shadowGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.0)');
-                shadowGrad.addColorStop(0.8, 'rgba(0, 0, 0, 0.16)');
-                shadowGrad.addColorStop(1.0, 'rgba(0, 0, 0, 0.42)');
-
-                ctx.fillStyle = shadowGrad;
-                ctx.fillRect(0, 0, size, size);
-
-                // (B) Main Crescent Specular Highlight (빛 반사 하이라이트)
-                const hlX = cx - maxR * 0.28;
-                const hlY = cy - maxR * 0.32;
-                const hlR = maxR * 0.42;
+                // 3. Specular Glossy Water-Droplet Highlights (Top-Left Light Source)
+                const hlX = cx - maxR * 0.25;
+                const hlY = cy - maxR * 0.35;
+                const hlR = maxR * 0.45;
 
                 let hlGrad = ctx.createRadialGradient(hlX, hlY, 0, hlX, hlY, hlR);
-                hlGrad.addColorStop(0, 'rgba(255, 255, 255, 0.85)');
-                hlGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.50)');
-                hlGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.12)');
+                hlGrad.addColorStop(0, 'rgba(255, 255, 255, 0.75)');
+                hlGrad.addColorStop(0.35, 'rgba(255, 255, 255, 0.40)');
+                hlGrad.addColorStop(0.7, 'rgba(255, 255, 255, 0.10)');
                 hlGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
                 ctx.fillStyle = hlGrad;
@@ -5904,13 +5911,13 @@
                 ctx.arc(hlX, hlY, hlR, 0, Math.PI * 2);
                 ctx.fill();
 
-                // (C) Secondary Rim Light Reflection (하단 반사광)
-                const rimX = cx + maxR * 0.30;
-                const rimY = cy + maxR * 0.32;
-                const rimR = maxR * 0.38;
+                // Secondary Rim Highlight at Bottom
+                const rimX = cx + maxR * 0.25;
+                const rimY = cy + maxR * 0.30;
+                const rimR = maxR * 0.35;
                 let rimGrad = ctx.createRadialGradient(rimX, rimY, 0, rimX, rimY, rimR);
-                rimGrad.addColorStop(0, 'rgba(255, 255, 255, 0.40)');
-                rimGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.10)');
+                rimGrad.addColorStop(0, 'rgba(255, 255, 255, 0.35)');
+                rimGrad.addColorStop(0.5, 'rgba(255, 255, 255, 0.08)');
                 rimGrad.addColorStop(1, 'rgba(255, 255, 255, 0)');
 
                 ctx.fillStyle = rimGrad;
@@ -5918,19 +5925,19 @@
                 ctx.arc(rimX, rimY, rimR, 0, Math.PI * 2);
                 ctx.fill();
 
-                ctx.restore(); // Restore globalCompositeMode to default
+                ctx.restore();
 
-                // 3. Final Safety Pass: Restore original alpha strictly per pixel
+                // 4. Final Safety Pass: Restore original alpha strictly per pixel
                 const finalData = ctx.getImageData(0, 0, size, size);
                 const finalPixels = finalData.data;
                 for (let i = 0; i < size * size; i++) {
                     if (origAlpha[i] === 0) {
-                        finalPixels[i * 4 + 3] = 0; // Force 100% transparent on background
+                        finalPixels[i * 4 + 3] = 0;
                     }
                 }
                 ctx.putImageData(finalData, 0, 0);
 
-                logImportDiagnostic("✨ [방법 B] 사각형 박스 & 얼굴 세로줄 100% 제거 완료!");
+                logImportDiagnostic("✨ [3D 젤리 효과] 귀 상단 어두운 테두리 소멸 & 윤곽선 입체 볼륨 완성!");
             } catch (err) {
                 console.error("Failed to apply Method B Jelly effect:", err);
             }
