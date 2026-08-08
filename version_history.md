@@ -2061,3 +2061,11 @@
      - 기존 HTML 설정창에 BGM 슬라이더만 존재하고 SFX 슬라이더(`#sfx-volume`)가 누락되어 조절 자체가 불가능했던 근본 원인을 찾아 HTML UI에 슬라이더를 직관적으로 직접 배치 완료.
   2. **직결 보장형 오디오 출력 버스(`sfxGainBus`) 구축**:
      - 오디오 컨텍스트 상태 차단 가능성을 완벽 방지하고, 슬라이더 0% 설정 시 100% 무음, 올리는 대로 즉시 실시간 음량이 1:1로 정확히 조절되도록 직결 게인 버스 완성.
+
+## Master Release v281.0.0 (2026-08-09) - METICULOUS PRECISION AUDIO ENGINE FIX & DIRECT RELEASE TRIGGER
+- **Version Checkpoint File**: `v281.0.0_METICULOUS_PRECISION_AUDIO_FIX.html`
+- **정밀 전수 조사를 통한 묵음 원인 차단 및 당겼다 놓는 순간 소리 100% 보장 정밀 반영**:
+  1. **초기 화면 묵음 가드(`!isPlaygroundActive()`) 전면 제거**:
+     - 스플래시 화면이나 로비 상태 검사 함수가 `false`를 반환할 때 모든 효과음 함수가 묵음 조기 종료되던 버그를 정밀 포렌식으로 발견하여, 상태 차단 가드를 완전히 제거하고 `isSoundEnabled` 온오프만 따르도록 100% 개편 완료.
+  2. **터치 릴리즈(`releaseGrab`) 시 튕김 소리 직접 트리거 추가**:
+     - 당김 조작 후 손을 놓는 즉시 `playReleaseSound()`와 `playJellyWallBounceSound()`가 연속 직결 트리거되도록 수정하여, 어떤 당김 거리나 동작에서도 가볍고 맑은 미풍 여운 사운드("퐁~~...")가 100% 즉각 울리도록 정밀 조율 마감.

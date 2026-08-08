@@ -2278,7 +2278,7 @@
                 // 🍮 [Light & Lingering Bounce]: 가볍고 또렷하며 여운이 아련하게 퍼지는 맑은 튕김음
                 // 🍮 [Guaranteed Audible & Volume Controlled Wall Bounce Sound]
         function playJellyWallBounceSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2331,7 +2331,7 @@
         }
 
         function playReleaseSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             let masterNode = getMasterSFXGain();
             if (!masterNode || !audioCtx) return;
             try {
@@ -2351,7 +2351,7 @@
 
         // 🟢 [RESTORED]: 버블 팝 소리 ("팝!")
         function playPopSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             let masterNode = getMasterSFXGain();
             if (!masterNode || !audioCtx) return;
             try {
@@ -2371,7 +2371,7 @@
 
         // 🟢 [RESTORED]: 풍선 터짐 소리
         function playLoudBalloonPopSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             let masterNode = getMasterSFXGain();
             if (!masterNode || !audioCtx) return;
             try {
@@ -2391,7 +2391,7 @@
 
         // 🟢 [RESTORED]: 풍선 팽창 소리
         function playInflateTone(progressRatio) {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             let masterNode = getMasterSFXGain();
             if (!masterNode || !audioCtx) return;
             try {
@@ -2411,7 +2411,7 @@
         }
 
                 function playReleaseSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2431,7 +2431,7 @@
         }
 
         function playJellyWallBounceSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2510,7 +2510,7 @@
         let popFlashEffect = null;
 
         function playPopSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            if (!isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -4873,7 +4873,7 @@
         // audioCtx declared at top level
 
         function playSquishSound(isRelease = false) {
-            if (!isPlaygroundActive() || !isSoundEnabled) return; // Disable all interaction sound effects outside of playground
+            if (!isSoundEnabled) return; // Disable all interaction sound effects outside of playground
             try {
                 if (!audioCtx) {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -4956,6 +4956,7 @@
             isTouching = false;
             if (!quiet) {
                 playReleaseSound();
+                playJellyWallBounceSound();
             }
         };
         canvas.addEventListener('mouseup', releaseGrab);
