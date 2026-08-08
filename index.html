@@ -4584,20 +4584,15 @@
                                     jellySpinSpeed = (jellySpinSpeed >= 0 ? 0.015 : -0.015);
                                 }
                             } else {
-                                // 목표 바운스 횟수 달성 후 부드럽게 복원력 작동하며 중앙 귀환
-                                jellyFlightVx += -jellyCenterX * 0.00035;
-                                jellyFlightVy += -jellyCenterY * 0.00035;
-                                jellyFlightVx *= 0.992;
-                                jellyFlightVy *= 0.992;
-                                jellySpinSpeed *= 0.85;
+                                // 목표 바운스 횟수 달성 후 100% 확실하게 중앙으로 원활히 복귀 (멈춤/프리징 버그 원천 차단!)
+                                let distToCenter = Math.hypot(jellyCenterX, jellyCenterY);
+                                let returnSpeed = Math.max(3.5, distToCenter * 0.12);
 
-                                // 중앙 귀환 시 기울어진 회전 각도를 가장 가까운 정방향(0도/360도)으로 천천히 부드럽게 복원
-                                let targetRot = Math.round(jellyRotation / (Math.PI * 2)) * Math.PI * 2;
-                                jellyRotation += (targetRot - jellyRotation) * 0.08;
-
-                                // 위치와 회전 각도가 모두 정위치(0,0 / 정방향)에 도달했을 때 깔끔하게 정지
-                                let rotDiff = Math.abs(jellyRotation - targetRot);
-                                if (Math.hypot(jellyCenterX, jellyCenterY) < 3.0 && Math.hypot(jellyFlightVx, jellyFlightVy) < 0.3 && rotDiff < 0.05) {
+                                if (distToCenter > 5.0) {
+                                    jellyCenterX -= (jellyCenterX / distToCenter) * returnSpeed;
+                                    jellyCenterY -= (jellyCenterY / distToCenter) * returnSpeed;
+                                    jellyRotation *= 0.82;
+                                } else {
                                     jellyCenterX = 0;
                                     jellyCenterY = 0;
                                     jellyFlightVx = 0;
@@ -4606,6 +4601,7 @@
                                     jellySpinSpeed = 0;
                                     jellyIsFlying = false;
                                     jellyBounceCount = 0;
+                                    currentLaunchBounceCount = 0;
                                 }
                             }
 
