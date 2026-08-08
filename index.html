@@ -4074,11 +4074,13 @@
         function getPocketPositions() {
             let pR = 38;
             let pad = 50;
+            let w = (typeof width === 'number' && width > 200) ? width : (window.innerWidth || 360);
+            let h = (typeof height === 'number' && height > 200) ? height : (window.innerHeight || 640);
             return [
                 { id: 'tl', x: pad, y: pad + 35, r: pR, name: '좌상단' },
-                { id: 'tr', x: width - pad, y: pad + 35, r: pR, name: '우상단' },
-                { id: 'bl', x: pad, y: height - pad - 20, r: pR, name: '좌하단' },
-                { id: 'br', x: width - pad, y: height - pad - 20, r: pR, name: '우하단' }
+                { id: 'tr', x: w - pad, y: pad + 35, r: pR, name: '우상단' },
+                { id: 'bl', x: pad, y: h - pad - 20, r: pR, name: '좌하단' },
+                { id: 'br', x: w - pad, y: h - pad - 20, r: pR, name: '우하단' }
             ];
         }
 
@@ -4980,20 +4982,12 @@
                 }
             }
 
-            // 🎱 Render 4 Corner Pockets & Aiming Line in Billiards Mode
+            // 🎱 Render 4 Corner Pockets & Aiming Line in Billiards Mode (Lightweight GPU Optimized!)
             if (activeTextureMode === 'billiards') {
                 let pockets = getPocketPositions();
                 ctx.save();
                 for (let pk of pockets) {
-                    let pGrad = ctx.createRadialGradient(pk.x, pk.y, 5, pk.x, pk.y, pk.r);
-                    pGrad.addColorStop(0, '#000000');
-                    pGrad.addColorStop(0.65, '#0c071e');
-                    pGrad.addColorStop(0.85, '#00e5ff');
-                    pGrad.addColorStop(1, 'rgba(0, 229, 255, 0.1)');
-
-                    ctx.fillStyle = pGrad;
-                    ctx.shadowColor = '#00e5ff';
-                    ctx.shadowBlur = 16;
+                    ctx.fillStyle = '#080414';
                     ctx.beginPath();
                     ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI * 2);
                     ctx.fill();
@@ -5007,7 +5001,7 @@
                 ctx.restore();
 
                 // Trajectory & Tension Gauge Line while dragging
-                if (isMouseDown && grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                if (isMouseDown && grabbedPointIndex !== null && points && points[grabbedPointIndex]) {
                     let gNode = points[grabbedPointIndex];
                     let pullDx = gNode.ox - touchX;
                     let pullDy = gNode.oy - touchY;
@@ -5020,7 +5014,7 @@
 
                         ctx.strokeStyle = gaugeColor;
                         ctx.lineWidth = 3;
-                        ctx.setLineDash([8, 6]);
+                        if (typeof ctx.setLineDash === 'function') ctx.setLineDash([8, 6]);
                         ctx.beginPath();
                         ctx.moveTo(gNode.ox, gNode.oy);
                         let aimLen = pullDist * 2.2;
@@ -5028,6 +5022,8 @@
                         let aimY = gNode.oy + (pullDy / pullDist) * aimLen;
                         ctx.lineTo(aimX, aimY);
                         ctx.stroke();
+
+                        if (typeof ctx.setLineDash === 'function') ctx.setLineDash([]); // Reset line dash cleanly!
 
                         ctx.fillStyle = gaugeColor;
                         ctx.font = 'bold 13px sans-serif';
