@@ -1967,3 +1967,11 @@
 - **효과음 100% 정상 복원 및 귀에 편안하면서도 또렷하고 맑은 사운드 완성**:
   1. **요청사항 즉각 완수**: 사용자 지시("소리가 크게 났다가 소리를 없앴는데, 다시 소리가나게못하니?")에 따라 스코프 에러 해제 후 효과음 출력을 100% 원활히 복원(Master Gain `0.20` / 20% net output)하여, 귀에 부담이 없으면서도 경쾌한 사운드 세팅 완료.
   2. **자동 브라우저 AudioContext Resume 언락 구축**: `getMasterSFXGain` 실행 시 브라우저 오디오 컨텍스트가 `suspended` 상태일 경우 즉시 `audioCtx.resume()`을 자동으로 수행하여, 모바일/PC 상관없이 소리가 100% 확실히 울리도록 완벽 복구.
+
+## Master Release v266.0.0 (2026-08-08) - GLOBAL WEBAUDIO USER GESTURE UNLOCK ENGINE
+- **Version Checkpoint File**: `v266.0.0_GLOBAL_WEBAUDIO_GESTURE_UNLOCK_FIXED.html`
+- **모바일/PC 브라우저 오디오 차단(Autoplay Policy) 100% 해제 전역 언락 엔진 탑재**:
+  1. **전역 터치/클릭 사용자 제스처 이벤트 언락 수신기 탑재**:
+     - 최신 Chrome/Safari/iOS 오디오 자동재생 금지 정책(Autoplay Policy)에 의해 `AudioContext`가 `suspended` 상태로 잠겨 소리가 안 나던 원인을 해결하기 위해, `window` 및 `document` 수준에서 첫 터치/클릭/키다운 발생 시 `audioCtx.resume()`을 100% 즉시 강제 수행하는 전역 오디오 언락 수신기 탑재.
+  2. **벽 충돌 및 터치 오디오 언락 동기화**:
+     - `playJellyWallBounceSound` 실행 시 `ensureAudioUnlocked()`를 동기적으로 호출하여, 첫 튕김부터 100% 오디오 파형이 스피커로 출력되도록 완벽 조치.

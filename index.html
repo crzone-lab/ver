@@ -2301,6 +2301,7 @@
         function playJellyWallBounceSound() {
             let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
             if (!isPlaygroundActive() || !soundOn) return;
+            ensureAudioUnlocked();
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
