@@ -98,17 +98,23 @@
             display: block;
         }
 
-        /* Minimal Top Bar UI Overlay */
+        /* Warm Yellow Top Bar UI Overlay matching Image 2 */
         .top-overlay-ui {
             position: absolute;
-            top: 40px;
+            top: 0;
             left: 0;
             width: 100%;
-            padding: 0 16px;
+            height: 60px;
+            background: rgba(254, 249, 219, 0.95) !important;
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
+            padding: 0 12px;
+            box-sizing: border-box;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            z-index: 1010; /* Float above both lobby and playground screen stages */
+            z-index: 30000 !important;
         }
 
         .action-circle-btn {
@@ -1414,11 +1420,10 @@
         </div>
 
         <!-- 6. Billiards Game HUD Overlay (z-index: 25000) -->
-        <div id="billiards-hud" style="display: none; position: absolute; top: 110px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(75, 95, 40, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 20px; color: #fff; font-family: monospace, sans-serif; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.4); align-items: center; gap: 12px;">
+        <div id="billiards-hud" style="display: none; position: absolute; top: 78px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(85, 107, 47, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 22px; color: #fff; font-family: monospace, sans-serif; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
             <div style="font-size: 15px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;">
                 score : <span id="billiards-score-val" style="color: #76ff03; font-weight: 900;">0</span> &nbsp; best : <span id="billiards-best-val" style="color: #ffd700; font-weight: 900;">0</span>
             </div>
-            <button onclick="exitBilliardsMode()" style="background: rgba(255,71,87,0.88); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">❎ 종료</button>
         </div>
 
         <!-- 5. Unified Global Feel Selector pills (z-index: 25000) -->
@@ -4007,15 +4012,8 @@
 
         function showNotification(msg) {
             console.log(msg);
-            const toast = document.getElementById('toast-el');
-            if (!toast) return;
-            toast.innerText = msg;
-            toast.classList.add('active');
-            
-            if (window.toastTimeout) clearTimeout(window.toastTimeout);
-            window.toastTimeout = setTimeout(() => {
-                toast.classList.remove('active');
-            }, 2500);
+            // Top notification banner disabled per user request!
+            return;
         }
 
         function drawWarpedTriangle(ctx, img, p0, p1, p2, imgW, imgH) {
@@ -5098,8 +5096,12 @@
 
             // 🎱 Render 4 Corner Pockets & Aiming Line in Billiards Mode (Lightweight GPU & High-Vis!)
             if (activeTextureMode === 'billiards') {
+                let topBarH = 60;
                 let pockets = getPocketPositions();
                 ctx.save();
+                ctx.beginPath();
+                ctx.rect(0, topBarH, width, height - topBarH);
+                ctx.clip();
                 for (let pk of pockets) {
                     // Deep dark hole center
                     ctx.fillStyle = '#0c071e';
