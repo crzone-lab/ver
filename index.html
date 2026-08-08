@@ -2217,24 +2217,144 @@
         let nextCycleTimer = 0;
         let soundPulseTimer = 0;
 
-                        // =========================================================================
-        // 🔇 SOUND EFFECTS COMPLETELY DELETED & SILENCED (v275.0.0)
+                                // =========================================================================
+        // 🔊 SELECTIVE SOUND EFFECTS ENGINE (v276.0.0)
+        // Only playJellyWallBounceSound is 100% DELETED, other interaction sounds restored!
         // =========================================================================
-        var isSoundEnabled = false;
+        var isSoundEnabled = true;
         var isVibrationEnabled = true;
 
-        function getMasterSFXGain() { return null; }
-        function updateSFXVolume() {}
-        function toggleSoundSetting(enabled) { isSoundEnabled = false; }
-        function toggleVibrationSetting(enabled) { isVibrationEnabled = enabled; }
-        function triggerHaptic(ms) {}
+        function getMasterSFXGain() {
+            ensureAudioUnlocked();
+            if (!audioCtx) return null;
+            if (!masterSFXGainNode) {
+                masterSFXGainNode = audioCtx.createGain();
+                let sfxEl = document.getElementById('sfx-volume');
+                let sliderVal = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.25;
+                masterSFXGainNode.gain.setValueAtTime(sliderVal, audioCtx.currentTime);
+                masterSFXGainNode.connect(audioCtx.destination);
+            }
+            return masterSFXGainNode;
+        }
 
-        // ALL SOUND EFFECTS COMPLETELY DELETED
-        function playJellyWallBounceSound() { return; }
-        function playReleaseSound() { return; }
-        function playPopSound() { return; }
-        function playLoudBalloonPopSound() { return; }
-        function playInflateTone() { return; }
+        function updateSFXVolume() {
+            let sfxEl = document.getElementById('sfx-volume');
+            if (sfxEl) {
+                let val = parseFloat(sfxEl.value);
+                let targetGain = val / 100;
+                let masterNode = getMasterSFXGain();
+                if (masterNode && audioCtx) {
+                    masterNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+                }
+            }
+            if (typeof syncSliderLabels === 'function') syncSliderLabels();
+        }
+
+        function toggleSoundSetting(enabled) {
+            isSoundEnabled = enabled;
+            if (!enabled && typeof bgmPlayer !== "undefined" && bgmPlayer) {
+                try { bgmPlayer.stop(); } catch(e) {}
+            } else if (enabled && typeof bgmPlayer !== "undefined" && bgmPlayer && isPlaygroundActive()) {
+                try { bgmPlayer.start(); } catch(e) {}
+            }
+        }
+
+        function toggleVibrationSetting(enabled) {
+            isVibrationEnabled = enabled;
+        }
+
+        function triggerHaptic(ms) {
+            if (!isPlaygroundActive() || !isVibrationEnabled) return;
+            if (navigator.vibrate) {
+                try { navigator.vibrate(ms || 30); } catch(e) {}
+            }
+        }
+
+        // ❌ [100% DELETED & SILENCED]: 벽 충돌 소리는 100% 삭제 상태 유지!
+        function playJellyWallBounceSound() {
+            return; // 100% DELETED & SILENCED
+        }
+
+        // 🟢 [RESTORED]: 터치 릴리즈 소리 ("푱!")
+        function playReleaseSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.08);
+                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } catch (e) {}
+        }
+
+        // 🟢 [RESTORED]: 버블 팝 소리 ("팝!")
+        function playPopSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(380, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.06);
+                gain.gain.setValueAtTime(0.20, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                osc.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            } catch (e) {}
+        }
+
+        // 🟢 [RESTORED]: 풍선 터짐 소리
+        function playLoudBalloonPopSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.14);
+                gain.gain.setValueAtTime(0.30, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                osc.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.14);
+            } catch (e) {}
+        }
+
+        // 🟢 [RESTORED]: 풍선 팽창 소리
+        function playInflateTone(progressRatio) {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                let startFreq = 200 + (progressRatio || 0) * 300;
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(startFreq + 40, now + 0.06);
+                gain.gain.setValueAtTime(0.10, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+                osc.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            } catch (e) {}
+        }
 
                 function playReleaseSound() {
             if (!isPlaygroundActive() || !isSoundEnabled) return;

@@ -2037,3 +2037,9 @@
 - **사용자 최종 지시에 따른 효과음 시스템 100% 완전 삭제**:
   1. **모든 오디오 합성 함수 100% 영구 삭제 처리**:
      - 사용자 지시("똑같은 소리가 큰거 동일함, 삭제하라고..")에 따라 `playJellyWallBounceSound`, `playReleaseSound`, `playPopSound`, `playLoudBalloonPopSound`, `playInflateTone` 등 모든 오디오 발생 함수의 내부 파형 생성 로직을 100% 완전히 삭제(`return;`)하여, 어떤 환경이나 튕김 동작에서도 0.00% 무음 상태가 되도록 완전 삭제 조치 마감.
+
+## Master Release v276.0.0 (2026-08-09) - WALL BOUNCE SOUND ONLY DELETED (OTHER INTERACTION SFX ACTIVE)
+- **Version Checkpoint File**: `v276.0.0_WALL_BOUNCE_DELETED_OTHER_SFX_ACTIVE.html`
+- **벽 충돌음만 100% 선택 삭제 유지 & 기타 터치/버블/릴리즈 인터랙션 효과음 원활 제공**:
+  1. **요청사항 확인 및 수술적 오디오 분리**:
+     - 사용자 질문("벽에 부딪치는 소리말고 다른효과음도 삭제했니/")에 따라 문제의 **벽 충돌 소리(`playJellyWallBounceSound`)만 100% 영구 삭제(`return;`)**로 유지하고, 귀여운 **터치 릴리즈(`playReleaseSound`), 버블 팝(`playPopSound`), 풍선 터짐(`playLoudBalloonPopSound`) 등 다른 인터랙션 효과음은 원활히 복원**하여 완벽 조율 완료.
