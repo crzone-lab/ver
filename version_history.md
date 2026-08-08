@@ -1890,3 +1890,9 @@
      - `const jellyImage` 전역 상수를 `var jellyImage`로 변경하여 `selectLobbyCharacter` 내 텍스처 교체 시 발생하던 `TypeError: Assignment to constant variable` 예외 원천 차단.
   3. **안전한 `activeTextureMode` 초기 참조 Guard**:
      - `activeTextureMode` 변수가 미선언된 최초 실행 시점에도 `typeof activeTextureMode !== 'undefined'` 안전 Guard를 적용하여 스크립트 실행 중단 현상 100% 방지.
+
+## Master Release v255.0.0 (2026-08-08) - ULTRA-WHISPER QUIET SFX VOLUME
+- **Version Checkpoint File**: `v255.0.0_ULTRA_WHISPER_QUIET_SFX_VOLUME.html`
+- **효과음(SFX) 볼륨 극저음(Whisper-soft 0.75% / Max 5%) 전면 하향 재조정**:
+  1. **요청사항 즉각 반영**: 사용자 요청("다시 효과음이 커졌네.이거먼저 수정해,작게")에 따라 효과음 마스터 게인을 극도로 은은하고 조용한 속삭임 볼륨(`0.0075` / 0.75%)으로 즉시 전면 하향.
+  2. **최대 게인 천장 5% 제한**: 슬라이더를 100% 최대로 올려도 마스터 게인이 `0.05`(5%)를 절대 넘지 않도록 강력 제한하여 이어폰/스피커에서도 전혀 귀가 아프지 않은 은은하고 조용한 사운드 보장.
