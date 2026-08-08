@@ -4566,36 +4566,37 @@
                             let sparkX = centerOx + jellyCenterX;
                             let sparkY = centerOy + jellyCenterY;
 
-                            // 좌우 벽 충돌 (당구공 입사각/반사각 물리)
+                            // 좌우 벽 충돌 (캐릭터 회전 각도 및 귀/몸통 부딪힘 지점에 따른 실시간 반사각 물리!)
+                            let shapeAngleShift = Math.sin(jellyRotation * 2.0) * 0.28; // 귀/머리/몸통 부딪힘 부위에 따른 반사 각도 변화
                             if (jellyCenterX <= minCX) {
                                 jellyCenterX = minCX;
                                 jellyFlightVx = Math.abs(jellyFlightVx) * 0.95;
-                                if (Math.abs(jellyFlightVy) < 1.0) jellyFlightVy += (Math.random() > 0.5 ? 1.2 : -1.2);
-                                jellySpinSpeed = -jellySpinSpeed * 0.9;
+                                jellyFlightVy += jellyFlightVx * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 각도 변형
+                                jellySpinSpeed = -jellySpinSpeed * 0.85 + (jellyFlightVy * 0.005);
                                 hitWall = true;
                                 sparkX = 25;
                             } else if (jellyCenterX >= maxCX) {
                                 jellyCenterX = maxCX;
                                 jellyFlightVx = -Math.abs(jellyFlightVx) * 0.95;
-                                if (Math.abs(jellyFlightVy) < 1.0) jellyFlightVy += (Math.random() > 0.5 ? 1.2 : -1.2);
-                                jellySpinSpeed = -jellySpinSpeed * 0.9;
+                                jellyFlightVy += Math.abs(jellyFlightVx) * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 각도 변형
+                                jellySpinSpeed = -jellySpinSpeed * 0.85 - (jellyFlightVy * 0.005);
                                 hitWall = true;
                                 sparkX = width - 25;
                             }
 
-                            // 상하 벽 충돌 (당구공 입사각/반사각 물리)
+                            // 상하 벽 충돌 (캐릭터 귀/몸통 부딪힘 지점에 따른 실시간 반사각 물리!)
                             if (jellyCenterY <= minCY) {
                                 jellyCenterY = minCY;
                                 jellyFlightVy = Math.abs(jellyFlightVy) * 0.95;
-                                if (Math.abs(jellyFlightVx) < 1.0) jellyFlightVx += (Math.random() > 0.5 ? 1.2 : -1.2);
-                                jellySpinSpeed = (jellyFlightVx > 0 ? 0.015 : -0.015);
+                                jellyFlightVx += jellyFlightVy * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 수평 각도 변형
+                                jellySpinSpeed = (jellyFlightVx > 0 ? 0.018 : -0.018);
                                 hitWall = true;
                                 sparkY = 25;
                             } else if (jellyCenterY >= maxCY) {
                                 jellyCenterY = maxCY;
                                 jellyFlightVy = -Math.abs(jellyFlightVy) * 0.95;
-                                if (Math.abs(jellyFlightVx) < 1.0) jellyFlightVx += (Math.random() > 0.5 ? 1.2 : -1.2);
-                                jellySpinSpeed = (jellyFlightVx > 0 ? -0.015 : 0.015);
+                                jellyFlightVx += Math.abs(jellyFlightVy) * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 수평 각도 변형
+                                jellySpinSpeed = (jellyFlightVx > 0 ? -0.018 : 0.018);
                                 hitWall = true;
                                 sparkY = height - 25;
                             }

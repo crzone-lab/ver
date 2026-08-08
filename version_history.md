@@ -2192,3 +2192,11 @@
      - 중간 당김: 1회 ~ 3회
      - 세게 당김: 4회 ~ 6회
      - **최대 당김**: **정확히 최대 9회까지로 상한 캡(`jellyTargetBounces` max = 9)**을 적용하여 늘어지는 지루함 없이 적절하고 쾌적하게 튕기도록 완전 개선.
+
+## Master Release v294.0.0 (2026-08-09) - SOFT-BODY SHAPE & ROTATION COLLISION ANGLE DEFLECTION PHYSICS
+- **Version Checkpoint File**: `v294.0.0_SHAPE_AND_COLLISION_POINT_BOUNCE_ANGLE.html`
+- **캐릭터 회전 각도 및 귀/머리/몸통 충돌 부위에 따른 실시간 동적 반사각 물리 구현**:
+  1. **실시간 캐릭터 형태별 반사각 변형(Shape-Dependent Bounce Normal)**:
+     - 단순 구형 당구공과 달리, 토끼 귀(위쪽)나 몸통(아래쪽), 측면이 벽에 어떤 회전 각도(`jellyRotation`)로 부딪히는지에 따라 반사 각도가 미세하고 입체적으로 달라집니다.
+  2. **회전 스핀과의 유기적 정밀 연동**:
+     - 귀 쪽이 먼저 부딪히면 회전력이 생기며 반사각이 굴절되고, 둥근 몸통 부위가 부딪히면 정반사되는 직관적이고 현실적인 소프트바디 당구 물리가 적용되었습니다.
