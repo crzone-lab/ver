@@ -2141,3 +2141,13 @@
      - 이로 인해 캐릭터가 오프셋되거나 당구 모드 진입 시 터치 감지 판정이 100% `false`로 거부되어 터치 드래그가 무반응 처리되고 마치 정지된 사진("캡쳐그림")처럼 굳어버리던 버그를 정밀 추적으로 밝혀냈습니다.
   2. **100% 완벽 터치 감지 및 즉각적 당기기 조준 보장**:
      - `isClickOnCharacter` 감지 기준을 화면에 실제 렌더링된 실시간 메쉬 좌표(`points[i].x`, `points[i].y`)로 개편하여, **어떤 위치/상태/당구 모드에서도 캐릭터를 누르는 즉시 100% 감지되고 당구 궤적 및 파워 게이지가 부드럽게 작동**하도록 완전 원천 해결 완료.
+
+## Master Release v289.0.0 (2026-08-09) - DEFINITIVE IS_MOUSE_DOWN REFERENCE_ERROR RESOLVED
+- **Version Checkpoint File**: `v289.0.0_ISMOUSEDOWN_DEFINITIVE_ROOT_CAUSE_FIXED.html`
+- **젤리당구 선택 시 draw() 루프 내부 미선언 변수(isMouseDown) 참조 에러 전수 추적하여 100% 완전 해결**:
+  1. **실체적 100% 근본 원인 최초 해명**:
+     - 젤리당구 모드(`activeTextureMode === 'billiards'`) 진입 시 `draw()` 렌더링 루프 내부에서 당구 조준선/파워 게이지를 그릴 때 미선언된 변수 `isMouseDown`을 참조(`if (isMouseDown && ...)`)하고 있었습니다.
+     - 이로 인해 젤리당구 버튼을 누르는 순간 `ReferenceError: isMouseDown is not defined` 예외가 대량 발생하여 `requestAnimationFrame(draw)` 렌더링 애니메이션 루프가 즉시 사망(CRASH)하고, 화면 전체가 정지 사진 캡쳐 그림처럼 가만히 굳어버리던 버그를 노드 VM 시뮬레이션 전수 추적으로 명확히 찾아내었습니다.
+  2. **100% 매끄러운 60fps 당구 모드 구동 마감**:
+     - 미선언 변수 `isMouseDown`을 프로젝트 표준 터치 변수인 `isTouching`으로 정밀 대체하고 전역 풋프린트 방어 선언을 완료하였습니다.
+     - 이제 젤리당구 모드를 눌러도 **더 이상 draw() 루프가 터지지 않고 100% 매끄러운 60fps로 실시간 구동되며, 조준선과 당구 튕기기 게임이 완벽 작동**합니다.

@@ -4065,7 +4065,14 @@
 
         // 🎱 Billiards Pocket Mode State & Audio System
         let pocketScore = 0;
-        let pocketBestScore = parseInt(localStorage.getItem('jelly_billiards_best') || '0', 10);
+        let pocketBestScore = 0;
+        try {
+            if (typeof window !== 'undefined' && window.localStorage) {
+                pocketBestScore = parseInt(window.localStorage.getItem('jelly_billiards_best') || '0', 10);
+            }
+        } catch(e) {
+            pocketBestScore = 0;
+        }
         let currentLaunchBounceCount = 0;
         let isSuckingIntoPocket = false;
         let floatingBounceTexts = [];
@@ -5014,7 +5021,7 @@
                 ctx.restore();
 
                 // Trajectory & Tension Gauge Line while dragging
-                if (isMouseDown && grabbedPointIndex !== null && points && points[grabbedPointIndex]) {
+                if (isTouching && grabbedPointIndex !== null && points && points[grabbedPointIndex]) {
                     let gNode = points[grabbedPointIndex];
                     let pullDx = gNode.ox - touchX;
                     let pullDy = gNode.oy - touchY;
@@ -6618,10 +6625,10 @@
 
         function saveCustomRabbitToPhone(customChar) {
             try {
-                let saved = localStorage.getItem('user_custom_rabbits_v1');
+                let saved = null; try { if (typeof window !== 'undefined' && window.localStorage) saved = window.localStorage.getItem('user_custom_rabbits_v1'); } catch(e){}
                 let customList = saved ? JSON.parse(saved) : [];
                 customList.push(customChar);
-                localStorage.setItem('user_custom_rabbits_v1', JSON.stringify(customList));
+                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('user_custom_rabbits_v1', JSON.stringify(customList)); } catch(e){}
                 console.log("Saved new custom rabbit to user phone localStorage!");
             } catch (err) {
                 console.error("Failed to save custom rabbit to phone:", err);
@@ -6630,7 +6637,7 @@
 
         function loadSavedCustomRabbitsFromPhone() {
             try {
-                const saved = localStorage.getItem('user_custom_rabbits_v1');
+                let saved = null; try { if (typeof window !== 'undefined' && window.localStorage) saved = window.localStorage.getItem('user_custom_rabbits_v1'); } catch(e){}
                 if (saved) {
                     const customList = JSON.parse(saved);
                     if (Array.isArray(customList) && customList.length > 0) {
