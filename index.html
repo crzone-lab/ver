@@ -2293,6 +2293,26 @@
             } catch (e) {}
         }
 
+                function playReleaseSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(240, now);
+                osc.frequency.exponentialRampToValueAtTime(140, now + 0.10);
+                gain.gain.setValueAtTime(0.04, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.10);
+            } catch (e) {}
+        }
+
         function playJellyWallBounceSound() {
             if (!isPlaygroundActive() || !isSoundEnabled) return;
             try {

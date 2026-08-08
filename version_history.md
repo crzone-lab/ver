@@ -2004,3 +2004,9 @@
 - **벽 충돌음 32배 하향(Gain 0.01) 초극저 미풍 적용 및 웹 브라우저 캐시 동작 원리 해명**:
   1. **오실레이터 진폭 0.01 (32배 감쇄) 전면 하향**:
      - 기존 원본 `0.32` 대비 32분의 1 수준인 `0.01`로 진폭 자체를 완전히 줄여, 하드웨어 자동 이퀄라이저(AGC)가 작동하더라도 미세한 속삭임 소리만 남도록 초극저음 적용.
+
+## Master Release v271.0.0 (2026-08-09) - PLAY_RELEASE_SOUND DEFINITION RESTORED & CRASH FIXED
+- **Version Checkpoint File**: `v271.0.0_PLAY_RELEASE_SOUND_DEFINED.html`
+- **터치 릴리즈 시 발생하던 미선언 참조 에러(`ReferenceError: playReleaseSound is not defined`) 해결**:
+  1. **릴리즈 사운드 미선언 에러 제거**:
+     - 젤리를 당겼다 놓을 때(`releaseGrab`) 호출되던 `playReleaseSound()` 함수가 정의되어 있지 않아 발생하던 미선언 `ReferenceError` 예외로 인해 릴리즈 시 스크립트 실행이 중단되던 버그를 찾아 `playReleaseSound()`를 부드럽고 미세하게 정식 배치 완료.
