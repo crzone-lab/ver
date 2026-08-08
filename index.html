@@ -1381,6 +1381,10 @@
                 <div class="action-circle-btn" style="pointer-events: auto;" id="settings-toggle-btn" onclick="stopAutopilot(); releaseGrab(true); releaseGrab(true); toggleAdvancedSettings()" title="Settings" data-i18n-title="btn-setting" style="display: flex; align-items: center; justify-content: center;">
                     <img src="setting.png" alt="Settings" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
+                <!-- Black round reset button right next to Settings (as drawn in user sketch Image 2!) -->
+                <div class="action-circle-btn" style="pointer-events: auto; display: none; background: #000000; border: 1.5px solid rgba(255,255,255,0.4); width: 32px; height: 32px; border-radius: 50%; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 2px 8px rgba(0,0,0,0.5);" id="billiards-top-reset-btn" onclick="resetBilliardsGame()" title="Reset Score">
+                    <span style="font-size: 14px; color: #ffffff; user-select: none;">🔄</span>
+                </div>
             </div>
 
             <div style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 4px;">
@@ -1410,16 +1414,11 @@
         </div>
 
         <!-- 6. Billiards Game HUD Overlay (z-index: 25000) -->
-        <div id="billiards-hud" style="display: none; position: absolute; top: 75px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(15, 5, 29, 0.90); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1.5px solid rgba(0, 229, 255, 0.6); border-radius: 20px; padding: 6px 16px; color: #fff; font-family: sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); align-items: center; gap: 12px;">
-            <div style="background: rgba(0, 229, 255, 0.15); border: 1px solid rgba(0, 229, 255, 0.4); border-radius: 14px; padding: 4px 10px; font-weight: 900; font-size: 14px; color: #ffd700; display: flex; align-items: center; gap: 6px; box-shadow: inset 0 0 8px rgba(0,229,255,0.2);">
-                <span style="font-size: 16px;">🎱</span> <span style="letter-spacing: 0.5px;">SCORE:</span> <span id="billiards-score-val" style="font-size: 18px; color: #76ff03; text-shadow: 0 0 8px #76ff03;">0</span>
+        <div id="billiards-hud" style="display: none; position: absolute; top: 110px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(75, 95, 40, 0.92); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 20px; color: #fff; font-family: monospace, sans-serif; text-align: center; box-shadow: 0 6px 18px rgba(0,0,0,0.4); align-items: center; gap: 12px;">
+            <div style="font-size: 15px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;">
+                score : <span id="billiards-score-val" style="color: #76ff03; font-weight: 900;">0</span> &nbsp; best : <span id="billiards-best-val" style="color: #ffd700; font-weight: 900;">0</span>
             </div>
-            <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.25);"></div>
-            <div style="font-size: 13px; color: rgba(255,255,255,0.9); font-weight: bold;">
-                BEST: <span id="billiards-best-val" style="color: #ffb700;">0</span>
-            </div>
-            <button onclick="resetBilliardsGame()" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">🔄 리셋</button>
-            <button onclick="exitBilliardsMode()" style="background: rgba(255,71,87,0.85); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">❎ 종료</button>
+            <button onclick="exitBilliardsMode()" style="background: rgba(255,71,87,0.88); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 2px 10px; border-radius: 10px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">❎ 종료</button>
         </div>
 
         <!-- 5. Unified Global Feel Selector pills (z-index: 25000) -->
@@ -4100,12 +4099,13 @@
         let respawnAnimProgress = 1.0;
 
         function getPocketPositions() {
-            let pR = 60; // 4 Corner Quarter-Circle Pockets matching Image 2
+            let pR = 75; // 4 Corner Pockets matching Image 2 layout
             let w = (typeof width === 'number' && width > 200) ? width : (window.innerWidth || 360);
             let h = (typeof height === 'number' && height > 200) ? height : (window.innerHeight || 640);
+            let topBarOffset = 60; // Top bar height offset matching sketch Image 2!
             return [
-                { id: 'tl', x: 0, y: 0, r: pR, name: '좌상단' },
-                { id: 'tr', x: w, y: 0, r: pR, name: '우상단' },
+                { id: 'tl', x: 0, y: topBarOffset, r: pR, name: '좌상단' },
+                { id: 'tr', x: w, y: topBarOffset, r: pR, name: '우상단' },
                 { id: 'bl', x: 0, y: h, r: pR, name: '좌하단' },
                 { id: 'br', x: w, y: h, r: pR, name: '우하단' }
             ];
@@ -6085,16 +6085,19 @@
                 if (p) p.classList.remove("active");
             });
 
+            const topResetBtn = document.getElementById("billiards-top-reset-btn");
             if (feel === "billiards") {
                 if (pBilliards) pBilliards.classList.add("active");
                 if (bHud) bHud.style.display = "flex";
-                if (feelUI) feelUI.style.display = "none"; // 1. Hide feel selector pills in billiards mode
-                if (bottomCarousel) bottomCarousel.style.display = "none"; // 2. Hide bottom carousel in billiards mode
+                if (topResetBtn) topResetBtn.style.display = "flex"; // Show black reset button in top bar
+                if (feelUI) feelUI.style.display = "none";
+                if (bottomCarousel) bottomCarousel.style.display = "none";
                 stiffness = 50; damping = 8;
                 showNotification("🎱 젤리 포켓 당구: 4개 귀퉁이 구멍에 젤리를 튕겨 넣으세요!");
                 updateBilliardsHUD();
             } else {
                 if (bHud) bHud.style.display = "none";
+                if (topResetBtn) topResetBtn.style.display = "none";
                 if (feelUI) feelUI.style.display = "flex";
                 if (bottomCarousel) bottomCarousel.style.display = "flex";
 
