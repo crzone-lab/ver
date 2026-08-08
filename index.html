@@ -4242,16 +4242,16 @@
                 });
             }
 
-            let pts = 1;
+            let pts = 3;
             let soundTier = 1;
-            let title = "🎯 1점! 다이렉트 입수";
+            let title = "🎯 3점! 다이렉트 쏙 입수";
 
             if (bounces === 1) {
-                pts = 5; soundTier = 2; title = "⚡ 5점! 1뱅크샷 입수";
+                pts = 10; soundTier = 2; title = "⚡ 10점! 1뱅크 콤보 입수";
             } else if (bounces === 2) {
-                pts = 10; soundTier = 3; title = "🔥 10점! 2뱅크샷 입수";
+                pts = 25; soundTier = 3; title = "🔥 25점! 2뱅크 슈퍼 샷!";
             } else if (bounces >= 3) {
-                pts = 30; soundTier = 4; title = "👑 30점! 3뱅크 마스터 샷!";
+                pts = 50; soundTier = 4; title = "👑 50점! 3뱅크 갓 마스터 샷!";
             }
 
             pocketScore += pts;
@@ -4559,14 +4559,23 @@
                             let centerOx = width * 0.5;
                             let centerOy = height * 0.48;
 
-                            // 당구 포켓 빨려들기 검사
+                            // 당구 포켓 자석 빨려들기 유도 및 골든 입수 판정 (점수가 신나게 잘 나오도록 튜닝!)
                             if (activeTextureMode === 'billiards' && !isSuckingIntoPocket) {
                                 let currX = centerOx + jellyCenterX;
                                 let currY = centerOy + jellyCenterY;
                                 let pockets = getPocketPositions();
                                 for (let pk of pockets) {
                                     let distToPocket = Math.hypot(currX - pk.x, currY - pk.y);
-                                    if (distToPocket < pk.r * 0.58) { // Precise pocket entry collision per user request!
+                                    
+                                    // 1. 포켓 근처(pk.r * 1.15)에 가면 포켓 중심으로 자석처럼 부드럽게 유도 휨
+                                    if (distToPocket < pk.r * 1.15) {
+                                        let pullForce = 0.12;
+                                        jellyFlightVx += (pk.x - currX) * pullForce;
+                                        jellyFlightVy += (pk.y - currY) * pullForce;
+                                    }
+
+                                    // 2. 골든 입수 판정 (pk.r * 0.82 = 약 62px 반경으로 기분 좋게 쏙 입수!)
+                                    if (distToPocket < pk.r * 0.82) {
                                         triggerPocketHoleIn(pk, currentLaunchBounceCount);
                                         break;
                                     }
