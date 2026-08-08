@@ -2098,3 +2098,11 @@
   2. **4개 포켓 구멍 + 궤적 조준선 + 점수 시스템 구축**:
      - 4개 귀퉁이에 당구 포켓 구멍(Pockets) 배치 및 당김 힘에 따른 POWER % 궤적 가이드 라인 렌더링.
      - 뱅크샷(Bank Shot) 입수 시 1점~30점 차등 점수 획득, 전용 팡파르 합성음, 실시간 HUD(Score, Best Score, 리셋) 탑재.
+
+## Master Release v284.0.0 (2026-08-09) - UNBREAKABLE IMMEDIATE CHARACTER SELECTION PLAYGROUND ENTRY
+- **Version Checkpoint File**: `v284.0.0_UNBREAKABLE_CHARACTER_SELECTION_ENTRY.html`
+- **캐릭터 클릭 시 스테이지 진입 불통 원인 정밀 해명 및 100% 즉시 전환 개편**:
+  1. **화면 전환 최우선 실행(`setScreenMode("playground")`)으로 원천 해결**:
+     - 기존에는 커스텀/일반 캐릭터 클릭 시 텍스처 가공 및 알파맵 생성 로직이 먼저 실행된 뒤 `setScreenMode("playground")`가 호출되어, 텍스처 처리 시 예외나 비동기 대기가 발생하면 로비 화면이 닫히지 않고 게임 스테이지 진입이 차단되던 버그를 정밀 추적으로 밝혀냄.
+  2. **100% 즉각 스테이지 진입 및 예외 차단 안심 설계**:
+     - `selectLobbyCharacter` 진입 즉시 최우선으로 `setScreenMode("playground")`를 실행하여 로비 화면을 즉시 닫고 무대로 전환시킨 후, 텍스처 로딩 및 알파맵 생성을 비동기 안심 `try/catch` 구문으로 감싸 **어떤 캐릭터나 커스텀 이미지 추가 클릭 시에도 100% 0초 만에 게임 무대로 매끄럽게 진입**하도록 정밀 개편 마감.

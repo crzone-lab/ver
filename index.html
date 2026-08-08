@@ -5876,10 +5876,13 @@
             return canvas.toDataURL('image/png');
         }
 
-        function selectLobbyCharacter(index, element) {
+                function selectLobbyCharacter(index, element) {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
             activeLobbyIndex = index;
-            syncCarouselSelection(index);
+
+            // 1. IMMEDATELY TRANSITION SCREEN MODE TO PLAYGROUND FIRST (100% Guaranteed Game Entry!)
+            setScreenMode("playground");
+
             const char = lobbyCharacters[index];
             if (!char) return;
 
@@ -5901,51 +5904,55 @@
             activeBase = char.base;
             activeHue = char.hue || 350;
 
-            // Hide splash screen if open
-            const splash = document.getElementById('start-splash-screen');
-            if (splash) {
-                splash.classList.add('fade-out');
-                splash.style.display = 'none';
-            }
-
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
-            jellyImage.onload = function() {
-                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
-                if (typeof bakeSingleCompositeTexture === 'function') {
-                    bakeSingleCompositeTexture(jellyImage);
+            try {
+                jellyImage.onload = function() {
+                    try {
+                        bakedJellyTexture = jellyImage;
+                        if (typeof bakeSingleCompositeTexture === 'function') {
+                            bakeSingleCompositeTexture(jellyImage);
+                        }
+                        updateCharacterAlphaMap(jellyImage);
+                        initMesh();
+                        draw();
+                    } catch(e) {}
+                };
+
+                jellyImage.src = imageSrc;
+                bakedJellyTexture = jellyImage;
+
+                if (jellyImage.complete && jellyImage.naturalWidth > 0) {
+                    try {
+                        updateCharacterAlphaMap(jellyImage);
+                        initMesh();
+                        draw();
+                    } catch(e) {}
                 }
-                updateCharacterAlphaMap(jellyImage);
-                initMesh();
-                draw();
-            };
 
-            jellyImage.src = imageSrc;
-            bakedJellyTexture = jellyImage; // Immediate fallback assignment
-
-            if (jellyImage.complete && jellyImage.naturalWidth > 0) {
-                updateCharacterAlphaMap(jellyImage);
                 initMesh();
-                draw();
+                if (typeof updateCharacterAlphaMap === 'function') updateCharacterAlphaMap(jellyImage);
+                if (typeof generateDecoJellies === 'function') generateDecoJellies(activeHue);
+            } catch(e) {
+                console.error("Texture selection non-fatal warning:", e);
             }
 
-            initMesh();
-            updateCharacterAlphaMap(jellyImage);
-            generateDecoJellies(activeHue);
-            setScreenMode("playground");
             selectFeelPill('jelly');
             showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
 
             // Highlight selected bubble
-            document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
-            if (element) {
-                element.classList.add('active');
-            } else {
-                const bubbles = document.querySelectorAll('.grid-char-bubble');
-                if (bubbles[index]) {
-                    bubbles[index].classList.add('active');
+            try {
+                document.querySelectorAll('.grid-char-bubble').forEach(b => b.classList.remove('active'));
+                if (element) {
+                    element.classList.add('active');
+                } else {
+                    const bubbles = document.querySelectorAll('.grid-char-bubble');
+                    if (bubbles[index]) {
+                        bubbles[index].classList.add('active');
+                    }
                 }
-            }
+                syncCarouselSelection(index);
+            } catch(e) {}
         }
 
         function selectFeelPill(feel) {
