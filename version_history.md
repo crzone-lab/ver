@@ -2010,3 +2010,9 @@
 - **터치 릴리즈 시 발생하던 미선언 참조 에러(`ReferenceError: playReleaseSound is not defined`) 해결**:
   1. **릴리즈 사운드 미선언 에러 제거**:
      - 젤리를 당겼다 놓을 때(`releaseGrab`) 호출되던 `playReleaseSound()` 함수가 정의되어 있지 않아 발생하던 미선언 `ReferenceError` 예외로 인해 릴리즈 시 스크립트 실행이 중단되던 버그를 찾아 `playReleaseSound()`를 부드럽고 미세하게 정식 배치 완료.
+
+## Master Release v272.0.0 (2026-08-09) - DEEP SOFT CUSHION THUD WALL BOUNCE REPLACEMENT
+- **Version Checkpoint File**: `v272.0.0_DEEP_SOFT_CUSHION_THUD_BOUNCE.html`
+- **높은 360Hz 튕김 톤 전면 삭감 ➔ 90Hz 푹신한 아기쿠션 미풍 튕김 톤으로 파형 교체**:
+  1. **고음역대 360Hz 피크 소리 전면 삭감**:
+     - 높은 360Hz 삐용 소리가 날카롭게 퍼지며 볼륨 감소가 잘 체감되지 않던 주파수 대역 특성을 발견하여, 360Hz 높은 피크를 전면 삭감하고 **90Hz 푹신한 솜사탕/쿠션 미풍 저음(Low Pitch 90Hz, Gain 0.02, Lowpass Filter 320Hz)**으로 파형 자체를 전면 교체하여 귀에 닿는 느낌을 10배 이상 부드럽고 작게 조율 완료.
