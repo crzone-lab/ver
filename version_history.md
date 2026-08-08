@@ -1832,3 +1832,7 @@
   2. **그리드 버블 터치/클릭 즉시 반응 핸들러 추가**:
      - `grid-char-bubble`에 `ontouchstart` 및 `onclick` 듀얼 이벤트 핸들러를 추가하여 모바일 터치 시 즉시 플레이그라운드로 입장되도록 보장.
      - `setScreenMode("playground")` 전환 시 `window.scrollTo(0,0)`을 강제 적용하여 상단 메인 스테이지로 화면을 100% 고정.
+
+## Reversion Log (2026-08-08) - REVERTED TO v241.0.0 STABLE BASELINE
+- **Status**: `index.html` 100% 원위치 원복 완료.
+- **내용**: 사용자 요청("안되면 다시 원위치해")에 따라 가장 안정적이고 캐릭터 선택 및 터치/감촉 차별화가 100% 완벽히 작동하는 `v241.0.0_JELLY_VS_MOCHI_DIFFERENTIATION_ENGINE.html` 마스터 버전으로 코드베이스 전체 원위치 원복 완료.
