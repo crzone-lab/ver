@@ -1813,3 +1813,13 @@
   2. **🎱 젤리 당구 포켓볼 게임 모드 완전 통합**:
      - 4개 귀퉁이 네온 포켓, 뱅크샷 횟수별 점수 격차(0회: 1점, 1회: 5점, 2회: 10점, 3회+: 30점 마스터 샷) 및 단계별 사운드 FX WebAudio 오디오 합성.
      - 실시간 조준 궤적선, Power Tension Gauge, 실시간 포켓 수거 파티클 스파크 연출 완벽 탑재.
+
+## Master Release v247.0.0 (2026-08-08) - STABLE JELLY POCKET BILLIARDS INTEGRATION
+- **Version Checkpoint File**: `v247.0.0_STABLE_BILLIARDS_GAME_ENGINE.html`
+- **100% v241.0.0 원본 캐릭터 선택 호환성 유지 & 젤리 당구 게임 통합**:
+  1. **캐릭터 선택 엔진 원본 100% 보존**:
+     - `v241.0.0` 검증 마스터 버전의 `selectLobbyCharacter` 이미지 로딩 및 텍스처 베이킹 루틴을 단 1줄의 구조 변경 없이 100% 원본 유지.
+     - 캐릭터 선택 시 당구 비행 상태(`jellyIsFlying = false`, `jellyCenterX = 0`, `jellyCenterY = 0`, `isSuckingIntoPocket = false`)만 안전하게 0으로 초기화하여, 캐릭터 클릭 시 100% 화면 중앙 선명 노출 및 플레이그라운드 정상 전환 보장.
+  2. **🎱 젤리 당구 포켓볼 게임 모드 완전 결합**:
+     - 4개 귀퉁이 네온 포켓, 뱅크샷 횟수별 점수 격차(0회: 1점, 1회: 5점, 2회: 10점, 3회+: 30점 마스터 샷) 및 단계별 사운드 FX WebAudio 오디오 합성.
+     - 실시간 조준 궤적선, Power Tension Gauge, 실시간 포켓 수거 파티클 스파크 연출 탑재.

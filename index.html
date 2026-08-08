@@ -5705,11 +5705,6 @@
             const char = lobbyCharacters[index];
             if (!char) return;
 
-            activeEmoji = char.emoji || '🐰';
-            activeBase = char.base;
-            activeHue = char.hue || 350;
-
-            // Reset all physics, flight, and pocket states so the new character starts cleanly centered
             jellyIsFlying = false;
             jellyCenterX = 0;
             jellyCenterY = 0;
@@ -5724,6 +5719,10 @@
             if (typeof floatingBounceTexts !== 'undefined') floatingBounceTexts = [];
             if (typeof pocketScoreAnnouncements !== 'undefined') pocketScoreAnnouncements = [];
 
+            activeEmoji = char.emoji || '🐰';
+            activeBase = char.base;
+            activeHue = char.hue || 350;
+
             // Hide splash screen if open
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
@@ -5733,35 +5732,30 @@
 
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
-            jellyImage = new Image();
-            if (typeof imageSrc === 'string' && (imageSrc.startsWith("http://") || imageSrc.startsWith("https://"))) {
-                jellyImage.crossOrigin = "Anonymous";
-            }
-
             jellyImage.onload = function() {
-                bakedJellyTexture = jellyImage;
+                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
+                if (typeof bakeSingleCompositeTexture === 'function') {
+                    bakeSingleCompositeTexture(jellyImage);
+                }
                 updateCharacterAlphaMap(jellyImage);
                 initMesh();
                 draw();
             };
 
-            jellyImage.onerror = function() {
-                console.warn("Character image load failed for:", imageSrc);
-            };
-
             jellyImage.src = imageSrc;
-            bakedJellyTexture = jellyImage;
+            bakedJellyTexture = jellyImage; // Immediate fallback assignment
 
             if (jellyImage.complete && jellyImage.naturalWidth > 0) {
                 updateCharacterAlphaMap(jellyImage);
+                initMesh();
+                draw();
             }
 
             initMesh();
-            draw();
-
+            updateCharacterAlphaMap(jellyImage);
             generateDecoJellies(activeHue);
             setScreenMode("playground");
-            selectFeelPill(activeTextureMode || 'jelly');
+            selectFeelPill('jelly');
             showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
 
             // Highlight selected bubble
