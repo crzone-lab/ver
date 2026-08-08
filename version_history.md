@@ -1836,3 +1836,11 @@
 ## Reversion Log (2026-08-08) - REVERTED TO v241.0.0 STABLE BASELINE
 - **Status**: `index.html` 100% 원위치 원복 완료.
 - **내용**: 사용자 요청("안되면 다시 원위치해")에 따라 가장 안정적이고 캐릭터 선택 및 터치/감촉 차별화가 100% 완벽히 작동하는 `v241.0.0_JELLY_VS_MOCHI_DIFFERENTIATION_ENGINE.html` 마스터 버전으로 코드베이스 전체 원위치 원복 완료.
+
+## Master Release v249.0.0 (2026-08-08) - AUDIO SFX VOLUME OPTIMIZATION & CONTROLLER
+- **Version Checkpoint File**: `v249.0.0_AUDIO_SFX_VOLUME_BALANCED.html`
+- **전체 효과음 볼륨 밸런스 조정 & SFX 슬라이더 추가**:
+  1. **효과음 피크 볼륨 70~80% 획기적 하향 조정**:
+     - 팽창 터짐, 벽 바운스, 팝핑, 잡기/놓기 음향의 합성 Gain 값을 0.70/0.55/0.38 ➔ 0.04~0.09 수준으로 대폭 낮추어 귀에 거슬리지 않고 부드럽고 쾌적한 사운드로 최적화.
+  2. **🔊 효과음 볼륨 (SFX Volume) 조절 슬라이더 탑재**:
+     - 상세 설정 메뉴(`#advanced-drawer`) 내에 SFX 볼륨 슬라이더(0% ~ 100%, 기본 30%)를 추가하여 사용자가 언제든 효과음 크기를 자유롭게 미세조정할 수 있도록 구현.
