@@ -1912,3 +1912,11 @@
      - 기존 배경음 재생기(`bgmPlayer`)가 200ms마다 실행하던 고주파 종소리(sine bell pluck, 1567Hz) 멜로디 오실레이터가 효과음으로 오인되던 원인을 발견하여, 멜로디 및 코드 attack gain을 `0.07` ➔ `0.005`로 14배 이상 강제 감소.
   2. **모든 오디오(SFX + BGM) 마스터 게인 통제 노드로 100% 통합 우회**:
      - `bgmPlayer`의 최종 게인 노드를 `audioCtx.destination` 직결에서 `getMasterSFXGain()` 마스터 게인 통제 노드로 100% 우회시켜, 효과음 볼륨 조절 시 배경 종소리와 터치 효과음이 모두 통제되어 완벽한 극저음/무음이 조율되도록 완성.
+
+## Master Release v258.0.0 (2026-08-08) - EXACT ZERO GAIN & BROWSER CACHE BUSTING
+- **Version Checkpoint File**: `v258.0.0_EXACT_ZERO_SOUND_AND_CACHE_BUSTING.html`
+- **브라우저 HTTP 디스크 캐시 무효화 Meta 태그 적용 & 효과음 기본 0% (완전 무음) 강제 설정**:
+  1. **Cache-Control 금지 태그 전면 탑재**:
+     - 브라우저가 이전 코드를 캐싱하여 불러오던 원인을 차단하기 위해 `<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">` 태그 강제 등록.
+  2. **기본 마스터 오디오 Gain = 0.0 (완전 무음) 적용**:
+     - SFX 슬라이더 기본값을 `0%`로 맞추고 마스터 게인을 `0.0`(완전 무음)으로 초기화하여, 사용자가 슬라이더를 직접 올리기 전에는 소리가 100% 안 나도록 무음 보장.
