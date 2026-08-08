@@ -4078,6 +4078,7 @@
         let isSuckingIntoPocket = false;
         let floatingBounceTexts = [];
         let pocketScoreAnnouncements = [];
+        let pocketPulseEffects = [];
 
         function getPocketPositions() {
             let pR = 60; // 4 Corner Quarter-Circle Pockets matching Image 2
@@ -4177,8 +4178,24 @@
 
         function triggerPocketHoleIn(pocket, bounces) {
             isSuckingIntoPocket = true;
-            jellyFlightVx *= 0.1;
-            jellyFlightVy *= 0.1;
+            jellyFlightVx *= 0.05;
+            jellyFlightVy *= 0.05;
+
+            // Trigger Pop Sound & Haptic Feedback on Hole-In!
+            if (typeof playPopSound === 'function') playPopSound();
+            if (typeof triggerHaptic === 'function') triggerHaptic(50);
+
+            // Add Glowing Pocket Hole Pulse Flash Effect
+            if (typeof pocketPulseEffects !== 'undefined') {
+                pocketPulseEffects.push({
+                    x: pocket.x,
+                    y: pocket.y,
+                    r: 60,
+                    maxR: 120,
+                    life: 1.0,
+                    color: (bounces >= 3) ? '#ff007f' : (bounces === 2) ? '#ffb700' : (bounces === 1) ? '#00e5ff' : '#76ff03'
+                });
+            }
 
             let pts = 1;
             let soundTier = 1;
@@ -4994,6 +5011,26 @@
                 if (nowTime - lastDrawErrorTime > 10000) { // Throttle notifications
                     showNotification("Draw Error: " + err.message);
                     lastDrawErrorTime = nowTime;
+                }
+            }
+
+            // 🎱 Render Pocket Hole-In Pulse Flash Animations
+            if (typeof pocketPulseEffects !== 'undefined' && pocketPulseEffects.length > 0) {
+                for (let i = pocketPulseEffects.length - 1; i >= 0; i--) {
+                    let pe = pocketPulseEffects[i];
+                    pe.r += 2.5;
+                    pe.life -= 0.035;
+
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, pe.life);
+                    ctx.strokeStyle = pe.color;
+                    ctx.lineWidth = 4;
+                    ctx.beginPath();
+                    ctx.arc(pe.x, pe.y, pe.r, 0, Math.PI * 2);
+                    ctx.stroke();
+                    ctx.restore();
+
+                    if (pe.life <= 0) pocketPulseEffects.splice(i, 1);
                 }
             }
 
