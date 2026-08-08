@@ -2124,6 +2124,15 @@
         function initMesh() {
             points = [];
             springs = [];
+            jellyIsFlying = false;
+            jellyCenterX = 0;
+            jellyCenterY = 0;
+            jellyFlightVx = 0;
+            jellyFlightVy = 0;
+            jellyRotation = 0;
+            jellySpinSpeed = 0;
+            if (typeof isSuckingIntoPocket !== 'undefined') isSuckingIntoPocket = false;
+            if (typeof grabbedPointIndex !== 'undefined') grabbedPointIndex = null;
             if (typeof updateCharacterAlphaMap === 'function') {
                 updateCharacterAlphaMap(jellyImage);
             }
@@ -3816,6 +3825,8 @@
         }
 
         function drawWarpedTriangle(ctx, img, p0, p1, p2, imgW, imgH) {
+            if (!img || !imgW || !imgH || isNaN(imgW) || isNaN(imgH) || imgW <= 0 || imgH <= 0) return;
+            if (!p0 || !p1 || !p2) return;
             let minOx = points[0].ox;
             let maxOx = points[cols - 1].ox;
             let minOy = points[0].oy;
@@ -5736,6 +5747,21 @@
             activeBase = char.base;
             activeHue = char.hue || 350;
 
+            // Reset all physics, flight, and pocket states so the new character starts cleanly centered
+            jellyIsFlying = false;
+            jellyCenterX = 0;
+            jellyCenterY = 0;
+            jellyFlightVx = 0;
+            jellyFlightVy = 0;
+            jellyRotation = 0;
+            jellySpinSpeed = 0;
+            jellyBounceCount = 0;
+            if (typeof currentLaunchBounceCount !== 'undefined') currentLaunchBounceCount = 0;
+            if (typeof isSuckingIntoPocket !== 'undefined') isSuckingIntoPocket = false;
+            if (typeof grabbedPointIndex !== 'undefined') grabbedPointIndex = null;
+            if (typeof floatingBounceTexts !== 'undefined') floatingBounceTexts = [];
+            if (typeof pocketScoreAnnouncements !== 'undefined') pocketScoreAnnouncements = [];
+
             // Hide splash screen if open
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
@@ -5745,18 +5771,23 @@
 
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
+            jellyImage = new Image();
+            jellyImage.crossOrigin = "Anonymous";
+
             jellyImage.onload = function() {
-                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
-                if (typeof bakeSingleCompositeTexture === 'function') {
-                    bakeSingleCompositeTexture(jellyImage);
-                }
+                bakedJellyTexture = jellyImage;
                 updateCharacterAlphaMap(jellyImage);
                 initMesh();
                 draw();
             };
 
+            jellyImage.onerror = function() {
+                console.warn("Character image load failed for:", imageSrc, "Falling back to default strawberry_rabbit_jelly.png");
+                jellyImage.src = "strawberry_rabbit_jelly.png";
+            };
+
             jellyImage.src = imageSrc;
-            bakedJellyTexture = jellyImage; // Immediate fallback assignment
+            bakedJellyTexture = jellyImage;
 
             if (jellyImage.complete && jellyImage.naturalWidth > 0) {
                 updateCharacterAlphaMap(jellyImage);
@@ -5764,11 +5795,8 @@
                 draw();
             }
 
-            initMesh();
-            updateCharacterAlphaMap(jellyImage);
             generateDecoJellies(activeHue);
             setScreenMode("playground");
-            selectFeelPill('jelly');
             showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
 
             // Highlight selected bubble

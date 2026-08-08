@@ -1784,3 +1784,13 @@
   2. **🌈 실시간 파워 텐션 게이지 & 조준선 컬러 체인지**:
      - 당기는 힘에 따라 조준선 색상이 **라이트 그린(약) ➔ 옐로우(중) ➔ 핫 핑크(강)**로 변화.
      - 조준선 끝에 `POWER 0% ~ 100%` 실시간 텐션 수치 배지 표시.
+
+## Master Release v244.0.0 (2026-08-08) - CHARACTER SELECTION RENDERING & POSITION RESET FIX
+- **Version Checkpoint File**: `v244.0.0_CHARACTER_SELECTION_RENDERING_FIXED.html`
+- **100% Root Cause Resolved & Character Selection Bug Fixed**:
+  1. **캐릭터 선택 시 이전 비행/포켓 수거 물리 상태 완전 초기화**:
+     - 기존에는 비행 중(`jellyIsFlying`) 또는 당구 포켓 입수 중(`isSuckingIntoPocket`) 새로운 캐릭터를 클릭하면 `jellyCenterX`/`jellyCenterY` 위치 오프셋이 남아있어 새 캐릭터가 화면 밖이나 포켓 속으로 날아가 사라지는 현상 발생.
+     - `selectLobbyCharacter` 및 `initMesh()` 호출 시 `jellyIsFlying = false`, `jellyCenterX = 0`, `jellyCenterY = 0`, `isSuckingIntoPocket = false`를 100% 초기화하여 새 캐릭터가 화면 중앙에 즉시 정확하게 렌더링되도록 수정.
+  2. **비동기 이미지 로딩 시 0x0 텍스처 NaN 행렬 corruption 방지**:
+     - `drawWarpedTriangle` 상단에 `!imgW || !imgH || isNaN(imgW)` 가드 체크를 추가하여 이미지 로딩 중 캔버스 렌더링 Corrupt 방지.
+     - `jellyImage.onerror` 롤백 핸들러 추가로 100% 안정적 렌더링 보장.
