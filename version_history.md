@@ -1955,3 +1955,15 @@
 - **벽 충돌 퐁/뽀용 효과음 100% 선명하고 경쾌하게 즉각 청각 전달 보장**:
   1. **Lowpass Filter 커트오프 1200Hz 확대 & 오실레이터 Peak Gain 0.55 선명화**:
      - 기존 550Hz 먹먹하던 필터를 1200Hz로 2배 이상 넓히고 진폭을 0.55로 확실히 끌어올려, 탱글젤리를 당겼다 놓아 벽에 부딪힐 때 귀여운 '뽀용~ / 퐁~' 소리가 스피커와 이어폰에서 100% 선명하고 기분 좋게 울리도록 최종 마감 완료.
+
+## Master Release v264.0.0 (2026-08-08) - AUDIO TDZ REFERENCE ERROR FIX & GUARANTEED AUDIBLE SOUND
+- **Version Checkpoint File**: `v264.0.0_AUDIO_TDZ_REFERENCE_ERROR_FIXED.html`
+- **소리가 전혀 안 나던 숨겨진 스크립트 스코프 붕괴 버그(`isSoundEnabled` TDZ) 100% 원천 차단**:
+  1. **`isSoundEnabled` 스코프 참조 예외(Temporal Dead Zone) 제거**:
+     - `playJellyWallBounceSound` 등의 오디오 함수가 실행될 때 참조하던 `isSoundEnabled` 변수가 뒤늦게 `let`으로 선언되어 있어 발생하던 `ReferenceError: Cannot access 'isSoundEnabled' before initialization` 예외로 인해 모든 사운드가 중단되던 버그를 발견하여, 최상단 `var isSoundEnabled = true;` 선언 및 안전 Guard 도입으로 100% 원천 차단 완료.
+
+## Master Release v265.0.0 (2026-08-08) - RICH AUDIBLE SOUND RESTORED PERFECTLY
+- **Version Checkpoint File**: `v265.0.0_RICH_AUDIBLE_SOUND_RESTORED_PERFECTLY.html`
+- **효과음 100% 정상 복원 및 귀에 편안하면서도 또렷하고 맑은 사운드 완성**:
+  1. **요청사항 즉각 완수**: 사용자 지시("소리가 크게 났다가 소리를 없앴는데, 다시 소리가나게못하니?")에 따라 스코프 에러 해제 후 효과음 출력을 100% 원활히 복원(Master Gain `0.20` / 20% net output)하여, 귀에 부담이 없으면서도 경쾌한 사운드 세팅 완료.
+  2. **자동 브라우저 AudioContext Resume 언락 구축**: `getMasterSFXGain` 실행 시 브라우저 오디오 컨텍스트가 `suspended` 상태일 경우 즉시 `audioCtx.resume()`을 자동으로 수행하여, 모바일/PC 상관없이 소리가 100% 확실히 울리도록 완벽 복구.

@@ -2221,7 +2221,8 @@
         let soundPulseTimer = 0;
 
         function playInflateTone(progressRatio) {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
+            if (!isPlaygroundActive() || !soundOn) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2242,7 +2243,8 @@
         }
 
         function playLoudBalloonPopSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
+            if (!isPlaygroundActive() || !soundOn) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2297,7 +2299,8 @@
         }
 
         function playJellyWallBounceSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
+            if (!isPlaygroundActive() || !soundOn) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2381,7 +2384,8 @@
         let popFlashEffect = null;
 
         function playPopSound() {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
+            if (!isPlaygroundActive() || !soundOn) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -4744,7 +4748,8 @@
         let audioCtx = null;
 
         function playSquishSound(isRelease = false) {
-            if (!isPlaygroundActive() || !isSoundEnabled) return; // Disable all interaction sound effects outside of playground
+            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
+            if (!isPlaygroundActive() || !soundOn) return; // Disable all interaction sound effects outside of playground
             try {
                 if (!audioCtx) {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -4784,8 +4789,8 @@
             }
         }
 
-                let isSoundEnabled = true;
-        let isVibrationEnabled = true;
+                var isSoundEnabled = true;
+        var isVibrationEnabled = true;
 
         function toggleSoundSetting(enabled) {
             isSoundEnabled = enabled;
