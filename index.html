@@ -4265,8 +4265,8 @@
                 text: `🎉 SUCCESS! +${pts}점`,
                 subtext: title,
                 color: soundTier === 4 ? '#ff007f' : soundTier === 3 ? '#ffb700' : soundTier === 2 ? '#00e5ff' : '#76ff03',
-                life: 1.4,
-                scale: soundTier === 4 ? 1.8 : 1.4
+                life: 2.2, // Extended display duration per user request!
+                scale: soundTier === 4 ? 2.0 : 1.5
             });
 
             if (typeof largeShards !== 'undefined' && largeShards) {
@@ -4314,7 +4314,7 @@
                         }
                     }
                 }
-            }, 650);
+            }, 1200); // Extended respawn delay to 1.2s per user request!
         }
 
         // Draw loop
@@ -4471,20 +4471,20 @@
                                     jellyTargetBounces = (dragDist < 12) ? 0 : 1;
                                     jellyCruiseSpeed = 0.6 + (dragDist / 25.0) * 0.8;
                                 } else if (dragDist < 75) {
-                                    // 2. 약/중간 당겼을 때: 1~3회 튕기며 섬세한 당구 조준
+                                    // 2. 약/중간 당겼을 때: 1~3회 튕김, 속도 1.8~2.8
                                     let norm = (dragDist - 25) / 50;
                                     jellyTargetBounces = Math.round(1 + norm * 2);
-                                    jellyCruiseSpeed = 1.4 + norm * 1.2;
+                                    jellyCruiseSpeed = 1.8 + norm * 1.0;
                                 } else if (dragDist < 140) {
-                                    // 3. 세게 당겼을 때: 4~6회 튕김
+                                    // 3. 세게 당겼을 때: 4~6회 튕김, 속도 3.2~4.4
                                     let norm = (dragDist - 75) / 65;
                                     jellyTargetBounces = Math.round(4 + norm * 2);
-                                    jellyCruiseSpeed = 2.6 + norm * 1.2;
+                                    jellyCruiseSpeed = 3.2 + norm * 1.2;
                                 } else {
-                                    // 4. 매우 세게 쭈욱 당겼을 때: 최대 9회까지만 튕기도록 조정 (사용자 요청 준수!)
+                                    // 4. 매우 세게 쭈욱 당겼을 때: 최대 9회 튕김, 속도 4.8~5.8 (시원하고 확실한 파워 이동!)
                                     let norm = Math.min(1.0, (dragDist - 140) / 100);
                                     jellyTargetBounces = Math.round(7 + norm * 2); // 최대 9회!
-                                    jellyCruiseSpeed = 3.6 + norm * 1.4;
+                                    jellyCruiseSpeed = 4.8 + norm * 1.0;
                                 }
 
                                 // 발사 방향 및 계산된 순항 속도 적용
@@ -4682,11 +4682,11 @@
                                 }
                             }
 
-                            // 3. 당김/중앙 위치에서 멀어질수록 캐릭터 크기가 점차 작아짐 (귀퉁이 구멍 쏙 입수 맞춤!)
+                            // 3. 당김/중앙 위치에서 멀어질수록 캐릭터 크기가 훨씬 많이 작아짐 (귀퉁이 구멍 쏙 입수 맞춤!)
                             let maxDist = Math.hypot(width * 0.5, height * 0.5) || 1;
                             let currentDist = Math.hypot(jellyCenterX, jellyCenterY);
-                            // 중앙(0,0)은 scale 1.0, 4개 귀퉁이 구멍 근처로 갈수록 0.38까지 작아짐!
-                            let flightScale = Math.max(0.38, 1.0 - (currentDist / maxDist) * 0.62);
+                            // 중앙(0,0)은 scale 1.0, 4개 귀퉁이 구멍 근처로 갈수록 0.22까지 훨씬 더 앙증맞게 작아짐!
+                            let flightScale = Math.max(0.22, 1.0 - (currentDist / maxDist) * 0.78);
 
                             // 구멍 빨려들기 시 크기가 0으로 완전히 축소되며 쏙 사라짐!
                             if (isSuckingIntoPocket) {
