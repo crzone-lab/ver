@@ -1803,3 +1803,13 @@
      - `http://`, `https://` 외의 로컬/Data URL 이미지에는 `crossOrigin` 설정을 하지 않도록 수정하여 100% 즉시 로드 보장.
   2. **캐릭터 선택 시 `playground` 페이지 전환 및 동기 메쉬 렌더링 즉시 전환**:
      - 캐릭터 선택 시 이미지 로딩 완료 여부와 무관하게 `initMesh()`, `draw()`, `setScreenMode("playground")`, `selectFeelPill()`이 동기 구동되어 플레이그라운드 화면으로 즉각 전환되도록 보장.
+
+## Master Release v246.0.0 (2026-08-08) - PERFECT JELLY POCKET BILLIARDS GAME ENGINE
+- **Version Checkpoint File**: `v246.0.0_PERFECT_BILLIARDS_GAME_ENGINE.html`
+- **100% 원인 분석 완료 및 안전 재적용 완료**:
+  1. **사전 원인 분석 완료**:
+     - **화면 전환 멈춤**: 과거 로컬 파일(`apple.png` 등) 및 Base64 이미지에 무조건 `.crossOrigin = "Anonymous"`가 설정되어 브라우저 CORS 오류 무한 루프로 이벤트가 차단되던 현상 100% 방지 (외부 `http://` URL에만 선별적 적용).
+     - **캐릭터 안 보임/사라짐**: 당구 게임 비행 중(`jellyIsFlying`) 또는 포켓 수거 중(`isSuckingIntoPocket`) 캐릭터 클릭 시 오프셋 위치가 잔존하던 문제 100% 강제 초기화.
+  2. **🎱 젤리 당구 포켓볼 게임 모드 완전 통합**:
+     - 4개 귀퉁이 네온 포켓, 뱅크샷 횟수별 점수 격차(0회: 1점, 1회: 5점, 2회: 10점, 3회+: 30점 마스터 샷) 및 단계별 사운드 FX WebAudio 오디오 합성.
+     - 실시간 조준 궤적선, Power Tension Gauge, 실시간 포켓 수거 파티클 스파크 연출 완벽 탑재.
