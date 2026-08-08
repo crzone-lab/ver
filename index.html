@@ -1267,6 +1267,10 @@
                     <input type="range" id="dampening" min="1" max="25" step="0.5" value="8" oninput="updateSliders()">
                 </div>
                 <div class="advanced-row">
+                    <span>🔊 <span data-i18n="label-sfx">효과음 볼륨 (SFX)</span> (<span id="sfx-val">50%</span>)</span>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="50" oninput="updateSFXVolume()">
+                </div>
+                <div class="advanced-row">
                     <span><span data-i18n="label-bgm">BGM Volume</span> (<span id="bgm-val">50%</span>)</span>
                     <input type="range" id="bgm-volume" min="0" max="100" value="50" oninput="updateBGMVolume()">
                 </div>
@@ -2272,22 +2276,29 @@
 
         // 🍮 [Light & Lingering Bounce]: 가볍고 은은하며 잔향(여운)이 아련하게 남는 젤리 튕김음
                 // 🍮 [Light & Lingering Bounce]: 가볍고 또렷하며 여운이 아련하게 퍼지는 맑은 튕김음
+                // 🍮 [Guaranteed Audible & Volume Controlled Wall Bounce Sound]
         function playJellyWallBounceSound() {
             if (!isPlaygroundActive() || !isSoundEnabled) return;
-            let masterNode = getMasterSFXGain();
-            if (!masterNode || !audioCtx) return;
-
             try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
+
+                let sfxEl = document.getElementById('sfx-volume');
+                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.50;
+                if (sliderGain <= 0.001) return; // 0% is 100% SILENT!
+
                 let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
-                // 맑고 선명한 Lowpass Filter (1200Hz)
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
                 filter.frequency.setValueAtTime(mode === 'mochi' ? 800 : 1200, now);
-                filter.connect(masterNode);
 
-                // 1. 가볍고 맑은 미풍 피치 벤딩 ("퐁~~...")
+                let sfxGainBus = audioCtx.createGain();
+                sfxGainBus.gain.setValueAtTime(sliderGain, now);
+                filter.connect(sfxGainBus);
+                sfxGainBus.connect(audioCtx.destination);
+
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'sine';
@@ -2295,31 +2306,30 @@
                 osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 400 : 580, now + 0.04);
                 osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 180 : 280, now + 0.35);
 
-                // 선명하게 잘 들리는 음량(0.35)에서 0.35초 동안 아련한 여운 잔향으로 감소
-                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.setValueAtTime(0.40, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
                 osc.connect(filter);
                 osc.start(now);
                 osc.stop(now + 0.35);
 
-                // 2. 아련한 하모닉 공명 잔향 (Harmonic Echo)
                 let echoOsc = audioCtx.createOscillator();
                 let echoGain = audioCtx.createGain();
                 echoOsc.type = 'sine';
                 echoOsc.frequency.setValueAtTime(mode === 'mochi' ? 200 : 340, now + 0.04);
                 echoOsc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 140 : 220, now + 0.35);
 
-                echoGain.gain.setValueAtTime(0.12, now + 0.04);
+                echoGain.gain.setValueAtTime(0.15, now + 0.04);
                 echoGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
                 echoOsc.connect(filter);
                 echoOsc.start(now + 0.04);
                 echoOsc.stop(now + 0.35);
-            } catch (e) {}
+            } catch (e) {
+                console.error("Audio error:", e);
+            }
         }
 
-        // 🎈 [RESTORED]: 터치 릴리즈 소리 ("푱!")
         function playReleaseSound() {
             if (!isPlaygroundActive() || !isSoundEnabled) return;
             let masterNode = getMasterSFXGain();
