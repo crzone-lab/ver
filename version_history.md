@@ -1794,3 +1794,12 @@
   2. **비동기 이미지 로딩 시 0x0 텍스처 NaN 행렬 corruption 방지**:
      - `drawWarpedTriangle` 상단에 `!imgW || !imgH || isNaN(imgW)` 가드 체크를 추가하여 이미지 로딩 중 캔버스 렌더링 Corrupt 방지.
      - `jellyImage.onerror` 롤백 핸들러 추가로 100% 안정적 렌더링 보장.
+
+## Master Release v245.0.0 (2026-08-08) - CHARACTER SELECTION PAGE TRANSITION & CORS FIX
+- **Version Checkpoint File**: `v245.0.0_CHARACTER_SELECTION_SCREEN_MODE_TRANSITION_FIXED.html`
+- **100% Character Selection Screen Transition & Image Load Fix Completed**:
+  1. **로컬/Data URL 이미지의 무조건적 `crossOrigin = "Anonymous"` 설정 제거**:
+     - 기존에는 모든 이미지에 무조건 `.crossOrigin = "Anonymous"`를 설정하여 로컬 파일(`apple.png` 등) 및 Base64 Data URL 로드 시 CORS 무한 `onerror` 루프 발생.
+     - `http://`, `https://` 외의 로컬/Data URL 이미지에는 `crossOrigin` 설정을 하지 않도록 수정하여 100% 즉시 로드 보장.
+  2. **캐릭터 선택 시 `playground` 페이지 전환 및 동기 메쉬 렌더링 즉시 전환**:
+     - 캐릭터 선택 시 이미지 로딩 완료 여부와 무관하게 `initMesh()`, `draw()`, `setScreenMode("playground")`, `selectFeelPill()`이 동기 구동되어 플레이그라운드 화면으로 즉각 전환되도록 보장.

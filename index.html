@@ -5772,7 +5772,9 @@
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
             jellyImage = new Image();
-            jellyImage.crossOrigin = "Anonymous";
+            if (typeof imageSrc === 'string' && (imageSrc.startsWith("http://") || imageSrc.startsWith("https://"))) {
+                jellyImage.crossOrigin = "Anonymous";
+            }
 
             jellyImage.onload = function() {
                 bakedJellyTexture = jellyImage;
@@ -5782,8 +5784,7 @@
             };
 
             jellyImage.onerror = function() {
-                console.warn("Character image load failed for:", imageSrc, "Falling back to default strawberry_rabbit_jelly.png");
-                jellyImage.src = "strawberry_rabbit_jelly.png";
+                console.warn("Character image load failed for:", imageSrc);
             };
 
             jellyImage.src = imageSrc;
@@ -5791,12 +5792,14 @@
 
             if (jellyImage.complete && jellyImage.naturalWidth > 0) {
                 updateCharacterAlphaMap(jellyImage);
-                initMesh();
-                draw();
             }
+
+            initMesh();
+            draw();
 
             generateDecoJellies(activeHue);
             setScreenMode("playground");
+            selectFeelPill(activeTextureMode || 'jelly');
             showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
 
             // Highlight selected bubble
