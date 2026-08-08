@@ -2069,3 +2069,11 @@
      - 스플래시 화면이나 로비 상태 검사 함수가 `false`를 반환할 때 모든 효과음 함수가 묵음 조기 종료되던 버그를 정밀 포렌식으로 발견하여, 상태 차단 가드를 완전히 제거하고 `isSoundEnabled` 온오프만 따르도록 100% 개편 완료.
   2. **터치 릴리즈(`releaseGrab`) 시 튕김 소리 직접 트리거 추가**:
      - 당김 조작 후 손을 놓는 즉시 `playReleaseSound()`와 `playJellyWallBounceSound()`가 연속 직결 트리거되도록 수정하여, 어떤 당김 거리나 동작에서도 가볍고 맑은 미풍 여운 사운드("퐁~~...")가 100% 즉각 울리도록 정밀 조율 마감.
+
+## Master Release v282.0.0 (2026-08-09) - DUAL NATIVE HTML5 AUDIO + WEBAUDIO HYBRID ENGINE
+- **Version Checkpoint File**: `v282.0.0_DUAL_HTML5_AND_WEBAUDIO_ENGINE.html`
+- **브라우저 WebAudio 차단 장벽 완벽 우회 및 HTML5 오디오 태그 이중 출력탑재**:
+  1. **Base64 WAV 사운드 버퍼 직결 생성 및 하이브리드 엔진 탑재**:
+     - WebAudio API가 브라우저 정책이나 음향 환경에 의해 제약받는 경우를 100% 원천 차단하기 위해, 가볍고 맑은 미풍 여운 사운드("퐁~~...")를 44.1kHz 16-bit PCM WAV 파형 데이터 Base64 URI로 직결 합성하여 표준 HTML5 `<audio>` 플레이어 버퍼 풀(Audio Pool)과 WebAudio 합성기를 동시에 2중으로 재생되도록 보장 완료.
+  2. **100% 직관적 볼륨 조절 동기화**:
+     - HTML5 오디오 플레이어 volume과 WebAudio gain 모두 `#sfx-volume` 슬라이더 수치(0%~100%)와 1:1로 실시간 연동하여 어떤 디바이스 환경에서도 소리가 확연하고 확실하게 들리도록 이중 보장 탑재.
