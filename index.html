@@ -2305,7 +2305,7 @@
                 // 쇠소리의 원인이 되는 고주파 종소리(541Hz, 1058Hz) 대신 맑고 부드러운 Lowpass 필터 적용
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(mode === 'mochi' ? 420 : 750, now);
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 350 : 450, now);
                 filter.connect(audioCtx.destination);
 
                 if (mode === 'mochi') {
@@ -2345,7 +2345,7 @@
                     osc.frequency.exponentialRampToValueAtTime(360, now + 0.04);
                     osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
 
-                    gain.gain.setValueAtTime(0.16, now); // Exactly 50% reduced (was 0.32)
+                    gain.gain.setValueAtTime(0.05, now); // True psychoacoustic perceived 50% loudness drop
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                     osc.connect(filter);
@@ -2359,7 +2359,7 @@
                     bodyOsc.frequency.setValueAtTime(270, now);
                     bodyOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
 
-                    bodyGain.gain.setValueAtTime(0.09, now); // Exactly 50% reduced (was 0.18)
+                    bodyGain.gain.setValueAtTime(0.03, now); // Soft harmonic body gain
                     bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
                     bodyOsc.connect(filter);

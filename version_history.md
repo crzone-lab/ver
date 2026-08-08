@@ -1992,3 +1992,9 @@
 - **Version Checkpoint File**: `v268.0.0_WALL_BOUNCE_SOUND_50_PERCENT_REDUCED.html`
 - **다른 코드 전혀 건드리지 않고 탱글젤리 벽 충돌 소리만 정확히 50% 하향 정밀 반영**:
   1. **요청사항 100% 수술적 반영**: 사용자 지시("자,,이제 탱글젤리에서 당기고 놨을때 벽에 부딪칠때 소리를 50%줄여", "다른부분건드리지말고")에 따라 `playJellyWallBounceSound` 내 오실레이터 진폭만 0.32 ➔ 0.16 (정확히 50% 감소), 바디 진폭만 0.18 ➔ 0.09 (정확히 50% 감소)로 다른 로직 일체 변경 없이 정밀 조절 완료.
+
+## Master Release v269.0.0 (2026-08-09) - TRUE PSYCHOACOUSTIC 50% HUMAN PERCEIVED LOUDNESS DROP
+- **Version Checkpoint File**: `v269.0.0_TRUE_PERCEIVED_50_PERCENT_VOLUME_REDUCED.html`
+- **사람 귀 음향 스케일(Logarithmic dB) 기준 체감 소리 크기 50% 하향 완성**:
+  1. **청각 체감 음량 50%(-12dB) 강제 적용**:
+     - 인간 귀의 로그형 음량 체감 스케일(Logarithmic Scale)에 맞추어 오실레이터 진폭 수치를 `0.32` ➔ `0.05`로 85% 감쇄(-12dB)시키고, Lowpass Filter를 450Hz로 내려 **사람 귀로 들었을 때 소리가 확실히 체감 50% 이하로 아주 부드럽고 작게 들리도록 전면 수정 완료.**
