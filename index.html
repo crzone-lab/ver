@@ -2048,12 +2048,16 @@
         }
 
         function syncCarouselSelection(idx) {
-            document.querySelectorAll('.carousel-char-card').forEach(c => c.classList.remove('active'));
-            const activeCard = document.getElementById(`carousel-card-${idx}`);
-            if (activeCard) {
-                activeCard.classList.add('active');
-                activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
-            }
+            const cards = document.querySelectorAll('.carousel-char-card');
+            cards.forEach((card, fullIdx) => {
+                if (typeof lobbyCharacters !== 'undefined' && lobbyCharacters.length > 0) {
+                    if (fullIdx % lobbyCharacters.length === idx) {
+                        card.classList.add('active');
+                    } else {
+                        card.classList.remove('active');
+                    }
+                }
+            });
         }
 
         function startBottomCarouselAutoScroll() {
@@ -5464,7 +5468,12 @@
                 bubble.style.backgroundPosition = 'center';
                 bubble.innerText = '';
                 
-                bubble.onclick = () => selectLobbyCharacter(idx, bubble);
+                const handleBubbleSelect = (e) => {
+                    if (e) { e.preventDefault(); e.stopPropagation(); }
+                    selectLobbyCharacter(idx, bubble);
+                };
+                bubble.onclick = handleBubbleSelect;
+                bubble.ontouchstart = handleBubbleSelect;
                 grid.appendChild(bubble);
             });
 
@@ -5857,6 +5866,8 @@
                     btn.title = "나가기";
                 }
             } else if (mode === "playground") {
+                window.scrollTo(0, 0);
+                document.body.scrollTop = 0;
                 if (splash) { splash.style.display = "none"; splash.style.opacity = "0"; splash.style.pointerEvents = "none"; }
                 if (lobby) {
                     lobby.style.display = "none";

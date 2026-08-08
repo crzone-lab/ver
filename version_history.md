@@ -1823,3 +1823,12 @@
   2. **🎱 젤리 당구 포켓볼 게임 모드 완전 결합**:
      - 4개 귀퉁이 네온 포켓, 뱅크샷 횟수별 점수 격차(0회: 1점, 1회: 5점, 2회: 10점, 3회+: 30점 마스터 샷) 및 단계별 사운드 FX WebAudio 오디오 합성.
      - 실시간 조준 궤적선, Power Tension Gauge, 실시간 포켓 수거 파티클 스파크 연출 탑재.
+
+## Master Release v248.0.0 (2026-08-08) - CHARACTER SELECTION TOUCH & WINDOW SCROLL FIX
+- **Version Checkpoint File**: `v248.0.0_CHARACTER_SELECTION_CLICK_NAVIGATION_FIXED.html`
+- **100% 캐릭터 그리드 터치 반응성 & 윈도우 스크롤 이탈 현상 해결**:
+  1. **`scrollIntoView` 윈도우 점프 이탈 제거**:
+     - 기존 `syncCarouselSelection` 내 `scrollIntoView` 호출이 모바일/데스크톱 브라우저 뷰포트 전체를 하단으로 점프시켜 캔버스가 화면 밖으로 가려지던 원인을 100% 제거.
+  2. **그리드 버블 터치/클릭 즉시 반응 핸들러 추가**:
+     - `grid-char-bubble`에 `ontouchstart` 및 `onclick` 듀얼 이벤트 핸들러를 추가하여 모바일 터치 시 즉시 플레이그라운드로 입장되도록 보장.
+     - `setScreenMode("playground")` 전환 시 `window.scrollTo(0,0)`을 강제 적용하여 상단 메인 스테이지로 화면을 100% 고정.
