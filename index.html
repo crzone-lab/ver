@@ -1420,9 +1420,11 @@
         </div>
 
         <!-- 6. Billiards Game HUD Overlay (z-index: 25000) -->
-        <div id="billiards-hud" style="display: none; position: absolute; top: 78px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(85, 107, 47, 0.75); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 22px; color: #fff; font-family: monospace, sans-serif; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.25);">
-            <div style="font-size: 15px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px;">
-                score : <span id="billiards-score-val" style="color: #76ff03; font-weight: 900;">0</span> &nbsp; best : <span id="billiards-best-val" style="color: #ffd700; font-weight: 900;">0</span>
+        <div id="billiards-hud" style="display: none; position: absolute; top: 78px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(85, 107, 47, 0.50); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 20px; padding: 6px 20px; color: #fff; font-family: monospace, sans-serif; text-align: center; box-shadow: 0 4px 14px rgba(0,0,0,0.25); white-space: nowrap;">
+            <div style="font-size: 14px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; gap: 10px;">
+                <span>score : <span id="billiards-score-val" style="color: #76ff03; font-weight: 900;">0</span></span>
+                <span style="opacity: 0.4;">|</span>
+                <span>best : <span id="billiards-best-val" style="color: #ffd700; font-weight: 900;">0</span></span>
             </div>
         </div>
 

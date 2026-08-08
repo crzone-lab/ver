@@ -2242,3 +2242,11 @@
      - 구멍 근처로 날아갈수록 캐릭터 크기가 **22%(scale 0.22)까지 훨씬 더 앙증맞고 조그마하게 축소**되어 60px 포켓 구멍으로 쏙~ 들어가는 느낌을 대폭 강화.
   3. **당김 길이에 따른 속도/거리 물리 해명 및 동적 파워 스케일링 강화**:
      - 당기는 거리가 길어질수록 튕김 횟수(최대 9회)와 이동 순항 속도(`jellyCruiseSpeed` 1.8 -> 5.8)가 직관적이고 시원하게 빨라지도록 튜닝 완성.
+
+## Master Release v299.1.0 (2026-08-09) - STRICT SINGLE LINE SCORE FORMATTING & SEMI-TRANSPARENT OLIVE GLASSMORPHISM
+- **Version Checkpoint File**: `v299.1.0_SEMI_TRANSPARENT_SCORE_BOX.html`
+- **스코어 뱃지 1줄 가로 정렬 고정 & 은은한 반투명 올리브 그린 디자인 완성**:
+  1. **가로 1줄 고정 포맷 (`white-space: nowrap`)**:
+     - `score : 0 | best : 12`가 숫자가 밑으로 떨어져 2줄로 꺾이지 않도록 `white-space: nowrap` 및 `display: inline-flex` 레이아웃으로 100% 가로 1줄 고정 완성.
+  2. **은은한 반투명 올리브 그린 글래스모피즘 박스 (`rgba(85, 107, 47, 0.50)`)**:
+     - 스코어 박스 투명도를 은은한 50% 반투명(`rgba(85, 107, 47, 0.50)`)과 12px 블러 효과로 처리하여 배경이 은은하게 비치도록 고급스럽게 마감.
