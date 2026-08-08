@@ -2319,7 +2319,7 @@
                     osc.frequency.setValueAtTime(130, now);
                     osc.frequency.exponentialRampToValueAtTime(70, now + 0.16);
 
-                    gain.gain.setValueAtTime(0.012, now);
+                    gain.gain.setValueAtTime(0.40, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
                     osc.connect(filter);
@@ -4760,7 +4760,7 @@
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.exponentialRampToValueAtTime(550, now + 0.12);
-                    gain.gain.setValueAtTime(0.005, now);
+                    gain.gain.setValueAtTime(0.35, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
                     osc.start(now);
                     osc.stop(now + 0.12);
