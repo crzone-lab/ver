@@ -2279,3 +2279,11 @@
      - 젤리가 중앙에 새로 등장할 때 X/Y축이 비대칭 탄성으로 `통~통~통~` 찌그러졌다 늘어나며 튕기는 물리 연출 탑재.
   2. **부르르 떨면서 정지하는 젤리 잔여 진동 (Tremble to Rest)**:
      - 튕김 직후 메쉬 전체가 부르르~ 떨리며 서서히 감쇄되어 깔끔하게 정지하는 젤리 특유의 현실적인 물리 연출 적용.
+
+## Master Release v303.0.0 (2026-08-09) - ABSOLUTE ROOT CAUSE FIX FOR RESPAWN ELASTIC BOUNCE & TREMBLE ANIMATION
+- **Version Checkpoint File**: `v303.0.0_FIXED_RESPAWN_ELASTIC_BOUNCE_AND_TREMBLE.html`
+- **구멍 입수 후 캐릭터 중앙 재등장 시 '통통 튕기고 부르르 떨면서 정지' 탄성 연출 원천 해결**:
+  1. **원인 규명 및 즉시 수정**:
+     - 기존 `respawnAnimProgress` 탄성 연출 로직이 `jellyIsFlying === true` 분문 내부에 위치하여, 재등장 시(`jellyIsFlying = false`) 메쉬가 정적 좌표로 즉시 초기화되어 애니메이션이 씹히던 근본 버그를 정확히 발견.
+  2. **아이들 분기(`else` 분기)에 탄성 튕김 & 진동 연출 완벽 탑재**:
+     - `jellyIsFlying = false` 상태에서도 `respawnAnimProgress < 1.0` 구역에서 **탄성 통~통~ 튕김(Squash & Stretch Bounce)과 부르르르~ 고주파 미세 진동(Tremble to Rest)이 100% 정상 작동**하도록 완전히 보정 완료.

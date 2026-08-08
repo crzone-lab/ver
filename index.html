@@ -4537,14 +4537,47 @@
                                 }
                             }
                         } else {
-                            for (let i = 0; i < points.length; i++) {
-                                if (points[i]) {
-                                    points[i].x = points[i].ox;
-                                    points[i].y = points[i].oy;
-                                    points[i].oldx = points[i].ox;
-                                    points[i].oldy = points[i].oy;
-                                    points[i].lastDx = 0;
-                                    points[i].lastDy = 0;
+                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 탄성 통통 튕김 (Squash & Stretch Bounce) + 부르르 떨면서 정지 (Tremble to Rest)!
+                            if (respawnAnimProgress < 1.0) {
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.024);
+                                let progress = respawnAnimProgress;
+                                let env = Math.exp(-progress * 3.4); // 감쇄 포용선
+                                
+                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
+                                let bounceWave = Math.sin(progress * Math.PI * 6.0) * env;
+                                let basePop = (1.0 - env) + bounceWave * 0.45;
+                                let scaleX = basePop * (1.0 + bounceWave * 0.40);
+                                let scaleY = basePop * (1.0 - bounceWave * 0.40);
+
+                                // 2. 부르르 떨면서 정지하는 젤리 잔여 진동 (Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 18.0) * env * 10.0;
+                                let trembleX = (Math.random() - 0.5) * trembleIntensity;
+                                let trembleY = (Math.random() - 0.5) * trembleIntensity;
+
+                                let centerOx = width * 0.5;
+                                let centerOy = height * 0.48;
+
+                                for (let i = 0; i < points.length; i++) {
+                                    let p = points[i];
+                                    if (p) {
+                                        let relOx = p.ox - centerOx;
+                                        let relOy = p.oy - centerOy;
+                                        p.x = centerOx + relOx * scaleX + trembleX;
+                                        p.y = centerOy + relOy * scaleY + trembleY;
+                                        p.oldx = p.x;
+                                        p.oldy = p.y;
+                                    }
+                                }
+                            } else {
+                                for (let i = 0; i < points.length; i++) {
+                                    if (points[i]) {
+                                        points[i].x = points[i].ox;
+                                        points[i].y = points[i].oy;
+                                        points[i].oldx = points[i].ox;
+                                        points[i].oldy = points[i].oy;
+                                        points[i].lastDx = 0;
+                                        points[i].lastDy = 0;
+                                    }
                                 }
                             }
                         }
@@ -4765,14 +4798,47 @@
                                 }
                             }
                         } else {
-                            for (let i = 0; i < points.length; i++) {
-                                if (points[i]) {
-                                    points[i].x = points[i].ox;
-                                    points[i].y = points[i].oy;
-                                    points[i].oldx = points[i].ox;
-                                    points[i].oldy = points[i].oy;
-                                    points[i].lastDx = 0;
-                                    points[i].lastDy = 0;
+                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 탄성 통통 튕김 (Squash & Stretch Bounce) + 부르르 떨면서 정지 (Tremble to Rest)!
+                            if (respawnAnimProgress < 1.0) {
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.024);
+                                let progress = respawnAnimProgress;
+                                let env = Math.exp(-progress * 3.4); // 감쇄 포용선
+                                
+                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
+                                let bounceWave = Math.sin(progress * Math.PI * 6.0) * env;
+                                let basePop = (1.0 - env) + bounceWave * 0.45;
+                                let scaleX = basePop * (1.0 + bounceWave * 0.40);
+                                let scaleY = basePop * (1.0 - bounceWave * 0.40);
+
+                                // 2. 부르르 떨면서 정지하는 젤리 잔여 진동 (Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 18.0) * env * 10.0;
+                                let trembleX = (Math.random() - 0.5) * trembleIntensity;
+                                let trembleY = (Math.random() - 0.5) * trembleIntensity;
+
+                                let centerOx = width * 0.5;
+                                let centerOy = height * 0.48;
+
+                                for (let i = 0; i < points.length; i++) {
+                                    let p = points[i];
+                                    if (p) {
+                                        let relOx = p.ox - centerOx;
+                                        let relOy = p.oy - centerOy;
+                                        p.x = centerOx + relOx * scaleX + trembleX;
+                                        p.y = centerOy + relOy * scaleY + trembleY;
+                                        p.oldx = p.x;
+                                        p.oldy = p.y;
+                                    }
+                                }
+                            } else {
+                                for (let i = 0; i < points.length; i++) {
+                                    if (points[i]) {
+                                        points[i].x = points[i].ox;
+                                        points[i].y = points[i].oy;
+                                        points[i].oldx = points[i].ox;
+                                        points[i].oldy = points[i].oy;
+                                        points[i].lastDx = 0;
+                                        points[i].lastDy = 0;
+                                    }
                                 }
                             }
                         }
@@ -4806,14 +4872,47 @@
                                 }
                             }
                         } else {
-                            for (let i = 0; i < points.length; i++) {
-                                if (points[i]) {
-                                    points[i].x = points[i].ox;
-                                    points[i].y = points[i].oy;
-                                    points[i].oldx = points[i].ox;
-                                    points[i].oldy = points[i].oy;
-                                    points[i].lastDx = 0;
-                                    points[i].lastDy = 0;
+                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 탄성 통통 튕김 (Squash & Stretch Bounce) + 부르르 떨면서 정지 (Tremble to Rest)!
+                            if (respawnAnimProgress < 1.0) {
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.024);
+                                let progress = respawnAnimProgress;
+                                let env = Math.exp(-progress * 3.4); // 감쇄 포용선
+                                
+                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
+                                let bounceWave = Math.sin(progress * Math.PI * 6.0) * env;
+                                let basePop = (1.0 - env) + bounceWave * 0.45;
+                                let scaleX = basePop * (1.0 + bounceWave * 0.40);
+                                let scaleY = basePop * (1.0 - bounceWave * 0.40);
+
+                                // 2. 부르르 떨면서 정지하는 젤리 잔여 진동 (Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 18.0) * env * 10.0;
+                                let trembleX = (Math.random() - 0.5) * trembleIntensity;
+                                let trembleY = (Math.random() - 0.5) * trembleIntensity;
+
+                                let centerOx = width * 0.5;
+                                let centerOy = height * 0.48;
+
+                                for (let i = 0; i < points.length; i++) {
+                                    let p = points[i];
+                                    if (p) {
+                                        let relOx = p.ox - centerOx;
+                                        let relOy = p.oy - centerOy;
+                                        p.x = centerOx + relOx * scaleX + trembleX;
+                                        p.y = centerOy + relOy * scaleY + trembleY;
+                                        p.oldx = p.x;
+                                        p.oldy = p.y;
+                                    }
+                                }
+                            } else {
+                                for (let i = 0; i < points.length; i++) {
+                                    if (points[i]) {
+                                        points[i].x = points[i].ox;
+                                        points[i].y = points[i].oy;
+                                        points[i].oldx = points[i].ox;
+                                        points[i].oldy = points[i].oy;
+                                        points[i].lastDx = 0;
+                                        points[i].lastDy = 0;
+                                    }
                                 }
                             }
                         }
