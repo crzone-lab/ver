@@ -1,9 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
 <head>
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>FruitRabbit Squishy Mobile Studio</title>
@@ -1892,7 +1889,7 @@
 
         let defaultStrawberrySrc = '';
 
-        var jellyImage = new Image();
+        const jellyImage = new Image();
         jellyImage.onload = function() {
             initMesh();
             draw();
@@ -2221,8 +2218,7 @@
         let soundPulseTimer = 0;
 
         function playInflateTone(progressRatio) {
-            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
-            if (!isPlaygroundActive() || !soundOn) return;
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2243,8 +2239,7 @@
         }
 
         function playLoudBalloonPopSound() {
-            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
-            if (!isPlaygroundActive() || !soundOn) return;
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2299,9 +2294,7 @@
         }
 
         function playJellyWallBounceSound() {
-            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
-            if (!isPlaygroundActive() || !soundOn) return;
-            ensureAudioUnlocked();
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -2309,71 +2302,78 @@
 
                 let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
+                // 쇠소리의 원인이 되는 고주파 종소리(541Hz, 1058Hz) 대신 맑고 부드러운 Lowpass 필터 적용
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(mode === 'mochi' ? 750 : 1200, now);
-                
-                let masterNode = (typeof getMasterSFXGain === 'function') ? getMasterSFXGain() : null;
-                if (masterNode) {
-                    filter.connect(masterNode);
-                } else {
-                    filter.connect(audioCtx.destination);
-                }
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 420 : 750, now);
+                filter.connect(audioCtx.destination);
 
                 if (mode === 'mochi') {
+                    // 🍡 쫀득모찌: 묵직하고 찰진 찹쌀떡 "쫠깃 / 찰싹" (Viscous Mochi Squish Impact)
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(140, now);
-                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.15);
+                    osc.frequency.setValueAtTime(130, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.16);
 
-                    gain.gain.setValueAtTime(0.45, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    gain.gain.setValueAtTime(0.30, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
                     osc.connect(filter);
                     osc.start(now);
-                    osc.stop(now + 0.15);
+                    osc.stop(now + 0.16);
+
+                    // Sub-bass thump
+                    let subOsc = audioCtx.createOscillator();
+                    let subGain = audioCtx.createGain();
+                    subOsc.type = 'triangle';
+                    subOsc.frequency.setValueAtTime(80, now);
+                    subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+                    subGain.gain.setValueAtTime(0.25, now);
+                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+                    subOsc.connect(filter);
+                    subOsc.start(now);
+                    subOsc.stop(now + 0.18);
 
                 } else {
-                    // 🍮 Jelly crisp cute "뽀용~ / 퐁~" bounce sound
+                    // 🍮 탱글젤리: 경쾌하고 통통 튀는 "뽀용~ / 퐁~" (Cute Organic Jelly Boing)
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(200, now);
-                    osc.frequency.exponentialRampToValueAtTime(420, now + 0.04);
-                    osc.frequency.exponentialRampToValueAtTime(160, now + 0.15);
+                    // Quick pitch jump up and bounce down (Boing sound)
+                    osc.frequency.setValueAtTime(180, now);
+                    osc.frequency.exponentialRampToValueAtTime(360, now + 0.04);
+                    osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
 
-                    gain.gain.setValueAtTime(0.40, now);
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    gain.gain.setValueAtTime(0.32, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                     osc.connect(filter);
                     osc.start(now);
-                    osc.stop(now + 0.15);
+                    osc.stop(now + 0.14);
 
+                    // Soft harmonic pop body
                     let bodyOsc = audioCtx.createOscillator();
                     let bodyGain = audioCtx.createGain();
                     bodyOsc.type = 'sine';
-                    bodyOsc.frequency.setValueAtTime(300, now);
-                    bodyOsc.frequency.exponentialRampToValueAtTime(140, now + 0.13);
+                    bodyOsc.frequency.setValueAtTime(270, now);
+                    bodyOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
 
-                    bodyGain.gain.setValueAtTime(0.25, now);
-                    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
+                    bodyGain.gain.setValueAtTime(0.18, now);
+                    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
                     bodyOsc.connect(filter);
                     bodyOsc.start(now);
-                    bodyOsc.stop(now + 0.13);
+                    bodyOsc.stop(now + 0.12);
                 }
-            } catch (e) {
-                console.error("playJellyWallBounceSound error:", e);
-            }
+            } catch (e) {}
         }
 
         let activeTornHole = null;
         let popFlashEffect = null;
 
         function playPopSound() {
-            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
-            if (!isPlaygroundActive() || !soundOn) return;
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
             try {
                 if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -4736,8 +4736,7 @@
         let audioCtx = null;
 
         function playSquishSound(isRelease = false) {
-            let soundOn = (typeof isSoundEnabled !== 'undefined') ? isSoundEnabled : true;
-            if (!isPlaygroundActive() || !soundOn) return; // Disable all interaction sound effects outside of playground
+            if (!isPlaygroundActive() || !isSoundEnabled) return; // Disable all interaction sound effects outside of playground
             try {
                 if (!audioCtx) {
                     audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -4758,7 +4757,7 @@
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.exponentialRampToValueAtTime(550, now + 0.12);
-                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.setValueAtTime(0.12, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
                     osc.start(now);
                     osc.stop(now + 0.12);
@@ -4777,43 +4776,8 @@
             }
         }
 
-                var isSoundEnabled = true;
-        var masterSFXGainNode = null;
-
-        function getMasterSFXGain() {
-            if (!audioCtx) {
-                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-            }
-            if (audioCtx && audioCtx.state === 'suspended') {
-                try { audioCtx.resume(); } catch(e) {}
-            }
-            if (!masterSFXGainNode) {
-                masterSFXGainNode = audioCtx.createGain();
-                let initVal = 0.50; // Standard 50% default gain
-                let sfxEl = document.getElementById('sfx-volume');
-                if (sfxEl) {
-                    let val = parseFloat(sfxEl.value);
-                    initVal = val / 100;
-                }
-                masterSFXGainNode.gain.setValueAtTime(initVal, audioCtx.currentTime);
-                masterSFXGainNode.connect(audioCtx.destination);
-            }
-            return masterSFXGainNode;
-        }
-
-        function updateSFXVolume() {
-            let sfxEl = document.getElementById('sfx-volume');
-            if (sfxEl) {
-                let val = parseFloat(sfxEl.value);
-                let targetGain = val / 100; // 0.0 (Muted) to 1.0 (Full Volume)
-                let masterNode = getMasterSFXGain();
-                if (masterNode && audioCtx) {
-                    masterNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
-                }
-            }
-            if (typeof syncSliderLabels === 'function') syncSliderLabels();
-        }
-        var isVibrationEnabled = true;
+                let isSoundEnabled = true;
+        let isVibrationEnabled = true;
 
         function toggleSoundSetting(enabled) {
             isSoundEnabled = enabled;
@@ -5412,20 +5376,6 @@
             const char = lobbyCharacters[index];
             if (!char) return;
 
-            jellyIsFlying = false;
-            jellyCenterX = 0;
-            jellyCenterY = 0;
-            jellyFlightVx = 0;
-            jellyFlightVy = 0;
-            jellyRotation = 0;
-            jellySpinSpeed = 0;
-            jellyBounceCount = 0;
-            if (typeof currentLaunchBounceCount !== 'undefined') currentLaunchBounceCount = 0;
-            if (typeof isSuckingIntoPocket !== 'undefined') isSuckingIntoPocket = false;
-            if (typeof grabbedPointIndex !== 'undefined') grabbedPointIndex = null;
-            if (typeof floatingBounceTexts !== 'undefined') floatingBounceTexts = [];
-            if (typeof pocketScoreAnnouncements !== 'undefined') pocketScoreAnnouncements = [];
-
             activeEmoji = char.emoji || '🐰';
             activeBase = char.base;
             activeHue = char.hue || 350;
@@ -5439,26 +5389,8 @@
 
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
-            // Fresh image loader instance
-            const charImg = new Image();
-            
-            function applyLoadedTexture() {
-                jellyImage = charImg;
-                bakedJellyTexture = charImg;
-                if (typeof bakeSingleCompositeTexture === 'function') {
-                    bakeSingleCompositeTexture(charImg);
-                }
-                updateCharacterAlphaMap(charImg);
-                initMesh();
-                draw();
-            }
-
-            charImg.onload = function() {
-                applyLoadedTexture();
-            };
-
-            charImg.onerror = function() {
-                console.warn("Character image fallback used");
+            jellyImage.onload = function() {
+                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
                 if (typeof bakeSingleCompositeTexture === 'function') {
                     bakeSingleCompositeTexture(jellyImage);
                 }
@@ -5467,18 +5399,20 @@
                 draw();
             };
 
-            charImg.src = imageSrc;
+            jellyImage.src = imageSrc;
+            bakedJellyTexture = jellyImage; // Immediate fallback assignment
 
-            // Instant execution if image is already cached and complete!
-            if (charImg.complete && charImg.naturalWidth > 0) {
-                applyLoadedTexture();
+            if (jellyImage.complete && jellyImage.naturalWidth > 0) {
+                updateCharacterAlphaMap(jellyImage);
+                initMesh();
+                draw();
             }
 
             initMesh();
             updateCharacterAlphaMap(jellyImage);
             generateDecoJellies(activeHue);
             setScreenMode("playground");
-            selectFeelPill(typeof activeTextureMode !== 'undefined' ? activeTextureMode : 'jelly');
+            selectFeelPill('jelly');
             showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
 
             // Highlight selected bubble
@@ -5672,10 +5606,10 @@
                     this.filterNode.type = 'lowpass';
                     this.filterNode.frequency.setValueAtTime(1500, audioCtx.currentTime); // Bright sparkling filter frequency
                     
-                    this.gainNode.gain.setValueAtTime(this.volume * 0.1, audioCtx.currentTime);
+                    this.gainNode.gain.setValueAtTime(this.volume, audioCtx.currentTime);
                     
                     this.filterNode.connect(this.gainNode);
-                    this.gainNode.connect(getMasterSFXGain());
+                    this.gainNode.connect(audioCtx.destination);
                 }
             },
             
@@ -5714,7 +5648,7 @@
                         
                         // Bouncy plucky envelope for chords
                         gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.004, now + 0.02); // ultra-soft pluck attack
+                        gain.gain.linearRampToValueAtTime(0.04, now + 0.02); // quick pluck attack
                         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.8); // fast decay
                         
                         osc.start(now);
@@ -5758,7 +5692,7 @@
                         let now = audioCtx.currentTime;
                         // Crisp music box sound envelope (instant click, fast decay)
                         gain.gain.setValueAtTime(0, now);
-                        gain.gain.linearRampToValueAtTime(0.005, now + 0.005); // ultra-soft bell attack
+                        gain.gain.linearRampToValueAtTime(0.07, now + 0.005); // plucky attack
                         gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22); // crisp fast release
                         
                         osc.start(now);
