@@ -2345,7 +2345,7 @@
                     osc.frequency.exponentialRampToValueAtTime(360, now + 0.04);
                     osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
 
-                    gain.gain.setValueAtTime(0.32, now);
+                    gain.gain.setValueAtTime(0.16, now); // Exactly 50% reduced (was 0.32)
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                     osc.connect(filter);
@@ -2359,7 +2359,7 @@
                     bodyOsc.frequency.setValueAtTime(270, now);
                     bodyOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
 
-                    bodyGain.gain.setValueAtTime(0.18, now);
+                    bodyGain.gain.setValueAtTime(0.09, now); // Exactly 50% reduced (was 0.18)
                     bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
                     bodyOsc.connect(filter);

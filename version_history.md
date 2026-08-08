@@ -1987,3 +1987,8 @@
 ## Reversion Log (2026-08-09) - FULL REVERSION TO v241.0.0 BASELINE
 - **Status**: `index.html` 오늘 수정 전 마스터 상태(`v241.0.0`)로 100% 원위치 원복 완료.
 - **내용**: 사용자 지시("계속안되니까 오늘수정하기전으로 돌아가")에 따라 오늘 수행된 모든 오디오 및 볼륨 수정 내역을 완전히 취소하고, 17종 젤리토끼 캐릭터 선택 및 감촉 차별화 엔진이 100% 검증되어 작동하는 `v241.0.0_JELLY_VS_MOCHI_DIFFERENTIATION_ENGINE.html` 마스터 상태로 100% 원상 복구 완료.
+
+## Master Release v268.0.0 (2026-08-09) - TANGLE JELLY WALL BOUNCE SOUND EXACTLY 50% REDUCED
+- **Version Checkpoint File**: `v268.0.0_WALL_BOUNCE_SOUND_50_PERCENT_REDUCED.html`
+- **다른 코드 전혀 건드리지 않고 탱글젤리 벽 충돌 소리만 정확히 50% 하향 정밀 반영**:
+  1. **요청사항 100% 수술적 반영**: 사용자 지시("자,,이제 탱글젤리에서 당기고 놨을때 벽에 부딪칠때 소리를 50%줄여", "다른부분건드리지말고")에 따라 `playJellyWallBounceSound` 내 오실레이터 진폭만 0.32 ➔ 0.16 (정확히 50% 감소), 바디 진폭만 0.18 ➔ 0.09 (정확히 50% 감소)로 다른 로직 일체 변경 없이 정밀 조절 완료.
