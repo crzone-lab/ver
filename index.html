@@ -1393,7 +1393,7 @@
         </div>
 
         <!-- 6. Billiards Game HUD Overlay (z-index: 25000) -->
-        <div id="billiards-hud" style="display: none; position: absolute; top: 75px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(15, 5, 29, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 8px 18px; color: #fff; font-family: sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4); align-items: center; gap: 14px;">
+        <div id="billiards-hud" style="display: none; position: absolute; top: 128px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(15, 5, 29, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(0, 229, 255, 0.5); border-radius: 20px; padding: 6px 16px; color: #fff; font-family: sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4); align-items: center; gap: 12px;">
             <div style="font-weight: 900; font-size: 15px; color: #ffd700; display: flex; align-items: center; gap: 6px;">
                 <span>🎱</span> <span>SCORE:</span> <span id="billiards-score-val" style="font-size: 20px; color: #76ff03; text-shadow: 0 0 8px #76ff03;">0</span>
             </div>
@@ -4898,11 +4898,15 @@
                     let center = points[centerIndex];
                     
                     ctx.save();
-                    ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-                    ctx.filter = 'blur(12px)';
+                    let shadowGrad = ctx.createRadialGradient(center.x, center.y + 120, 10, center.x, center.y + 120, 180);
+                    shadowGrad.addColorStop(0, 'rgba(0, 0, 0, 0.25)');
+                    shadowGrad.addColorStop(0.5, 'rgba(0, 0, 0, 0.08)');
+                    shadowGrad.addColorStop(1, 'rgba(0, 0, 0, 0)');
+                    ctx.fillStyle = shadowGrad;
                     ctx.beginPath();
                     ctx.ellipse(center.x, center.y + 120, 180, 45, 0, 0, Math.PI * 2);
                     ctx.fill();
+                    if (typeof ctx.filter !== 'undefined') ctx.filter = 'none';
                     ctx.restore();
 
                     // Draw jelly mesh body
@@ -4982,20 +4986,29 @@
                 }
             }
 
-            // 🎱 Render 4 Corner Pockets & Aiming Line in Billiards Mode (Lightweight GPU Optimized!)
+            // 🎱 Render 4 Corner Pockets & Aiming Line in Billiards Mode (Lightweight GPU & High-Vis!)
             if (activeTextureMode === 'billiards') {
                 let pockets = getPocketPositions();
                 ctx.save();
                 for (let pk of pockets) {
-                    ctx.fillStyle = '#080414';
+                    // Deep dark hole center
+                    ctx.fillStyle = '#0c071e';
                     ctx.beginPath();
                     ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI * 2);
                     ctx.fill();
 
+                    // Bright neon cyan glowing border
                     ctx.strokeStyle = '#00e5ff';
-                    ctx.lineWidth = 2.5;
+                    ctx.lineWidth = 3.5;
                     ctx.beginPath();
-                    ctx.arc(pk.x, pk.y, pk.r + 2, 0, Math.PI * 2);
+                    ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI * 2);
+                    ctx.stroke();
+
+                    // Inner pocket accent
+                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
+                    ctx.arc(pk.x, pk.y, pk.r - 4, 0, Math.PI * 2);
                     ctx.stroke();
                 }
                 ctx.restore();
