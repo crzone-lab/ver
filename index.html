@@ -2270,9 +2270,52 @@
             }
         }
 
-        // ❌ [100% DELETED & SILENCED]: 벽 충돌 소리는 100% 삭제 상태 유지!
+        // 🍮 [Light & Lingering Bounce]: 가볍고 은은하며 잔향(여운)이 아련하게 남는 젤리 튕김음
         function playJellyWallBounceSound() {
-            return; // 100% DELETED & SILENCED
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+
+            try {
+                let now = audioCtx.currentTime;
+                let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
+
+                // 맑고 아련한 Lowpass Filter (여운 잔향 감싸기)
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 600 : 900, now);
+                filter.connect(masterNode);
+
+                // 1. 가볍고 맑은 미풍 피치 벤딩 ("퐁~~...")
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(mode === 'mochi' ? 240 : 380, now);
+                osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 360 : 520, now + 0.04);
+                osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 160 : 240, now + 0.40);
+
+                // 가벼운 음량(0.08)에서 0.45초 동안 긴 여운(exponential tail)으로 잔잔하게 사라짐
+                gain.gain.setValueAtTime(0.08, now);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+                osc.connect(filter);
+                osc.start(now);
+                osc.stop(now + 0.45);
+
+                // 2. 아련한 하모닉 공명 잔향 (Subtle Harmonic Echo)
+                let echoOsc = audioCtx.createOscillator();
+                let echoGain = audioCtx.createGain();
+                echoOsc.type = 'sine';
+                echoOsc.frequency.setValueAtTime(mode === 'mochi' ? 180 : 300, now + 0.05);
+                echoOsc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 120 : 180, now + 0.45);
+
+                echoGain.gain.setValueAtTime(0.03, now + 0.05);
+                echoGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+
+                echoOsc.connect(filter);
+                echoOsc.start(now + 0.05);
+                echoOsc.stop(now + 0.45);
+            } catch (e) {}
         }
 
         // 🟢 [RESTORED]: 터치 릴리즈 소리 ("푱!")

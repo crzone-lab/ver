@@ -2043,3 +2043,8 @@
 - **벽 충돌음만 100% 선택 삭제 유지 & 기타 터치/버블/릴리즈 인터랙션 효과음 원활 제공**:
   1. **요청사항 확인 및 수술적 오디오 분리**:
      - 사용자 질문("벽에 부딪치는 소리말고 다른효과음도 삭제했니/")에 따라 문제의 **벽 충돌 소리(`playJellyWallBounceSound`)만 100% 영구 삭제(`return;`)**로 유지하고, 귀여운 **터치 릴리즈(`playReleaseSound`), 버블 팝(`playPopSound`), 풍선 터짐(`playLoudBalloonPopSound`) 등 다른 인터랙션 효과음은 원활히 복원**하여 완벽 조율 완료.
+
+## Master Release v277.0.0 (2026-08-09) - LIGHT & LINGERING WALL BOUNCE SOUND DESIGN
+- **Version Checkpoint File**: `v277.0.0_LIGHT_SOUND_WITH_LINGERING_TAIL.html`
+- **벽 충돌 효과음 가볍고 아련한 미풍 잔향(여운) 사운드로 예술적 튜닝 완료**:
+  1. **요청사항 100% 반영**: 사용자 지시("이제 벽에 부딪칠때 효과음을 조금 가벼운소리로 ,여운이 남게 만들어줘.")에 따라 둔탁하거나 무거운 타격음을 배제하고, 맑고 가벼운 미풍 피치 벤딩(380Hz ➔ 520Hz ➔ 240Hz)과 0.45초 동안 잔잔하게 은은히 사라지는 감성 여운(Exponential Decay Tail & Subtle Harmonic Echo)을 탑재하여 부드럽고 맑게 울리도록 마감 완료.
