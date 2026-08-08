@@ -2271,6 +2271,7 @@
         }
 
         // 🍮 [Light & Lingering Bounce]: 가볍고 은은하며 잔향(여운)이 아련하게 남는 젤리 튕김음
+                // 🍮 [Light & Lingering Bounce]: 가볍고 또렷하며 여운이 아련하게 퍼지는 맑은 튕김음
         function playJellyWallBounceSound() {
             if (!isPlaygroundActive() || !isSoundEnabled) return;
             let masterNode = getMasterSFXGain();
@@ -2280,45 +2281,45 @@
                 let now = audioCtx.currentTime;
                 let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
-                // 맑고 아련한 Lowpass Filter (여운 잔향 감싸기)
+                // 맑고 선명한 Lowpass Filter (1200Hz)
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(mode === 'mochi' ? 600 : 900, now);
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 800 : 1200, now);
                 filter.connect(masterNode);
 
                 // 1. 가볍고 맑은 미풍 피치 벤딩 ("퐁~~...")
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(mode === 'mochi' ? 240 : 380, now);
-                osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 360 : 520, now + 0.04);
-                osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 160 : 240, now + 0.40);
+                osc.frequency.setValueAtTime(mode === 'mochi' ? 260 : 420, now);
+                osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 400 : 580, now + 0.04);
+                osc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 180 : 280, now + 0.35);
 
-                // 가벼운 음량(0.08)에서 0.45초 동안 긴 여운(exponential tail)으로 잔잔하게 사라짐
-                gain.gain.setValueAtTime(0.08, now);
-                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+                // 선명하게 잘 들리는 음량(0.35)에서 0.35초 동안 아련한 여운 잔향으로 감소
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
                 osc.connect(filter);
                 osc.start(now);
-                osc.stop(now + 0.45);
+                osc.stop(now + 0.35);
 
-                // 2. 아련한 하모닉 공명 잔향 (Subtle Harmonic Echo)
+                // 2. 아련한 하모닉 공명 잔향 (Harmonic Echo)
                 let echoOsc = audioCtx.createOscillator();
                 let echoGain = audioCtx.createGain();
                 echoOsc.type = 'sine';
-                echoOsc.frequency.setValueAtTime(mode === 'mochi' ? 180 : 300, now + 0.05);
-                echoOsc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 120 : 180, now + 0.45);
+                echoOsc.frequency.setValueAtTime(mode === 'mochi' ? 200 : 340, now + 0.04);
+                echoOsc.frequency.exponentialRampToValueAtTime(mode === 'mochi' ? 140 : 220, now + 0.35);
 
-                echoGain.gain.setValueAtTime(0.03, now + 0.05);
-                echoGain.gain.exponentialRampToValueAtTime(0.0001, now + 0.45);
+                echoGain.gain.setValueAtTime(0.12, now + 0.04);
+                echoGain.gain.exponentialRampToValueAtTime(0.001, now + 0.35);
 
                 echoOsc.connect(filter);
-                echoOsc.start(now + 0.05);
-                echoOsc.stop(now + 0.45);
+                echoOsc.start(now + 0.04);
+                echoOsc.stop(now + 0.35);
             } catch (e) {}
         }
 
-        // 🟢 [RESTORED]: 터치 릴리즈 소리 ("푱!")
+        // 🎈 [RESTORED]: 터치 릴리즈 소리 ("푱!")
         function playReleaseSound() {
             if (!isPlaygroundActive() || !isSoundEnabled) return;
             let masterNode = getMasterSFXGain();

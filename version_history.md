@@ -2048,3 +2048,8 @@
 - **Version Checkpoint File**: `v277.0.0_LIGHT_SOUND_WITH_LINGERING_TAIL.html`
 - **벽 충돌 효과음 가볍고 아련한 미풍 잔향(여운) 사운드로 예술적 튜닝 완료**:
   1. **요청사항 100% 반영**: 사용자 지시("이제 벽에 부딪칠때 효과음을 조금 가벼운소리로 ,여운이 남게 만들어줘.")에 따라 둔탁하거나 무거운 타격음을 배제하고, 맑고 가벼운 미풍 피치 벤딩(380Hz ➔ 520Hz ➔ 240Hz)과 0.45초 동안 잔잔하게 은은히 사라지는 감성 여운(Exponential Decay Tail & Subtle Harmonic Echo)을 탑재하여 부드럽고 맑게 울리도록 마감 완료.
+
+## Master Release v278.0.0 (2026-08-09) - PERFECT CRISP AUDIBLE LINGERING WALL BOUNCE SOUND
+- **Version Checkpoint File**: `v278.0.0_PERFECT_AUDIBLE_LINGERING_BOUNCE.html`
+- **가볍고 여운 남는 사운드를 100% 또렷하고 맑게 청감 가능하도록 진폭 튜닝**:
+  1. **요청사항 100% 반영**: 사용자 피드백("소리가 전혀 안들림")에 따라 직전 단계의 지나치게 낮았던 진폭 수치를 0.35(또렷한 맑은 음량)로 상향하고, Lowpass 필터를 1200Hz로 넓혀 **가볍고 맑은 미풍 튕김음("퐁~~...")과 0.35초간 잔잔하게 퍼지는 아련한 여운 잔향이 100% 맑고 뚜렷하게 들리도록 정밀 조율 마감**.
