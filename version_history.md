@@ -2016,3 +2016,11 @@
 - **높은 360Hz 튕김 톤 전면 삭감 ➔ 90Hz 푹신한 아기쿠션 미풍 튕김 톤으로 파형 교체**:
   1. **고음역대 360Hz 피크 소리 전면 삭감**:
      - 높은 360Hz 삐용 소리가 날카롭게 퍼지며 볼륨 감소가 잘 체감되지 않던 주파수 대역 특성을 발견하여, 360Hz 높은 피크를 전면 삭감하고 **90Hz 푹신한 솜사탕/쿠션 미풍 저음(Low Pitch 90Hz, Gain 0.02, Lowpass Filter 320Hz)**으로 파형 자체를 전면 교체하여 귀에 닿는 느낌을 10배 이상 부드럽고 작게 조율 완료.
+
+## Master Release v273.0.0 (2026-08-09) - WALL BOUNCE SOUND WIRED TO VOLUME SLIDER DIRECTLY
+- **Version Checkpoint File**: `v273.0.0_WALL_BOUNCE_WIRED_TO_VOLUME_SLIDER.html`
+- **볼륨 조절이 적용되지 않던 오디오 바이패스 하드코딩 100% 원천 해결**:
+  1. **오디오 직결 바이패스(`filter.connect(audioCtx.destination)`) 완전 차단**:
+     - 기존 `playJellyWallBounceSound`가 마스터 오디오 통제 노드를 거치지 않고 `audioCtx.destination`(스피커 직결)으로 바로 연결되어 있어 슬라이더 조절을 무시하던 근본 버그를 발견하여, 마스터 슬라이더 게인 노드(`getMasterSFXGain()`)에 100% 직접 연결.
+  2. **슬라이더 조절 실시간 1:1 선형 볼륨 조절 완성**:
+     - 설정창의 효과음 슬라이더 조절 시 벽 부딪힘 소리가 0%(무음)부터 100%까지 사용자가 드래그하는 대로 실시간으로 커지고 작아지도록 완벽 조율 완료.
