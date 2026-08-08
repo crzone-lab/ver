@@ -1844,3 +1844,11 @@
      - 팽창 터짐, 벽 바운스, 팝핑, 잡기/놓기 음향의 합성 Gain 값을 0.70/0.55/0.38 ➔ 0.04~0.09 수준으로 대폭 낮추어 귀에 거슬리지 않고 부드럽고 쾌적한 사운드로 최적화.
   2. **🔊 효과음 볼륨 (SFX Volume) 조절 슬라이더 탑재**:
      - 상세 설정 메뉴(`#advanced-drawer`) 내에 SFX 볼륨 슬라이더(0% ~ 100%, 기본 30%)를 추가하여 사용자가 언제든 효과음 크기를 자유롭게 미세조정할 수 있도록 구현.
+
+## Master Release v250.0.0 (2026-08-08) - MASTER SFX GAIN NODE & ULTRA-WHISPER VOLUME
+- **Version Checkpoint File**: `v250.0.0_ULTRA_WHISPER_SOFT_SFX_VOLUME.html`
+- **Master SFX Gain 노드 전면 도입 & 극저음(Whisper-soft) 95% 볼륨 감소**:
+  1. **독립 Master SFX Gain 노드 파이프라인 구축**:
+     - 기존 `audioCtx.destination` 직결로 개별 음향 볼륨 바이패스되던 모든 효과음 오디오 노드를 단일 `getMasterSFXGain()` 마스터 게인 노드로 100% 통합 우회.
+  2. **기본 마스터 볼륨 1.5% 수준 극저음 조정**:
+     - 슬라이더 15% 기본 설정 시 실효 Master Gain이 `0.015`(1.5%) 수준으로 은은하고 속삭이듯 극도로 작게 들리도록 대폭 축소.

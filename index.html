@@ -1267,8 +1267,8 @@
                     <input type="range" id="dampening" min="1" max="25" step="0.5" value="8" oninput="updateSliders()">
                 </div>
                 <div class="advanced-row">
-                    <span>🔊 효과음 볼륨 (SFX) (<span id="sfx-val">30%</span>)</span>
-                    <input type="range" id="sfx-volume" min="0" max="100" value="30" oninput="updateSFXVolume()">
+                    <span>🔊 효과음 볼륨 (SFX) (<span id="sfx-val">15%</span>)</span>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="15" oninput="updateSFXVolume()">
                 </div>
                 <div class="advanced-row">
                     <span><span data-i18n="label-bgm">BGM Volume</span> (<span id="bgm-val">50%</span>)</span>
@@ -2236,7 +2236,7 @@
                 gain.gain.setValueAtTime(0.06 * sfxVolumeMultiplier, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(getMasterSFXGain());
                 osc.start(now);
                 osc.stop(now + 0.08);
             } catch (e) {}
@@ -2257,7 +2257,7 @@
                 subGain.gain.setValueAtTime(0.25 * sfxVolumeMultiplier, now);
                 subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
                 subOsc.connect(subGain);
-                subGain.connect(audioCtx.destination);
+                subGain.connect(getMasterSFXGain());
                 subOsc.start(now);
                 subOsc.stop(now + 0.22);
 
@@ -2269,7 +2269,7 @@
                 snapGain.gain.setValueAtTime(0.18 * sfxVolumeMultiplier, now);
                 snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
                 snapOsc.connect(snapGain);
-                snapGain.connect(audioCtx.destination);
+                snapGain.connect(getMasterSFXGain());
                 snapOsc.start(now);
                 snapOsc.stop(now + 0.12);
 
@@ -2292,7 +2292,7 @@
 
                 noise.connect(filter);
                 filter.connect(noiseGain);
-                noiseGain.connect(audioCtx.destination);
+                noiseGain.connect(getMasterSFXGain());
                 noise.start(now);
             } catch (e) {}
         }
@@ -2310,7 +2310,7 @@
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
                 filter.frequency.setValueAtTime(mode === 'mochi' ? 420 : 750, now);
-                filter.connect(audioCtx.destination);
+                filter.connect(getMasterSFXGain());
 
                 if (mode === 'mochi') {
                     // 🍡 쫀득모찌: 묵직하고 찰진 찹쌀떡 "쫠깃 / 찰싹" (Viscous Mochi Squish Impact)
@@ -2393,7 +2393,7 @@
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(getMasterSFXGain());
                 osc.start(now);
                 osc.stop(now + 0.14);
 
@@ -2409,7 +2409,7 @@
                 nGain.gain.setValueAtTime(0.12 * sfxVolumeMultiplier, now);
                 nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 noise.connect(nGain);
-                nGain.connect(audioCtx.destination);
+                nGain.connect(getMasterSFXGain());
                 noise.start(now);
             } catch (e) {}
         }
@@ -2545,11 +2545,34 @@
             if (sfxEl) document.getElementById('sfx-val').innerText = sfxEl.value + '%';
         }
 
+        let masterSFXGainNode = null;
+
+        function getMasterSFXGain() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (!masterSFXGainNode) {
+                masterSFXGainNode = audioCtx.createGain();
+                let initVal = 0.015; // Extremely whisper-soft 1.5% default master volume
+                let sfxEl = document.getElementById('sfx-volume');
+                if (sfxEl) {
+                    initVal = (parseFloat(sfxEl.value) / 100) * 0.08;
+                }
+                masterSFXGainNode.gain.setValueAtTime(initVal, audioCtx.currentTime);
+                masterSFXGainNode.connect(audioCtx.destination);
+            }
+            return masterSFXGainNode;
+        }
+
         function updateSFXVolume() {
             let sfxEl = document.getElementById('sfx-volume');
             if (sfxEl) {
                 let val = parseFloat(sfxEl.value);
-                sfxVolumeMultiplier = (val / 100);
+                let targetGain = (val / 100) * 0.08; // 0% to 8% ultra-gentle ceiling
+                let masterNode = getMasterSFXGain();
+                if (masterNode && audioCtx) {
+                    masterNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+                }
             }
             syncSliderLabels();
         }
@@ -4763,7 +4786,7 @@
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(getMasterSFXGain());
 
                 const now = audioCtx.currentTime;
 
