@@ -1942,3 +1942,10 @@
      - 브라우저가 이전 코드를 캐싱하여 불러오던 원인을 차단하기 위해 `<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">` 태그 강제 등록.
   2. **기본 마스터 오디오 Gain = 0.0 (완전 무음) 적용**:
      - SFX 슬라이더 기본값을 `0%`로 맞추고 마스터 게인을 `0.0`(완전 무음)으로 초기화하여, 사용자가 슬라이더를 직접 올리기 전에는 소리가 100% 안 나도록 무음 보장.
+
+## Master Release v262.0.0 (2026-08-08) - PERFECT WARM AUDIBLE WALL BOUNCE SOUND
+- **Version Checkpoint File**: `v262.0.0_PERFECT_AUDIBLE_WARM_WALL_BOUNCE.html`
+- **벽 충돌음 귀에 편안하면서도 또렷하고 맑은 감성 젤리 사운드(Warm & Clear Boing) 재조율**:
+  1. **요청사항 반영**: 사용자 지시("소리가 없어졌네,,소리가 너무크니까 줄이라고 했지 소리가 안나게 하라고 안했어,")에 따라 소리가 안 들리던 무음 상태를 개선하고, 귀에 부담이 없으면서도 맑고 경쾌하게 들리는 황금 밸런스 볼륨(Master Gain `0.075` / 7.5% net output)으로 재조율.
+  2. **벽 충돌 파형 따뜻하고 선명하게 튜닝**:
+     - `playJellyWallBounceSound` 신디사이저 파형 진폭을 `0.12`(보잉) & `0.06`(울림)으로 올리고 Lowpass Cutoff를 550Hz로 맞춰, 젤리를 벽으로 튕길 때 귀여운 "뽀용~ / 퐁~" 소리가 또렷하고 기분 좋게 울리도록 완성.

@@ -2308,7 +2308,7 @@
                 // Soft lowpass filter to prevent harsh click/impact sounds
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(mode === 'mochi' ? 320 : 480, now);
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 380 : 550, now);
                 
                 // Connect to master SFX gain controller
                 let masterNode = getMasterSFXGain();
@@ -2353,7 +2353,7 @@
                     osc.frequency.exponentialRampToValueAtTime(280, now + 0.04);
                     osc.frequency.exponentialRampToValueAtTime(130, now + 0.14);
 
-                    gain.gain.setValueAtTime(0.03, now); // Soft volume (was 0.32 -> 10x quieter!)
+                    gain.gain.setValueAtTime(0.12, now); // Warm, clear boing volume
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                     osc.connect(filter);
@@ -2366,7 +2366,7 @@
                     bodyOsc.frequency.setValueAtTime(220, now);
                     bodyOsc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
 
-                    bodyGain.gain.setValueAtTime(0.015, now); // Soft volume (was 0.18 -> 12x quieter!)
+                    bodyGain.gain.setValueAtTime(0.06, now); // Soft thud volume
                     bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
                     bodyOsc.connect(filter);
