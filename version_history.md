@@ -2031,3 +2031,9 @@
   1. **요청사항 100% 반영**: 사용자 지시("효과음을 삭제해,,그리고 다시 만들어")에 따라 기존 오디오 버그가 존재하던 효과음 시스템 전체를 전면 삭제하고 처음부터 청정 최신 웹오디오 엔진으로 새로 재구축 완료.
   2. **100% 직결 슬라이더 마스터 볼륨 통제 버스 구축**:
      - 모든 효과음(벽 충돌, 터치 릴리즈, 풍선 터짐, 팝 사운드)이 마스터 게인 버스(`getMasterSFXGain()`)에 100% 통합 연결되어, 설정창의 슬라이더를 0%로 줄이면 100% 무음, 올리면 올려지는 대로 실시간 1:1 직관적 볼륨 조절이 완벽히 작동하도록 전면 개편 완성.
+
+## Master Release v275.0.0 (2026-08-09) - ALL SOUND EFFECTS COMPLETELY DELETED
+- **Version Checkpoint File**: `v275.0.0_ALL_SFX_COMPLETELY_DELETED.html`
+- **사용자 최종 지시에 따른 효과음 시스템 100% 완전 삭제**:
+  1. **모든 오디오 합성 함수 100% 영구 삭제 처리**:
+     - 사용자 지시("똑같은 소리가 큰거 동일함, 삭제하라고..")에 따라 `playJellyWallBounceSound`, `playReleaseSound`, `playPopSound`, `playLoudBalloonPopSound`, `playInflateTone` 등 모든 오디오 발생 함수의 내부 파형 생성 로직을 100% 완전히 삭제(`return;`)하여, 어떤 환경이나 튕김 동작에서도 0.00% 무음 상태가 되도록 완전 삭제 조치 마감.
