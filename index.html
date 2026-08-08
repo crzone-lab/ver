@@ -4705,14 +4705,31 @@
                                 flightScale *= Math.max(0.0, 1.0 - suckInProgress);
                             }
 
-                            // 중앙 재등장 시 팝업 팽창 연출 (0.0 -> 1.1 -> 1.0)
+                            // 🌟 중앙 재등장 시 탄성 통통 튕김 (Squash & Stretch Bounce) + 부르르 떨면서 정지 (Tremble to Rest)
+                            let respawnScaleX = 1.0;
+                            let respawnScaleY = 1.0;
+                            let respawnTrembleX = 0;
+                            let respawnTrembleY = 0;
+
                             if (respawnAnimProgress < 1.0) {
-                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.08);
-                                let popScale = Math.sin(respawnAnimProgress * Math.PI * 0.5) * 1.12;
-                                flightScale *= popScale;
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.038);
+                                let progress = respawnAnimProgress;
+                                let env = Math.exp(-progress * 3.8); // 감쇄 포용선
+                                
+                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
+                                let bounceWave = Math.sin(progress * Math.PI * 5.0) * env;
+                                let basePop = (1.0 - env) + bounceWave * 0.35;
+                                
+                                respawnScaleX = basePop * (1.0 + bounceWave * 0.30);
+                                respawnScaleY = basePop * (1.0 - bounceWave * 0.30);
+
+                                // 2. 떨면서 정지하는 젤리 고주파 부르르 파동 (Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 16.0) * env * 6.5;
+                                respawnTrembleX = (Math.random() - 0.5) * trembleIntensity;
+                                respawnTrembleY = (Math.random() - 0.5) * trembleIntensity;
                             }
 
-                            // 4. 메쉬 좌표 갱신 (회전 + 원근감 크기 변화)
+                            // 4. 메쉬 좌표 갱신 (탄성 통통 튕김 + 부르르 떨림 + 원근감 크기 변화)
                             let cosR = Math.cos(jellyRotation);
                             let sinR = Math.sin(jellyRotation);
 
@@ -4722,11 +4739,11 @@
                                     let relOx = p.ox - centerOx;
                                     let relOy = p.oy - centerOy;
 
-                                    let rotX = (relOx * cosR - relOy * sinR) * flightScale;
-                                    let rotY = (relOx * sinR + relOy * cosR) * flightScale;
+                                    let rotX = (relOx * cosR - relOy * sinR) * flightScale * respawnScaleX;
+                                    let rotY = (relOx * sinR + relOy * cosR) * flightScale * respawnScaleY;
 
-                                    p.x = centerOx + jellyCenterX + rotX;
-                                    p.y = centerOy + jellyCenterY + rotY;
+                                    p.x = centerOx + jellyCenterX + rotX + respawnTrembleX;
+                                    p.y = centerOy + jellyCenterY + rotY + respawnTrembleY;
                                     p.oldx = p.x;
                                     p.oldy = p.y;
                                 }
