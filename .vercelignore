@@ -1,0 +1,6 @@
+v*.html
+.git
+.gitignore
+*.tmp
+*.log
+version_history.md
