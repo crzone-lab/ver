@@ -1392,12 +1392,25 @@
             </div>
         </div>
 
+        <!-- 6. Billiards Game HUD Overlay (z-index: 25000) -->
+        <div id="billiards-hud" style="display: none; position: absolute; top: 75px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(15, 5, 29, 0.85); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(0, 229, 255, 0.4); border-radius: 20px; padding: 8px 18px; color: #fff; font-family: sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4); align-items: center; gap: 14px;">
+            <div style="font-weight: 900; font-size: 15px; color: #ffd700; display: flex; align-items: center; gap: 6px;">
+                <span>🎱</span> <span>SCORE:</span> <span id="billiards-score-val" style="font-size: 20px; color: #76ff03; text-shadow: 0 0 8px #76ff03;">0</span>
+            </div>
+            <div style="width: 1px; height: 16px; background: rgba(255,255,255,0.25);"></div>
+            <div style="font-size: 13px; color: rgba(255,255,255,0.9); font-weight: bold;">
+                BEST: <span id="billiards-best-val" style="color: #ffb700;">0</span>
+            </div>
+            <button onclick="resetBilliardsGame()" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">🔄 리셋</button>
+        </div>
+
         <!-- 5. Unified Global Feel Selector pills (z-index: 25000) -->
         <div class="lobby-feel-selector" style="z-index: 25000; pointer-events: none;">
             <div style="pointer-events: auto !important;" class="feel-pill active" id="pill-jelly" onclick="selectFeelPill('jelly')" ontouchstart="selectFeelPill('jelly')" data-i18n="pill-jelly">탱글젤리</div>
             <div style="pointer-events: auto !important;" class="feel-pill" id="pill-mochi" onclick="selectFeelPill('mochi')" ontouchstart="selectFeelPill('mochi')" data-i18n="pill-mochi">쫀득모찌</div>
             <div style="pointer-events: auto !important;" class="feel-pill" id="pill-slime" onclick="selectFeelPill('slime')" ontouchstart="selectFeelPill('slime')" data-i18n="pill-slime">슬라임</div>
             <div style="pointer-events: auto !important;" class="feel-pill" id="pill-bubble" onclick="selectFeelPill('bubble')" ontouchstart="selectFeelPill('bubble')" data-i18n="pill-bubble">🫧 젤리팝</div>
+            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-billiards" onclick="selectFeelPill('billiards')" ontouchstart="selectFeelPill('billiards')">🎱 젤리당구</div>
         </div>
     </div>
 
@@ -2141,6 +2154,15 @@
         function initMesh() {
             points = [];
             springs = [];
+            jellyIsFlying = false;
+            jellyCenterX = 0;
+            jellyCenterY = 0;
+            jellyFlightVx = 0;
+            jellyFlightVy = 0;
+            jellyRotation = 0;
+            jellySpinSpeed = 0;
+            if (typeof isSuckingIntoPocket !== 'undefined') isSuckingIntoPocket = false;
+            if (typeof grabbedPointIndex !== 'undefined') grabbedPointIndex = null;
             if (typeof updateCharacterAlphaMap === 'function') {
                 updateCharacterAlphaMap(jellyImage);
             }
@@ -4041,6 +4063,184 @@
         let jellyTargetBounces = 4;
         let jellyCruiseSpeed = 2.2;
 
+        // 🎱 Billiards Pocket Mode State & Audio System
+        let pocketScore = 0;
+        let pocketBestScore = parseInt(localStorage.getItem('jelly_billiards_best') || '0', 10);
+        let currentLaunchBounceCount = 0;
+        let isSuckingIntoPocket = false;
+        let floatingBounceTexts = [];
+        let pocketScoreAnnouncements = [];
+
+        function getPocketPositions() {
+            let pR = 38;
+            let pad = 50;
+            return [
+                { id: 'tl', x: pad, y: pad + 35, r: pR, name: '좌상단' },
+                { id: 'tr', x: width - pad, y: pad + 35, r: pR, name: '우상단' },
+                { id: 'bl', x: pad, y: height - pad - 20, r: pR, name: '좌하단' },
+                { id: 'br', x: width - pad, y: height - pad - 20, r: pR, name: '우하단' }
+            ];
+        }
+
+        function updateBilliardsHUD() {
+            const sVal = document.getElementById("billiards-score-val");
+            const bVal = document.getElementById("billiards-best-val");
+            if (sVal) sVal.textContent = pocketScore;
+            if (bVal) bVal.textContent = pocketBestScore;
+        }
+
+        function resetBilliardsGame() {
+            pocketScore = 0;
+            updateBilliardsHUD();
+            showNotification("🎱 당구 게임 점수가 리셋되었습니다!");
+        }
+
+        function addFloatingBounceText(x, y, text, count) {
+            let colors = ['#76ff03', '#00e5ff', '#ffb700', '#ff007f'];
+            let color = colors[Math.min(count - 1, colors.length - 1)] || '#ffffff';
+            floatingBounceTexts.push({
+                x: x,
+                y: y - 20,
+                text: text,
+                color: color,
+                life: 1.0
+            });
+        }
+
+        function playBilliardsScoreSound(tier) {
+            try {
+                let masterNode = getMasterSFXGain();
+                if (!audioCtx || !masterNode) return;
+                let now = audioCtx.currentTime;
+
+                if (tier === 1) {
+                    let osc = audioCtx.createOscillator();
+                    let gain = audioCtx.createGain();
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(523.25, now);
+                    osc.frequency.exponentialRampToValueAtTime(1046.50, now + 0.12);
+                    gain.gain.setValueAtTime(0.20, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+                    osc.connect(gain); gain.connect(masterNode);
+                    osc.start(now); osc.stop(now + 0.15);
+                } else if (tier === 2) {
+                    [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'triangle';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.05);
+                        osc.frequency.exponentialRampToValueAtTime(freq * 1.4, now + idx * 0.05 + 0.2);
+                        gain.gain.setValueAtTime(0.25, now + idx * 0.05);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.05 + 0.25);
+                        osc.connect(gain); gain.connect(masterNode);
+                        osc.start(now + idx * 0.05); osc.stop(now + idx * 0.05 + 0.25);
+                    });
+                } else if (tier === 3) {
+                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'sine';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.06);
+                        gain.gain.setValueAtTime(0.30, now + idx * 0.06);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.06 + 0.3);
+                        osc.connect(gain); gain.connect(masterNode);
+                        osc.start(now + idx * 0.06); osc.stop(now + idx * 0.06 + 0.3);
+                    });
+                } else if (tier >= 4) {
+                    let notes = [523.25, 659.25, 783.99, 1046.50, 1318.51, 1567.98];
+                    notes.forEach((freq, idx) => {
+                        let osc = audioCtx.createOscillator();
+                        let gain = audioCtx.createGain();
+                        osc.type = 'sawtooth';
+                        osc.frequency.setValueAtTime(freq, now + idx * 0.07);
+                        gain.gain.setValueAtTime(0.35, now + idx * 0.07);
+                        gain.gain.exponentialRampToValueAtTime(0.001, now + idx * 0.07 + 0.45);
+                        osc.connect(gain); gain.connect(masterNode);
+                        osc.start(now + idx * 0.07); osc.stop(now + idx * 0.07 + 0.45);
+                    });
+                }
+            } catch(e) { console.error(e); }
+        }
+
+        function triggerPocketHoleIn(pocket, bounces) {
+            isSuckingIntoPocket = true;
+            jellyFlightVx *= 0.1;
+            jellyFlightVy *= 0.1;
+
+            let pts = 1;
+            let soundTier = 1;
+            let title = "🎯 1점! 다이렉트 입수";
+
+            if (bounces === 1) {
+                pts = 5; soundTier = 2; title = "⚡ 5점! 1뱅크샷 입수";
+            } else if (bounces === 2) {
+                pts = 10; soundTier = 3; title = "🔥 10점! 2뱅크샷 입수";
+            } else if (bounces >= 3) {
+                pts = 30; soundTier = 4; title = "👑 30점! 3뱅크 마스터 샷!";
+            }
+
+            pocketScore += pts;
+            if (pocketScore > pocketBestScore) {
+                pocketBestScore = pocketScore;
+                try { localStorage.setItem('jelly_billiards_best', pocketBestScore); } catch(e){}
+            }
+
+            updateBilliardsHUD();
+            playBilliardsScoreSound(soundTier);
+
+            pocketScoreAnnouncements.push({
+                text: `+${pts}점!`,
+                subtext: title,
+                color: soundTier === 4 ? '#ff007f' : soundTier === 3 ? '#ffb700' : soundTier === 2 ? '#00e5ff' : '#76ff03',
+                life: 1.2,
+                scale: soundTier === 4 ? 1.8 : 1.3
+            });
+
+            if (typeof largeShards !== 'undefined' && largeShards) {
+                let colors = ['#00ffff', '#ff007f', '#ffd700', '#76ff03', '#ffffff'];
+                let count = soundTier * 12;
+                for (let k = 0; k < count; k++) {
+                    let ang = Math.random() * Math.PI * 2;
+                    let spd = Math.random() * 12 + 4;
+                    largeShards.push({
+                        x: pocket.x,
+                        y: pocket.y,
+                        vx: Math.cos(ang) * spd,
+                        vy: Math.sin(ang) * spd,
+                        sizeW: 8 + Math.random() * 8,
+                        sizeH: 8 + Math.random() * 8,
+                        color: colors[Math.floor(Math.random() * colors.length)],
+                        rotation: ang,
+                        rotSpeed: 0.2,
+                        life: 1.0,
+                        decay: 0.025
+                    });
+                }
+            }
+
+            setTimeout(() => {
+                jellyCenterX = 0;
+                jellyCenterY = 0;
+                jellyFlightVx = 0;
+                jellyFlightVy = 0;
+                jellyRotation = 0;
+                jellySpinSpeed = 0;
+                jellyIsFlying = false;
+                currentLaunchBounceCount = 0;
+                isSuckingIntoPocket = false;
+                if (points) {
+                    for (let i = 0; i < points.length; i++) {
+                        if (points[i]) {
+                            points[i].x = points[i].ox;
+                            points[i].y = points[i].oy;
+                            points[i].oldx = points[i].ox;
+                            points[i].oldy = points[i].oy;
+                        }
+                    }
+                }
+            }, 550);
+        }
+
         // Draw loop
         let lastDrawErrorTime = 0;
         
@@ -4167,7 +4367,7 @@
                 } else {
                     // --- Release Handling for each feel mode ---
                     if (touchTime > 0) {
-                        if (currentMode === 'jelly') {
+                        if (currentMode === 'jelly' || currentMode === 'billiards') {
                             let maxDragX = 0, maxDragY = 0, maxDistSq = 0;
                             if (points && points.length > 0) {
                                 for (let i = 0; i < points.length; i++) {
@@ -4186,23 +4386,29 @@
                             if (maxDistSq > 25) {
                                 jellyIsFlying = true;
                                 jellyBounceCount = 0;
+                                currentLaunchBounceCount = 0;
                                 
                                 let dragDist = Math.hypot(maxDragX, maxDragY);
-                                // 당김 거리에 따른 튕김 횟수(Target Bounces) 및 순항 속도(Cruise Speed) 뚜렷하게 차등 부여
-                                if (dragDist < 40) {
-                                    // 살짝 당겼을 때: 2회만 튕기고 빠르게 귀환!
-                                    jellyTargetBounces = 2;
-                                    jellyCruiseSpeed = 1.8;
-                                } else if (dragDist < 90) {
-                                    // 보통 당겼을 때: 4~6회 튕김
-                                    let norm = (dragDist - 40) / 50;
-                                    jellyTargetBounces = Math.round(4 + norm * 2);
-                                    jellyCruiseSpeed = 2.2 + norm * 0.4;
+                                // 당기는 힘과 거리에 100% 촘촘하게 연동되는 이동 거리/바운스 횟수/속도 스케일링
+                                if (dragDist < 25) {
+                                    // 1. 아주 살짝 톡 당겼을 때: 0~1회만 톡 움직이고 바로 정지
+                                    jellyTargetBounces = (dragDist < 12) ? 0 : 1;
+                                    jellyCruiseSpeed = 0.6 + (dragDist / 25.0) * 0.8;
+                                } else if (dragDist < 75) {
+                                    // 2. 약/중간 당겼을 때: 1~3회 튕기며 섬세한 당구 조준
+                                    let norm = (dragDist - 25) / 50;
+                                    jellyTargetBounces = Math.round(1 + norm * 2);
+                                    jellyCruiseSpeed = 1.4 + norm * 1.2;
+                                } else if (dragDist < 140) {
+                                    // 3. 세게 당겼을 때: 4~7회 튕기며 시원하게 멀리 이동
+                                    let norm = (dragDist - 75) / 65;
+                                    jellyTargetBounces = Math.round(4 + norm * 3);
+                                    jellyCruiseSpeed = 2.6 + norm * 1.4;
                                 } else {
-                                    // 멀리/길게 당겼을 때 (90px 이상): 8회 ~ 16회까지 신나게 튕김!
-                                    let norm = Math.min(1.0, (dragDist - 90) / 110);
-                                    jellyTargetBounces = Math.round(8 + norm * 8);
-                                    jellyCruiseSpeed = 2.6 + norm * 1.0;
+                                    // 4. 매우 세게 쭈욱 당겼을 때: 8~14회 튕기며 초고속 파워 서킷
+                                    let norm = Math.min(1.0, (dragDist - 140) / 100);
+                                    jellyTargetBounces = Math.round(8 + norm * 6);
+                                    jellyCruiseSpeed = 4.0 + norm * 2.0;
                                 }
 
                                 // 발사 방향 및 계산된 순항 속도 적용
@@ -4264,7 +4470,7 @@
                                 }
                             }
                         }
-                    } else if (currentMode === 'jelly') {
+                    } else if (currentMode === 'jelly' || currentMode === 'billiards') {
                         // [탱글젤리 릴리즈]: 당겼다 놓으면 느린 속도로 떠돌다 벽에 튕기고 원래 자리로 복귀!
                         if (jellyIsFlying) {
                             // 1. 위치 및 천천히 지속되는 회전 갱신
@@ -4274,6 +4480,20 @@
 
                             let centerOx = width * 0.5;
                             let centerOy = height * 0.48;
+
+                            // 당구 포켓 빨려들기 검사
+                            if (activeTextureMode === 'billiards' && !isSuckingIntoPocket) {
+                                let currX = centerOx + jellyCenterX;
+                                let currY = centerOy + jellyCenterY;
+                                let pockets = getPocketPositions();
+                                for (let pk of pockets) {
+                                    let distToPocket = Math.hypot(currX - pk.x, currY - pk.y);
+                                    if (distToPocket < pk.r + 35) {
+                                        triggerPocketHoleIn(pk, currentLaunchBounceCount);
+                                        break;
+                                    }
+                                }
+                            }
 
                             // 벽 충돌 바운더리 한계 측정 (핸드폰 화면 가장자리 벽면)
                             let minCX = -(width * 0.5 - 50);
@@ -4322,7 +4542,13 @@
                             // 벽 충돌 시 퐁! 효과음, 바운스 횟수 증가 및 파티클 스파크 연출
                             if (hitWall) {
                                 jellyBounceCount++;
+                                currentLaunchBounceCount++;
                                 playJellyWallBounceSound();
+
+                                if (activeTextureMode === 'billiards') {
+                                    let ptsHint = (currentLaunchBounceCount === 1) ? '5점 조준' : (currentLaunchBounceCount === 2) ? '10점 조준' : '30점 조준 🔥';
+                                    addFloatingBounceText(sparkX, sparkY, `[ ${currentLaunchBounceCount} BOUNCE! (${ptsHint}) ]`, currentLaunchBounceCount);
+                                }
                                 if (typeof largeShards !== 'undefined' && largeShards) {
                                     let sparkColor = `hsl(${activeHue}, 90%, 65%)`;
                                     for (let k = 0; k < 12; k++) {
@@ -4755,6 +4981,109 @@
                 if (nowTime - lastDrawErrorTime > 10000) { // Throttle notifications
                     showNotification("Draw Error: " + err.message);
                     lastDrawErrorTime = nowTime;
+                }
+            }
+
+            // 🎱 Render 4 Corner Pockets & Aiming Line in Billiards Mode
+            if (activeTextureMode === 'billiards') {
+                let pockets = getPocketPositions();
+                ctx.save();
+                for (let pk of pockets) {
+                    let pGrad = ctx.createRadialGradient(pk.x, pk.y, 5, pk.x, pk.y, pk.r);
+                    pGrad.addColorStop(0, '#000000');
+                    pGrad.addColorStop(0.65, '#0c071e');
+                    pGrad.addColorStop(0.85, '#00e5ff');
+                    pGrad.addColorStop(1, 'rgba(0, 229, 255, 0.1)');
+
+                    ctx.fillStyle = pGrad;
+                    ctx.shadowColor = '#00e5ff';
+                    ctx.shadowBlur = 16;
+                    ctx.beginPath();
+                    ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    ctx.strokeStyle = '#00e5ff';
+                    ctx.lineWidth = 2.5;
+                    ctx.beginPath();
+                    ctx.arc(pk.x, pk.y, pk.r + 2, 0, Math.PI * 2);
+                    ctx.stroke();
+                }
+                ctx.restore();
+
+                // Trajectory & Tension Gauge Line while dragging
+                if (isMouseDown && grabbedPointIndex !== null && points[grabbedPointIndex]) {
+                    let gNode = points[grabbedPointIndex];
+                    let pullDx = gNode.ox - touchX;
+                    let pullDy = gNode.oy - touchY;
+                    let pullDist = Math.hypot(pullDx, pullDy);
+
+                    if (pullDist > 10) {
+                        ctx.save();
+                        let powerPct = Math.min(100, Math.round((pullDist / 140) * 100));
+                        let gaugeColor = (powerPct < 40) ? '#76ff03' : (powerPct < 80) ? '#ffb700' : '#ff007f';
+
+                        ctx.strokeStyle = gaugeColor;
+                        ctx.lineWidth = 3;
+                        ctx.setLineDash([8, 6]);
+                        ctx.beginPath();
+                        ctx.moveTo(gNode.ox, gNode.oy);
+                        let aimLen = pullDist * 2.2;
+                        let aimX = gNode.ox + (pullDx / pullDist) * aimLen;
+                        let aimY = gNode.oy + (pullDy / pullDist) * aimLen;
+                        ctx.lineTo(aimX, aimY);
+                        ctx.stroke();
+
+                        ctx.fillStyle = gaugeColor;
+                        ctx.font = 'bold 13px sans-serif';
+                        ctx.textAlign = 'center';
+                        ctx.fillText(`POWER ${powerPct}%`, gNode.ox + (pullDx / pullDist) * 35, gNode.oy + (pullDy / pullDist) * 35);
+                        ctx.restore();
+                    }
+                }
+            }
+
+            // Render Floating Bounce & Score Texts
+            if (floatingBounceTexts && floatingBounceTexts.length > 0) {
+                for (let i = floatingBounceTexts.length - 1; i >= 0; i--) {
+                    let bt = floatingBounceTexts[i];
+                    bt.y -= 0.8;
+                    bt.life -= 0.02;
+
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, bt.life);
+                    ctx.fillStyle = bt.color;
+                    ctx.font = '900 16px "Outfit", sans-serif';
+                    ctx.textAlign = 'center';
+                    ctx.shadowColor = '#000';
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(bt.text, bt.x, bt.y);
+                    ctx.restore();
+
+                    if (bt.life <= 0) floatingBounceTexts.splice(i, 1);
+                }
+            }
+
+            if (pocketScoreAnnouncements && pocketScoreAnnouncements.length > 0) {
+                for (let i = pocketScoreAnnouncements.length - 1; i >= 0; i--) {
+                    let sa = pocketScoreAnnouncements[i];
+                    sa.life -= 0.02;
+
+                    ctx.save();
+                    ctx.globalAlpha = Math.max(0, sa.life);
+                    ctx.textAlign = 'center';
+
+                    ctx.fillStyle = sa.color;
+                    ctx.font = `900 ${Math.round(28 * sa.scale)}px "Outfit", sans-serif`;
+                    ctx.shadowColor = '#000';
+                    ctx.shadowBlur = 12;
+                    ctx.fillText(sa.text, width * 0.5, height * 0.42);
+
+                    ctx.fillStyle = '#ffffff';
+                    ctx.font = 'bold 18px "Outfit", sans-serif';
+                    ctx.fillText(sa.subtext, width * 0.5, height * 0.42 + 32);
+                    ctx.restore();
+
+                    if (sa.life <= 0) pocketScoreAnnouncements.splice(i, 1);
                 }
             }
 
@@ -5554,6 +5883,20 @@
             const char = lobbyCharacters[index];
             if (!char) return;
 
+            jellyIsFlying = false;
+            jellyCenterX = 0;
+            jellyCenterY = 0;
+            jellyFlightVx = 0;
+            jellyFlightVy = 0;
+            jellyRotation = 0;
+            jellySpinSpeed = 0;
+            jellyBounceCount = 0;
+            if (typeof currentLaunchBounceCount !== 'undefined') currentLaunchBounceCount = 0;
+            if (typeof isSuckingIntoPocket !== 'undefined') isSuckingIntoPocket = false;
+            if (typeof grabbedPointIndex !== 'undefined') grabbedPointIndex = null;
+            if (typeof floatingBounceTexts !== 'undefined') floatingBounceTexts = [];
+            if (typeof pocketScoreAnnouncements !== 'undefined') pocketScoreAnnouncements = [];
+
             activeEmoji = char.emoji || '🐰';
             activeBase = char.base;
             activeHue = char.hue || 350;
@@ -5611,10 +5954,14 @@
             const pMochi = document.getElementById("pill-mochi");
             const pSlime = document.getElementById("pill-slime");
             const pBubble = document.getElementById("pill-bubble");
+            const pBilliards = document.getElementById("pill-billiards");
+            const bHud = document.getElementById("billiards-hud");
 
-            [pJelly, pMochi, pSlime, pBubble].forEach(p => {
+            [pJelly, pMochi, pSlime, pBubble, pBilliards].forEach(p => {
                 if (p) p.classList.remove("active");
             });
+
+            if (bHud) bHud.style.display = (feel === "billiards") ? "flex" : "none";
 
             if (feel === "jelly") {
                 if (pJelly) pJelly.classList.add("active");
@@ -5632,6 +5979,11 @@
                 if (pBubble) pBubble.classList.add("active");
                 stiffness = 50; damping = 8;
                 showNotification("🫧 젤리팝: 누르면 주변 방울이 팽창하다 터지는 젤리!");
+            } else if (feel === "billiards") {
+                if (pBilliards) pBilliards.classList.add("active");
+                stiffness = 50; damping = 8;
+                showNotification("🎱 젤리 포켓 당구: 4개 귀퉁이 구멍에 젤리를 튕겨 넣으세요!");
+                updateBilliardsHUD();
             }
             
             const stiffnessEl = document.getElementById("spring-stiffness");
