@@ -4537,20 +4537,20 @@
                                 }
                             }
                         } else {
-                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 탄성 통통 튕김 (Squash & Stretch Bounce) + 부르르 떨면서 정지 (Tremble to Rest)!
+                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 천천히 통~통 튕김 + 부르르~ 유연하게 떨면서 정지 (Relaxed Slower Respawn Animation)!
                             if (respawnAnimProgress < 1.0) {
-                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.024);
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.009); // ~1.8초간 여유롭고 부드러운 느린 진행!
                                 let progress = respawnAnimProgress;
-                                let env = Math.exp(-progress * 3.4); // 감쇄 포용선
+                                let env = Math.exp(-progress * 2.2); // 느리고 부드러운 감쇄 포용선
                                 
-                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
-                                let bounceWave = Math.sin(progress * Math.PI * 6.0) * env;
-                                let basePop = (1.0 - env) + bounceWave * 0.45;
-                                let scaleX = basePop * (1.0 + bounceWave * 0.40);
-                                let scaleY = basePop * (1.0 - bounceWave * 0.40);
+                                // 1. 천천히 퐁~퐁~ 튕기는 고무 탄성 파동 (Slow Elastic Squash-and-Stretch Wave)
+                                let bounceWave = Math.sin(progress * Math.PI * 3.4) * env;
+                                let basePop = (1.0 - env) + bounceWave * 0.40;
+                                let scaleX = basePop * (1.0 + bounceWave * 0.35);
+                                let scaleY = basePop * (1.0 - bounceWave * 0.35);
 
-                                // 2. 부르르 떨면서 정지하는 젤리 잔여 진동 (Tremble to Rest)
-                                let trembleIntensity = Math.sin(progress * Math.PI * 18.0) * env * 10.0;
+                                // 2. 천천히 부르르~ 유연하게 떨면서 정지하는 젤리 잔여 진동 (Relaxed Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 9.0) * env * 12.0;
                                 let trembleX = (Math.random() - 0.5) * trembleIntensity;
                                 let trembleY = (Math.random() - 0.5) * trembleIntensity;
 
@@ -4798,20 +4798,20 @@
                                 }
                             }
                         } else {
-                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 탄성 통통 튕김 (Squash & Stretch Bounce) + 부르르 떨면서 정지 (Tremble to Rest)!
+                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 천천히 통~통 튕김 + 부르르~ 유연하게 떨면서 정지 (Relaxed Slower Respawn Animation)!
                             if (respawnAnimProgress < 1.0) {
-                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.024);
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.009); // ~1.8초간 여유롭고 부드러운 느린 진행!
                                 let progress = respawnAnimProgress;
-                                let env = Math.exp(-progress * 3.4); // 감쇄 포용선
+                                let env = Math.exp(-progress * 2.2); // 느리고 부드러운 감쇄 포용선
                                 
-                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
-                                let bounceWave = Math.sin(progress * Math.PI * 6.0) * env;
-                                let basePop = (1.0 - env) + bounceWave * 0.45;
-                                let scaleX = basePop * (1.0 + bounceWave * 0.40);
-                                let scaleY = basePop * (1.0 - bounceWave * 0.40);
+                                // 1. 천천히 퐁~퐁~ 튕기는 고무 탄성 파동 (Slow Elastic Squash-and-Stretch Wave)
+                                let bounceWave = Math.sin(progress * Math.PI * 3.4) * env;
+                                let basePop = (1.0 - env) + bounceWave * 0.40;
+                                let scaleX = basePop * (1.0 + bounceWave * 0.35);
+                                let scaleY = basePop * (1.0 - bounceWave * 0.35);
 
-                                // 2. 부르르 떨면서 정지하는 젤리 잔여 진동 (Tremble to Rest)
-                                let trembleIntensity = Math.sin(progress * Math.PI * 18.0) * env * 10.0;
+                                // 2. 천천히 부르르~ 유연하게 떨면서 정지하는 젤리 잔여 진동 (Relaxed Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 9.0) * env * 12.0;
                                 let trembleX = (Math.random() - 0.5) * trembleIntensity;
                                 let trembleY = (Math.random() - 0.5) * trembleIntensity;
 
@@ -4872,20 +4872,20 @@
                                 }
                             }
                         } else {
-                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 탄성 통통 튕김 (Squash & Stretch Bounce) + 부르르 떨면서 정지 (Tremble to Rest)!
+                            // 🌟 구멍 입수 후 캐릭터 중앙 재등장 시 천천히 통~통 튕김 + 부르르~ 유연하게 떨면서 정지 (Relaxed Slower Respawn Animation)!
                             if (respawnAnimProgress < 1.0) {
-                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.024);
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.009); // ~1.8초간 여유롭고 부드러운 느린 진행!
                                 let progress = respawnAnimProgress;
-                                let env = Math.exp(-progress * 3.4); // 감쇄 포용선
+                                let env = Math.exp(-progress * 2.2); // 느리고 부드러운 감쇄 포용선
                                 
-                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
-                                let bounceWave = Math.sin(progress * Math.PI * 6.0) * env;
-                                let basePop = (1.0 - env) + bounceWave * 0.45;
-                                let scaleX = basePop * (1.0 + bounceWave * 0.40);
-                                let scaleY = basePop * (1.0 - bounceWave * 0.40);
+                                // 1. 천천히 퐁~퐁~ 튕기는 고무 탄성 파동 (Slow Elastic Squash-and-Stretch Wave)
+                                let bounceWave = Math.sin(progress * Math.PI * 3.4) * env;
+                                let basePop = (1.0 - env) + bounceWave * 0.40;
+                                let scaleX = basePop * (1.0 + bounceWave * 0.35);
+                                let scaleY = basePop * (1.0 - bounceWave * 0.35);
 
-                                // 2. 부르르 떨면서 정지하는 젤리 잔여 진동 (Tremble to Rest)
-                                let trembleIntensity = Math.sin(progress * Math.PI * 18.0) * env * 10.0;
+                                // 2. 천천히 부르르~ 유연하게 떨면서 정지하는 젤리 잔여 진동 (Relaxed Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 9.0) * env * 12.0;
                                 let trembleX = (Math.random() - 0.5) * trembleIntensity;
                                 let trembleY = (Math.random() - 0.5) * trembleIntensity;
 

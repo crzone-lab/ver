@@ -2287,3 +2287,13 @@
      - 기존 `respawnAnimProgress` 탄성 연출 로직이 `jellyIsFlying === true` 분문 내부에 위치하여, 재등장 시(`jellyIsFlying = false`) 메쉬가 정적 좌표로 즉시 초기화되어 애니메이션이 씹히던 근본 버그를 정확히 발견.
   2. **아이들 분기(`else` 분기)에 탄성 튕김 & 진동 연출 완벽 탑재**:
      - `jellyIsFlying = false` 상태에서도 `respawnAnimProgress < 1.0` 구역에서 **탄성 통~통~ 튕김(Squash & Stretch Bounce)과 부르르르~ 고주파 미세 진동(Tremble to Rest)이 100% 정상 작동**하도록 완전히 보정 완료.
+
+## Master Release v304.0.0 (2026-08-09) - SLOWER, RELAXED ELASTIC BOUNCE & TREMBLE-TO-REST RESPAWN
+- **Version Checkpoint File**: `v304.0.0_SLOWER_RELAXED_RESPAWN_BOUNCE_AND_TREMBLE.html`
+- **캐릭터 재등장 탄성 연출 속도 감속 (천천히 퐁~퐁~ 튕기고 유연하게 떨면서 정지)**:
+  1. **애니메이션 진행 시간 연장 (0.7초 ➔ 1.8초 여유로운 속도)**:
+     - 속도가 너무 빨라 산만하던 문제를 해결하기 위해, 프레임별 증가폭을 `+0.009`로 감속하여 **약 1.8초 동안 우아하고 느릿느릿하게 탄성이 표현**되도록 튜닝.
+  2. **천천히 퐁~퐁~ 튕기는 고무 탄성 파동 (Slow Elastic Bounce)**:
+     - 튕김 주파수를 `3.4 * PI`로 줄이고 감쇄 포용선을 부드럽게 완화하여, 젤리가 퐁~퐁~ 찌그러졌다 펴지는 탄성감을 묵직하고 리얼하게 연출.
+  3. **천천히 부르르~ 떨면서 감쇄 정지 (Relaxed Tremble to Rest)**:
+     - 고주파 떨림 주파수를 절반(`9.0 * PI`)으로 줄이고 진동 폭을 1.8초에 걸쳐 차분하게 정지하도록 개선.
