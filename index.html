@@ -4079,6 +4079,8 @@
         let floatingBounceTexts = [];
         let pocketScoreAnnouncements = [];
         let pocketPulseEffects = [];
+        let suckInProgress = 0;
+        let respawnAnimProgress = 1.0;
 
         function getPocketPositions() {
             let pR = 60; // 4 Corner Quarter-Circle Pockets matching Image 2
@@ -4119,6 +4121,30 @@
                 color: color,
                 life: 1.0
             });
+        }
+
+                function playSuckInSound() {
+            if (!isSoundEnabled) return;
+            try {
+                let masterNode = getMasterSFXGain();
+                if (!masterNode || !audioCtx) return;
+                let now = audioCtx.currentTime;
+
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(650, now);
+                osc.frequency.exponentialRampToValueAtTime(1250, now + 0.07);
+                osc.frequency.exponentialRampToValueAtTime(180, now + 0.25);
+
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+
+                osc.connect(gain);
+                gain.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.25);
+            } catch(e) {}
         }
 
         function playBilliardsScoreSound(tier) {
@@ -4178,10 +4204,12 @@
 
         function triggerPocketHoleIn(pocket, bounces) {
             isSuckingIntoPocket = true;
-            jellyFlightVx *= 0.05;
-            jellyFlightVy *= 0.05;
+            suckInProgress = 0;
+            jellyFlightVx = (pocket.x - (width * 0.5 + jellyCenterX)) * 0.15;
+            jellyFlightVy = (pocket.y - (height * 0.48 + jellyCenterY)) * 0.15;
 
-            // Trigger Pop Sound & Haptic Feedback on Hole-In!
+            // 1. Play "쏙~!" Suction Sound + Pop Sound + Haptic Vibration!
+            playSuckInSound();
             if (typeof playPopSound === 'function') playPopSound();
             if (typeof triggerHaptic === 'function') triggerHaptic(50);
 
@@ -4219,11 +4247,11 @@
             playBilliardsScoreSound(soundTier);
 
             pocketScoreAnnouncements.push({
-                text: `+${pts}점!`,
+                text: `🎉 SUCCESS! +${pts}점`,
                 subtext: title,
                 color: soundTier === 4 ? '#ff007f' : soundTier === 3 ? '#ffb700' : soundTier === 2 ? '#00e5ff' : '#76ff03',
-                life: 1.2,
-                scale: soundTier === 4 ? 1.8 : 1.3
+                life: 1.4,
+                scale: soundTier === 4 ? 1.8 : 1.4
             });
 
             if (typeof largeShards !== 'undefined' && largeShards) {
@@ -4258,6 +4286,9 @@
                 jellyIsFlying = false;
                 currentLaunchBounceCount = 0;
                 isSuckingIntoPocket = false;
+                suckInProgress = 0;
+                respawnAnimProgress = 0.0; // Trigger center character pop-up reappearance!
+
                 if (points) {
                     for (let i = 0; i < points.length; i++) {
                         if (points[i]) {
@@ -4268,7 +4299,7 @@
                         }
                     }
                 }
-            }, 550);
+            }, 650);
         }
 
         // Draw loop
@@ -4635,11 +4666,24 @@
                                 }
                             }
 
-                            // 3. 놓았던/원래 위치(중앙)에서 멀어질수록 작아지고, 가까워질수록 커지는(원래 크기 회복) 스케일 물리 연출
-                            let maxDist = Math.hypot(width * 0.5, height * 0.5);
+                            // 3. 당김/중앙 위치에서 멀어질수록 캐릭터 크기가 점차 작아짐 (귀퉁이 구멍 쏙 입수 맞춤!)
+                            let maxDist = Math.hypot(width * 0.5, height * 0.5) || 1;
                             let currentDist = Math.hypot(jellyCenterX, jellyCenterY);
-                            // 중앙(0,0) 근처는 scale 1.0, 멀어질수록 점차 0.45 부근까지 작아짐
-                            let flightScale = Math.max(0.45, 1.0 - (currentDist / maxDist) * 0.55);
+                            // 중앙(0,0)은 scale 1.0, 4개 귀퉁이 구멍 근처로 갈수록 0.38까지 작아짐!
+                            let flightScale = Math.max(0.38, 1.0 - (currentDist / maxDist) * 0.62);
+
+                            // 구멍 빨려들기 시 크기가 0으로 완전히 축소되며 쏙 사라짐!
+                            if (isSuckingIntoPocket) {
+                                suckInProgress = Math.min(1.0, suckInProgress + 0.06);
+                                flightScale *= Math.max(0.0, 1.0 - suckInProgress);
+                            }
+
+                            // 중앙 재등장 시 팝업 팽창 연출 (0.0 -> 1.1 -> 1.0)
+                            if (respawnAnimProgress < 1.0) {
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.08);
+                                let popScale = Math.sin(respawnAnimProgress * Math.PI * 0.5) * 1.12;
+                                flightScale *= popScale;
+                            }
 
                             // 4. 메쉬 좌표 갱신 (회전 + 원근감 크기 변화)
                             let cosR = Math.cos(jellyRotation);
