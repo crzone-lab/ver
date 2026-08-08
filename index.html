@@ -1393,7 +1393,7 @@
         </div>
 
         <!-- 6. Billiards Game HUD Overlay (z-index: 25000) -->
-        <div id="billiards-hud" style="display: none; position: absolute; top: 128px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(15, 5, 29, 0.88); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border: 1.5px solid rgba(0, 229, 255, 0.5); border-radius: 20px; padding: 6px 16px; color: #fff; font-family: sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.4); align-items: center; gap: 12px;">
+        <div id="billiards-hud" style="display: none; position: absolute; top: 75px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(15, 5, 29, 0.90); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); border: 1.5px solid rgba(0, 229, 255, 0.6); border-radius: 20px; padding: 6px 16px; color: #fff; font-family: sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.5); align-items: center; gap: 12px;">
             <div style="font-weight: 900; font-size: 15px; color: #ffd700; display: flex; align-items: center; gap: 6px;">
                 <span>🎱</span> <span>SCORE:</span> <span id="billiards-score-val" style="font-size: 20px; color: #76ff03; text-shadow: 0 0 8px #76ff03;">0</span>
             </div>
@@ -1401,7 +1401,8 @@
             <div style="font-size: 13px; color: rgba(255,255,255,0.9); font-weight: bold;">
                 BEST: <span id="billiards-best-val" style="color: #ffb700;">0</span>
             </div>
-            <button onclick="resetBilliardsGame()" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 12px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">🔄 리셋</button>
+            <button onclick="resetBilliardsGame()" style="background: rgba(255,255,255,0.18); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">🔄 리셋</button>
+            <button onclick="exitBilliardsMode()" style="background: rgba(255,71,87,0.85); border: 1px solid rgba(255,255,255,0.3); color: #fff; padding: 4px 10px; border-radius: 12px; font-size: 12px; cursor: pointer; font-weight: bold; transition: all 0.2s;">❎ 종료</button>
         </div>
 
         <!-- 5. Unified Global Feel Selector pills (z-index: 25000) -->
@@ -4079,16 +4080,19 @@
         let pocketScoreAnnouncements = [];
 
         function getPocketPositions() {
-            let pR = 38;
-            let pad = 50;
+            let pR = 60; // 4 Corner Quarter-Circle Pockets matching Image 2
             let w = (typeof width === 'number' && width > 200) ? width : (window.innerWidth || 360);
             let h = (typeof height === 'number' && height > 200) ? height : (window.innerHeight || 640);
             return [
-                { id: 'tl', x: pad, y: pad + 35, r: pR, name: '좌상단' },
-                { id: 'tr', x: w - pad, y: pad + 35, r: pR, name: '우상단' },
-                { id: 'bl', x: pad, y: h - pad - 20, r: pR, name: '좌하단' },
-                { id: 'br', x: w - pad, y: h - pad - 20, r: pR, name: '우하단' }
+                { id: 'tl', x: 0, y: 0, r: pR, name: '좌상단' },
+                { id: 'tr', x: w, y: 0, r: pR, name: '우상단' },
+                { id: 'bl', x: 0, y: h, r: pR, name: '좌하단' },
+                { id: 'br', x: w, y: h, r: pR, name: '우하단' }
             ];
+        }
+
+        function exitBilliardsMode() {
+            selectFeelPill('jelly');
         }
 
         function updateBilliardsHUD() {
@@ -5975,34 +5979,43 @@
             const pBubble = document.getElementById("pill-bubble");
             const pBilliards = document.getElementById("pill-billiards");
             const bHud = document.getElementById("billiards-hud");
+            const feelUI = document.querySelector(".lobby-feel-selector");
+            const bottomCarousel = document.getElementById("bottom-carousel-container");
 
             [pJelly, pMochi, pSlime, pBubble, pBilliards].forEach(p => {
                 if (p) p.classList.remove("active");
             });
 
-            if (bHud) bHud.style.display = (feel === "billiards") ? "flex" : "none";
-
-            if (feel === "jelly") {
-                if (pJelly) pJelly.classList.add("active");
-                stiffness = 50; damping = 8;
-                showNotification(i18n.t("notif-jelly") || "탱글젤리 감촉 선택됨");
-            } else if (feel === "mochi") {
-                if (pMochi) pMochi.classList.add("active");
-                stiffness = 110; damping = 18;
-                showNotification(i18n.t("notif-mochi") || "쫀득모찌 감촉 선택됨");
-            } else if (feel === "slime") {
-                if (pSlime) pSlime.classList.add("active");
-                stiffness = 8; damping = 38;
-                showNotification("💧 슬라임: 당기면 아주 천천히 복원되는 고점성 슬라임!");
-            } else if (feel === "bubble") {
-                if (pBubble) pBubble.classList.add("active");
-                stiffness = 50; damping = 8;
-                showNotification("🫧 젤리팝: 누르면 주변 방울이 팽창하다 터지는 젤리!");
-            } else if (feel === "billiards") {
+            if (feel === "billiards") {
                 if (pBilliards) pBilliards.classList.add("active");
+                if (bHud) bHud.style.display = "flex";
+                if (feelUI) feelUI.style.display = "none"; // 1. Hide feel selector pills in billiards mode
+                if (bottomCarousel) bottomCarousel.style.display = "none"; // 2. Hide bottom carousel in billiards mode
                 stiffness = 50; damping = 8;
                 showNotification("🎱 젤리 포켓 당구: 4개 귀퉁이 구멍에 젤리를 튕겨 넣으세요!");
                 updateBilliardsHUD();
+            } else {
+                if (bHud) bHud.style.display = "none";
+                if (feelUI) feelUI.style.display = "flex";
+                if (bottomCarousel) bottomCarousel.style.display = "flex";
+
+                if (feel === "jelly") {
+                    if (pJelly) pJelly.classList.add("active");
+                    stiffness = 50; damping = 8;
+                    showNotification(i18n.t("notif-jelly") || "탱글젤리 감촉 선택됨");
+                } else if (feel === "mochi") {
+                    if (pMochi) pMochi.classList.add("active");
+                    stiffness = 110; damping = 18;
+                    showNotification(i18n.t("notif-mochi") || "쫀득모찌 감촉 선택됨");
+                } else if (feel === "slime") {
+                    if (pSlime) pSlime.classList.add("active");
+                    stiffness = 8; damping = 38;
+                    showNotification("💧 슬라임: 당기면 아주 천천히 복원되는 고점성 슬라임!");
+                } else if (feel === "bubble") {
+                    if (pBubble) pBubble.classList.add("active");
+                    stiffness = 50; damping = 8;
+                    showNotification("🫧 젤리팝: 누르면 주변 방울이 팽창하다 터지는 젤리!");
+                }
             }
             
             const stiffnessEl = document.getElementById("spring-stiffness");
