@@ -2217,80 +2217,202 @@
         let nextCycleTimer = 0;
         let soundPulseTimer = 0;
 
-        function playInflateTone(progressRatio) {
-            if (!isPlaygroundActive() || !isSoundEnabled) return;
+                // =========================================================================
+        // 🔊 REBUILT PRISTINE WEBAUDIO SOUND EFFECTS ENGINE (v274.0.0)
+        // =========================================================================
+        var audioCtx = null;
+        var masterSFXGainNode = null;
+        var isSoundEnabled = true;
+        var isVibrationEnabled = true;
+
+        // Auto-unlock WebAudio context on first user gesture (Chrome/Safari Autoplay Policy)
+        function ensureAudioUnlocked() {
             try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+            } catch(e) {}
+        }
+
+        ['pointerdown', 'touchstart', 'mousedown', 'click', 'keydown'].forEach(evt => {
+            window.addEventListener(evt, ensureAudioUnlocked, { passive: true, capture: true });
+            document.addEventListener(evt, ensureAudioUnlocked, { passive: true, capture: true });
+        });
+
+        // Pristine Master SFX Gain Bus tied 1:1 to #sfx-volume slider
+        function getMasterSFXGain() {
+            ensureAudioUnlocked();
+            if (!audioCtx) return null;
+            if (!masterSFXGainNode) {
+                masterSFXGainNode = audioCtx.createGain();
+                let sfxEl = document.getElementById('sfx-volume');
+                let sliderVal = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.25;
+                masterSFXGainNode.gain.setValueAtTime(sliderVal, audioCtx.currentTime);
+                masterSFXGainNode.connect(audioCtx.destination);
+            }
+            return masterSFXGainNode;
+        }
+
+        function updateSFXVolume() {
+            let sfxEl = document.getElementById('sfx-volume');
+            if (sfxEl) {
+                let val = parseFloat(sfxEl.value);
+                let targetGain = val / 100; // Direct 0.0 (Muted) to 1.0 (Full Volume)
+                let masterNode = getMasterSFXGain();
+                if (masterNode && audioCtx) {
+                    masterNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+                }
+            }
+            if (typeof syncSliderLabels === 'function') syncSliderLabels();
+        }
+
+        function toggleSoundSetting(enabled) {
+            isSoundEnabled = enabled;
+            if (!enabled && typeof bgmPlayer !== "undefined" && bgmPlayer) {
+                try { bgmPlayer.stop(); } catch(e) {}
+            } else if (enabled && typeof bgmPlayer !== "undefined" && bgmPlayer && isPlaygroundActive()) {
+                try { bgmPlayer.start(); } catch(e) {}
+            }
+        }
+
+        function toggleVibrationSetting(enabled) {
+            isVibrationEnabled = enabled;
+        }
+
+        function triggerHaptic(ms) {
+            if (!isPlaygroundActive() || !isVibrationEnabled) return;
+            if (navigator.vibrate) {
+                try { navigator.vibrate(ms || 30); } catch(e) {}
+            }
+        }
+
+        // --- 🍮 Rebuilt Soft Organic Wall Bounce Sound ("퐁~") ---
+        function playJellyWallBounceSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+
+            try {
+                let now = audioCtx.currentTime;
+                let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
+
+                // Soft lowpass filter for gentle cushion tone
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 400 : 700, now);
+                filter.connect(masterNode);
+
+                // Organic cute pitch bend ("퐁~")
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(160, now);
+                osc.frequency.exponentialRampToValueAtTime(320, now + 0.03);
+                osc.frequency.exponentialRampToValueAtTime(140, now + 0.12);
+
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+
+                osc.connect(filter);
+                osc.start(now);
+                osc.stop(now + 0.12);
+            } catch(e) {}
+        }
+
+        // --- 🎈 Rebuilt Touch Release Sound ("푱!") ---
+        function playReleaseSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+
+            try {
                 let now = audioCtx.currentTime;
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'sine';
-                let startFreq = 200 + progressRatio * 350;
-                osc.frequency.setValueAtTime(startFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(startFreq + 50, now + 0.08);
-                gain.gain.setValueAtTime(0.06, now);
+                osc.frequency.setValueAtTime(220, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.08);
+
+                gain.gain.setValueAtTime(0.15, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
+
+                osc.connect(masterNode);
                 osc.start(now);
                 osc.stop(now + 0.08);
-            } catch (e) {}
+            } catch(e) {}
         }
 
+        // --- 💥 Rebuilt Organic Bubble Pop Sound ---
+        function playPopSound() {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(400, now);
+                osc.frequency.exponentialRampToValueAtTime(100, now + 0.06);
+
+                gain.gain.setValueAtTime(0.30, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+
+                osc.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            } catch(e) {}
+        }
+
+        // --- 🔊 Rebuilt Soft Balloon Pop Sound ---
         function playLoudBalloonPopSound() {
             if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
+
             try {
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(150, now);
+                osc.frequency.exponentialRampToValueAtTime(40, now + 0.15);
 
-                let subOsc = audioCtx.createOscillator();
-                let subGain = audioCtx.createGain();
-                subOsc.type = 'triangle';
-                subOsc.frequency.setValueAtTime(170, now);
-                subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.22);
-                subGain.gain.setValueAtTime(0.70, now);
-                subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-                subOsc.connect(subGain);
-                subGain.connect(audioCtx.destination);
-                subOsc.start(now);
-                subOsc.stop(now + 0.22);
+                gain.gain.setValueAtTime(0.40, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
-                let snapOsc = audioCtx.createOscillator();
-                let snapGain = audioCtx.createGain();
-                snapOsc.type = 'sawtooth';
-                snapOsc.frequency.setValueAtTime(920, now);
-                snapOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
-                snapGain.gain.setValueAtTime(0.50, now);
-                snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
-                snapOsc.connect(snapGain);
-                snapGain.connect(audioCtx.destination);
-                snapOsc.start(now);
-                snapOsc.stop(now + 0.12);
+                osc.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.15);
+            } catch(e) {}
+        }
 
-                let bufferSize = audioCtx.sampleRate * 0.16;
-                let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
-                let data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) {
-                    data[i] = Math.random() * 2 - 1;
-                }
+        // --- 🎵 Rebuilt Inflate Tone ---
+        function playInflateTone(progressRatio) {
+            if (!isPlaygroundActive() || !isSoundEnabled) return;
+            let masterNode = getMasterSFXGain();
+            if (!masterNode || !audioCtx) return;
 
-                let noise = audioCtx.createBufferSource();
-                noise.buffer = buffer;
-                let filter = audioCtx.createBiquadFilter();
-                filter.type = 'highpass';
-                filter.frequency.setValueAtTime(800, now);
+            try {
+                let now = audioCtx.currentTime;
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                let startFreq = 200 + (progressRatio || 0) * 300;
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(startFreq + 40, now + 0.06);
 
-                let noiseGain = audioCtx.createGain();
-                noiseGain.gain.setValueAtTime(0.55, now);
-                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                gain.gain.setValueAtTime(0.10, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
 
-                noise.connect(filter);
-                filter.connect(noiseGain);
-                noiseGain.connect(audioCtx.destination);
-                noise.start(now);
-            } catch (e) {}
+                osc.connect(masterNode);
+                osc.start(now);
+                osc.stop(now + 0.06);
+            } catch(e) {}
         }
 
                 function playReleaseSound() {
@@ -4753,7 +4875,7 @@
             touchY = my;
         });
 
-        let audioCtx = null;
+        // audioCtx declared at top level
 
         function playSquishSound(isRelease = false) {
             if (!isPlaygroundActive() || !isSoundEnabled) return; // Disable all interaction sound effects outside of playground
@@ -4796,8 +4918,8 @@
             }
         }
 
-                let isSoundEnabled = true;
-        let isVibrationEnabled = true;
+                // isSoundEnabled declared at top level
+        // isVibrationEnabled declared at top level
 
         function toggleSoundSetting(enabled) {
             isSoundEnabled = enabled;
