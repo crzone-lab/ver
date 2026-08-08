@@ -1852,3 +1852,17 @@
      - 기존 `audioCtx.destination` 직결로 개별 음향 볼륨 바이패스되던 모든 효과음 오디오 노드를 단일 `getMasterSFXGain()` 마스터 게인 노드로 100% 통합 우회.
   2. **기본 마스터 볼륨 1.5% 수준 극저음 조정**:
      - 슬라이더 15% 기본 설정 시 실효 Master Gain이 `0.015`(1.5%) 수준으로 은은하고 속삭이듯 극도로 작게 들리도록 대폭 축소.
+
+## Master Release v251.0.0 (2026-08-08) - PERFECT GOLDEN BALANCE SFX VOLUME
+- **Version Checkpoint File**: `v251.0.0_BALANCED_GOLDEN_SFX_VOLUME.html`
+- **너무 크지도, 안 들리지도 않는 황금 밸런스(Golden Balance) 사운드 세팅 완료**:
+  1. **실효 마스터 게인 7.0% (Golden Sweet Spot) 설정**:
+     - 기존 극저음(1.5%) 세팅이 안 들리던 현상을 개선하여, 귀가 편안하면서도 선명하고 맑은 젤리 터치 소리(Master Gain `0.07` / 7%)로 재조정.
+  2. **슬라이더 기본값 35% 재배치**:
+     - 슬라이더 35% 기본값을 바탕으로 0%(무음)부터 100%(최대 20% 천장)까지 사용자가 원하는 느낌에 맞춰 미세 조절 가능.
+
+## Master Release v252.0.0 (2026-08-08) - STANDARD MOBILE/WEB GAME AUDIO VOLUME MIXING
+- **Version Checkpoint File**: `v252.0.0_STANDARD_GAME_AUDIO_VOLUME.html`
+- **일반 표준 모바일/웹 게임 볼륨 믹싱 밸런스(Standard 50% Preset) 적용**:
+  1. **표준 캐주얼 모바일 게임 오디오 사양 세팅**:
+     - 상용 모바일/웹 게임 표준에 맞춰 효과음 슬라이더 기본값을 `50%`로 배치하고, 실효 마스터 게인 ceiling을 `0.25`(25% Master Net Gain)로 조절하여 맑고 시원한 게임 소리를 보장.

@@ -1267,8 +1267,8 @@
                     <input type="range" id="dampening" min="1" max="25" step="0.5" value="8" oninput="updateSliders()">
                 </div>
                 <div class="advanced-row">
-                    <span>🔊 효과음 볼륨 (SFX) (<span id="sfx-val">15%</span>)</span>
-                    <input type="range" id="sfx-volume" min="0" max="100" value="15" oninput="updateSFXVolume()">
+                    <span>🔊 효과음 볼륨 (SFX) (<span id="sfx-val">50%</span>)</span>
+                    <input type="range" id="sfx-volume" min="0" max="100" value="50" oninput="updateSFXVolume()">
                 </div>
                 <div class="advanced-row">
                     <span><span data-i18n="label-bgm">BGM Volume</span> (<span id="bgm-val">50%</span>)</span>
@@ -2233,7 +2233,7 @@
                 let startFreq = 200 + progressRatio * 350;
                 osc.frequency.setValueAtTime(startFreq, now);
                 osc.frequency.exponentialRampToValueAtTime(startFreq + 50, now + 0.08);
-                gain.gain.setValueAtTime(0.06 * sfxVolumeMultiplier, now);
+                gain.gain.setValueAtTime(0.12, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 osc.connect(gain);
                 gain.connect(getMasterSFXGain());
@@ -2254,7 +2254,7 @@
                 subOsc.type = 'triangle';
                 subOsc.frequency.setValueAtTime(170, now);
                 subOsc.frequency.exponentialRampToValueAtTime(30, now + 0.22);
-                subGain.gain.setValueAtTime(0.25 * sfxVolumeMultiplier, now);
+                subGain.gain.setValueAtTime(0.35, now);
                 subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
                 subOsc.connect(subGain);
                 subGain.connect(getMasterSFXGain());
@@ -2266,7 +2266,7 @@
                 snapOsc.type = 'sawtooth';
                 snapOsc.frequency.setValueAtTime(920, now);
                 snapOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
-                snapGain.gain.setValueAtTime(0.18 * sfxVolumeMultiplier, now);
+                snapGain.gain.setValueAtTime(0.25, now);
                 snapGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
                 snapOsc.connect(snapGain);
                 snapGain.connect(getMasterSFXGain());
@@ -2287,7 +2287,7 @@
                 filter.frequency.setValueAtTime(800, now);
 
                 let noiseGain = audioCtx.createGain();
-                noiseGain.gain.setValueAtTime(0.18 * sfxVolumeMultiplier, now);
+                noiseGain.gain.setValueAtTime(0.25, now);
                 noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
                 noise.connect(filter);
@@ -2320,7 +2320,7 @@
                     osc.frequency.setValueAtTime(130, now);
                     osc.frequency.exponentialRampToValueAtTime(70, now + 0.16);
 
-                    gain.gain.setValueAtTime(0.15 * sfxVolumeMultiplier, now);
+                    gain.gain.setValueAtTime(0.22, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
                     osc.connect(filter);
@@ -2333,7 +2333,7 @@
                     subOsc.type = 'triangle';
                     subOsc.frequency.setValueAtTime(80, now);
                     subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
-                    subGain.gain.setValueAtTime(0.12 * sfxVolumeMultiplier, now);
+                    subGain.gain.setValueAtTime(0.18, now);
                     subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
                     subOsc.connect(filter);
                     subOsc.start(now);
@@ -2349,7 +2349,7 @@
                     osc.frequency.exponentialRampToValueAtTime(360, now + 0.04);
                     osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
 
-                    gain.gain.setValueAtTime(0.16 * sfxVolumeMultiplier, now);
+                    gain.gain.setValueAtTime(0.24, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                     osc.connect(filter);
@@ -2363,7 +2363,7 @@
                     bodyOsc.frequency.setValueAtTime(270, now);
                     bodyOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
 
-                    bodyGain.gain.setValueAtTime(0.09 * sfxVolumeMultiplier, now);
+                    bodyGain.gain.setValueAtTime(0.14, now);
                     bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
                     bodyOsc.connect(filter);
@@ -2389,7 +2389,7 @@
                 osc.frequency.setValueAtTime(680, now);
                 osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
 
-                gain.gain.setValueAtTime(0.16 * sfxVolumeMultiplier, now);
+                gain.gain.setValueAtTime(0.24, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                 osc.connect(gain);
@@ -2406,7 +2406,7 @@
                 let noise = audioCtx.createBufferSource();
                 noise.buffer = buffer;
                 let nGain = audioCtx.createGain();
-                nGain.gain.setValueAtTime(0.12 * sfxVolumeMultiplier, now);
+                nGain.gain.setValueAtTime(0.18, now);
                 nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 noise.connect(nGain);
                 nGain.connect(getMasterSFXGain());
@@ -2553,10 +2553,10 @@
             }
             if (!masterSFXGainNode) {
                 masterSFXGainNode = audioCtx.createGain();
-                let initVal = 0.015; // Extremely whisper-soft 1.5% default master volume
+                let initVal = 0.25; // Standard Mobile/Web Game Audio Level (25% Net Master Gain)
                 let sfxEl = document.getElementById('sfx-volume');
                 if (sfxEl) {
-                    initVal = (parseFloat(sfxEl.value) / 100) * 0.08;
+                    initVal = (parseFloat(sfxEl.value) / 100) * 0.50;
                 }
                 masterSFXGainNode.gain.setValueAtTime(initVal, audioCtx.currentTime);
                 masterSFXGainNode.connect(audioCtx.destination);
@@ -2568,7 +2568,7 @@
             let sfxEl = document.getElementById('sfx-volume');
             if (sfxEl) {
                 let val = parseFloat(sfxEl.value);
-                let targetGain = (val / 100) * 0.08; // 0% to 8% ultra-gentle ceiling
+                let targetGain = (val / 100) * 0.50; // Standard 0% to 50% game gain range
                 let masterNode = getMasterSFXGain();
                 if (masterNode && audioCtx) {
                     masterNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
@@ -4795,7 +4795,7 @@
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.exponentialRampToValueAtTime(550, now + 0.12);
-                    gain.gain.setValueAtTime(0.06 * sfxVolumeMultiplier, now);
+                    gain.gain.setValueAtTime(0.12, now);
                     gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
                     osc.start(now);
                     osc.stop(now + 0.12);
