@@ -2305,10 +2305,10 @@
 
                 let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
-                // Soft lowpass filter to prevent harsh click/impact sounds
+                // Crisp, clear lowpass filter (1200Hz for jelly boing, 750Hz for mochi squish)
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(mode === 'mochi' ? 380 : 550, now);
+                filter.frequency.setValueAtTime(mode === 'mochi' ? 750 : 1200, now);
                 
                 // Connect to master SFX gain controller
                 let masterNode = getMasterSFXGain();
@@ -2319,59 +2319,60 @@
                 }
 
                 if (mode === 'mochi') {
-                    // 🍡 Mochi soft squish
+                    // 🍡 Mochi viscous squish sound
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(110, now);
-                    osc.frequency.exponentialRampToValueAtTime(60, now + 0.14);
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.exponentialRampToValueAtTime(70, now + 0.15);
 
-                    gain.gain.setValueAtTime(0.04, now); // Soft volume (was 0.40)
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                    gain.gain.setValueAtTime(0.45, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
                     osc.connect(filter);
                     osc.start(now);
-                    osc.stop(now + 0.14);
+                    osc.stop(now + 0.15);
 
                     let subOsc = audioCtx.createOscillator();
                     let subGain = audioCtx.createGain();
                     subOsc.type = 'triangle';
-                    subOsc.frequency.setValueAtTime(70, now);
-                    subOsc.frequency.exponentialRampToValueAtTime(35, now + 0.16);
-                    subGain.gain.setValueAtTime(0.025, now); // Soft volume (was 0.25)
-                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
+                    subOsc.frequency.setValueAtTime(80, now);
+                    subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
+                    subGain.gain.setValueAtTime(0.30, now);
+                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
                     subOsc.connect(filter);
                     subOsc.start(now);
-                    subOsc.stop(now + 0.16);
+                    subOsc.stop(now + 0.18);
 
                 } else {
-                    // 🍮 Jelly soft bounce boing
+                    // 🍮 Jelly crisp cute "뽀용~ / 퐁~" bounce sound
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(160, now);
-                    osc.frequency.exponentialRampToValueAtTime(280, now + 0.04);
-                    osc.frequency.exponentialRampToValueAtTime(130, now + 0.14);
+                    // Pitch jump and bounce envelope (Clear organic boing!)
+                    osc.frequency.setValueAtTime(200, now);
+                    osc.frequency.exponentialRampToValueAtTime(420, now + 0.04);
+                    osc.frequency.exponentialRampToValueAtTime(160, now + 0.15);
 
-                    gain.gain.setValueAtTime(0.12, now); // Warm, clear boing volume
-                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                    gain.gain.setValueAtTime(0.55, now); // Crisp audible volume
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
                     osc.connect(filter);
                     osc.start(now);
-                    osc.stop(now + 0.14);
+                    osc.stop(now + 0.15);
 
                     let bodyOsc = audioCtx.createOscillator();
                     let bodyGain = audioCtx.createGain();
                     bodyOsc.type = 'sine';
-                    bodyOsc.frequency.setValueAtTime(220, now);
-                    bodyOsc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
+                    bodyOsc.frequency.setValueAtTime(300, now);
+                    bodyOsc.frequency.exponentialRampToValueAtTime(140, now + 0.13);
 
-                    bodyGain.gain.setValueAtTime(0.06, now); // Soft thud volume
-                    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                    bodyGain.gain.setValueAtTime(0.35, now); // Rich harmonic body volume
+                    bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
 
                     bodyOsc.connect(filter);
                     bodyOsc.start(now);
-                    bodyOsc.stop(now + 0.12);
+                    bodyOsc.stop(now + 0.13);
                 }
             } catch (e) {}
         }
