@@ -4316,7 +4316,7 @@
                         }
                     }
                 }
-            }, 1200); // Extended respawn delay to 1.2s per user request!
+            }, 2400); // Extended respawn delay to 2.4s per user request!
         }
 
         // Draw loop
@@ -4566,7 +4566,7 @@
                                 let pockets = getPocketPositions();
                                 for (let pk of pockets) {
                                     let distToPocket = Math.hypot(currX - pk.x, currY - pk.y);
-                                    if (distToPocket < pk.r + 35) {
+                                    if (distToPocket < pk.r * 0.58) { // Precise pocket entry collision per user request!
                                         triggerPocketHoleIn(pk, currentLaunchBounceCount);
                                         break;
                                     }
