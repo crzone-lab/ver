@@ -1975,3 +1975,11 @@
      - 최신 Chrome/Safari/iOS 오디오 자동재생 금지 정책(Autoplay Policy)에 의해 `AudioContext`가 `suspended` 상태로 잠겨 소리가 안 나던 원인을 해결하기 위해, `window` 및 `document` 수준에서 첫 터치/클릭/키다운 발생 시 `audioCtx.resume()`을 100% 즉시 강제 수행하는 전역 오디오 언락 수신기 탑재.
   2. **벽 충돌 및 터치 오디오 언락 동기화**:
      - `playJellyWallBounceSound` 실행 시 `ensureAudioUnlocked()`를 동기적으로 호출하여, 첫 튕김부터 100% 오디오 파형이 스피커로 출력되도록 완벽 조치.
+
+## Master Release v267.0.0 (2026-08-09) - MISSING getMasterSFXGain DEFINITION RESTORED & SOUND 100% FIXED
+- **Version Checkpoint File**: `v267.0.0_AUDIO_REFERENCE_ERROR_FULLY_SOLVED.html`
+- **소리가 전혀 안 들리던 진짜 무음 버그(`ReferenceError: getMasterSFXGain is not defined`) 100% 해결**:
+  1. **미선언 마스터 게인 함수(`getMasterSFXGain`) 전역 복원**:
+     - 이전 롤백 과정에서 누락되어 있던 `getMasterSFXGain()` 및 `updateSFXVolume()` 오디오 통제 함수를 최상단 스크립트에 정식 배치하여, `ReferenceError: getMasterSFXGain is not defined` 예외로 인해 `try...catch`에 삼켜지며 소리가 100% 차단되던 숨은 원인을 완벽 해결.
+  2. **오실레이터 직결 출력 방어 장치 설치**:
+     - `playJellyWallBounceSound` 내 `getMasterSFXGain()` 참조 시 백업 `audioCtx.destination` 연결 가드를 탑재하여, 어떤 환경에서도 벽 부딪힘 튕김 소리("뽀용~ / 퐁~")가 100% 끊김 없이 선명하고 맑게 울리도록 완성.

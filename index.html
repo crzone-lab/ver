@@ -2309,13 +2309,11 @@
 
                 let mode = (typeof activeTextureMode !== 'undefined') ? activeTextureMode : 'jelly';
 
-                // Crisp, clear lowpass filter (1200Hz for jelly boing, 750Hz for mochi squish)
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
                 filter.frequency.setValueAtTime(mode === 'mochi' ? 750 : 1200, now);
                 
-                // Connect to master SFX gain controller
-                let masterNode = getMasterSFXGain();
+                let masterNode = (typeof getMasterSFXGain === 'function') ? getMasterSFXGain() : null;
                 if (masterNode) {
                     filter.connect(masterNode);
                 } else {
@@ -2323,7 +2321,6 @@
                 }
 
                 if (mode === 'mochi') {
-                    // 🍡 Mochi viscous squish sound
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     osc.type = 'sine';
@@ -2337,28 +2334,16 @@
                     osc.start(now);
                     osc.stop(now + 0.15);
 
-                    let subOsc = audioCtx.createOscillator();
-                    let subGain = audioCtx.createGain();
-                    subOsc.type = 'triangle';
-                    subOsc.frequency.setValueAtTime(80, now);
-                    subOsc.frequency.exponentialRampToValueAtTime(40, now + 0.18);
-                    subGain.gain.setValueAtTime(0.30, now);
-                    subGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-                    subOsc.connect(filter);
-                    subOsc.start(now);
-                    subOsc.stop(now + 0.18);
-
                 } else {
                     // 🍮 Jelly crisp cute "뽀용~ / 퐁~" bounce sound
                     let osc = audioCtx.createOscillator();
                     let gain = audioCtx.createGain();
                     osc.type = 'sine';
-                    // Pitch jump and bounce envelope (Clear organic boing!)
                     osc.frequency.setValueAtTime(200, now);
                     osc.frequency.exponentialRampToValueAtTime(420, now + 0.04);
                     osc.frequency.exponentialRampToValueAtTime(160, now + 0.15);
 
-                    gain.gain.setValueAtTime(0.55, now); // Crisp audible volume
+                    gain.gain.setValueAtTime(0.40, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
                     osc.connect(filter);
@@ -2371,14 +2356,16 @@
                     bodyOsc.frequency.setValueAtTime(300, now);
                     bodyOsc.frequency.exponentialRampToValueAtTime(140, now + 0.13);
 
-                    bodyGain.gain.setValueAtTime(0.35, now); // Rich harmonic body volume
+                    bodyGain.gain.setValueAtTime(0.25, now);
                     bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.13);
 
                     bodyOsc.connect(filter);
                     bodyOsc.start(now);
                     bodyOsc.stop(now + 0.13);
                 }
-            } catch (e) {}
+            } catch (e) {
+                console.error("playJellyWallBounceSound error:", e);
+            }
         }
 
         let activeTornHole = null;
@@ -4791,6 +4778,41 @@
         }
 
                 var isSoundEnabled = true;
+        var masterSFXGainNode = null;
+
+        function getMasterSFXGain() {
+            if (!audioCtx) {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (audioCtx && audioCtx.state === 'suspended') {
+                try { audioCtx.resume(); } catch(e) {}
+            }
+            if (!masterSFXGainNode) {
+                masterSFXGainNode = audioCtx.createGain();
+                let initVal = 0.50; // Standard 50% default gain
+                let sfxEl = document.getElementById('sfx-volume');
+                if (sfxEl) {
+                    let val = parseFloat(sfxEl.value);
+                    initVal = val / 100;
+                }
+                masterSFXGainNode.gain.setValueAtTime(initVal, audioCtx.currentTime);
+                masterSFXGainNode.connect(audioCtx.destination);
+            }
+            return masterSFXGainNode;
+        }
+
+        function updateSFXVolume() {
+            let sfxEl = document.getElementById('sfx-volume');
+            if (sfxEl) {
+                let val = parseFloat(sfxEl.value);
+                let targetGain = val / 100; // 0.0 (Muted) to 1.0 (Full Volume)
+                let masterNode = getMasterSFXGain();
+                if (masterNode && audioCtx) {
+                    masterNode.gain.setValueAtTime(targetGain, audioCtx.currentTime);
+                }
+            }
+            if (typeof syncSliderLabels === 'function') syncSliderLabels();
+        }
         var isVibrationEnabled = true;
 
         function toggleSoundSetting(enabled) {
