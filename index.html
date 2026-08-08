@@ -2345,7 +2345,7 @@
                     osc.frequency.exponentialRampToValueAtTime(360, now + 0.04);
                     osc.frequency.exponentialRampToValueAtTime(150, now + 0.14);
 
-                    gain.gain.setValueAtTime(0.05, now); // True psychoacoustic perceived 50% loudness drop
+                    gain.gain.setValueAtTime(0.01, now); // Ultra-feather soft level (32x softer than original)
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                     osc.connect(filter);
@@ -2359,7 +2359,7 @@
                     bodyOsc.frequency.setValueAtTime(270, now);
                     bodyOsc.frequency.exponentialRampToValueAtTime(120, now + 0.12);
 
-                    bodyGain.gain.setValueAtTime(0.03, now); // Soft harmonic body gain
+                    bodyGain.gain.setValueAtTime(0.005, now); // Ultra-feather body gain
                     bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
                     bodyOsc.connect(filter);
