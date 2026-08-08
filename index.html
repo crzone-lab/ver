@@ -5130,8 +5130,8 @@
             if (!points || points.length === 0) return false;
             let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
             for (let i = 0; i < points.length; i++) {
-                let px = points[i].ox;
-                let py = points[i].oy;
+                let px = points[i].x;
+                let py = points[i].y;
                 if (px < minX) minX = px;
                 if (px > maxX) maxX = px;
                 if (py < minY) minY = py;
