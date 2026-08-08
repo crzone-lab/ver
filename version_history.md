@@ -1726,3 +1726,49 @@
 
 
 
+
+## Master Release v241.0.0 (2026-08-07) - TANGLY JELLY VS STICKY MOCHI TOUCH ENGINE DIFFERENTIATION
+- **Version Checkpoint File**: 
+- **100% Tangly Jelly vs Sticky Mochi Physical & Visual Touch Differentiation Completed**:
+  1. **🍮 탱글젤리 (Tangly Jelly) 탄성 & 멀티 바운스 발포 반응**:
+     - 고주파 탄성 드래그 ()로 손끝을 따라 경쾌하게 반응.
+     - 뗐을 때 당긴 거리(dragDist)에 비례하여 튕김 횟수()와 이동 속도(), 지속 회전을 실시간 계산하여 통통 튀어 귀환하는 멀티 바운스 튕김 매커니즘 구현.
+  2. **🍡 쫀득모찌 (Sticky Mochi) 비대칭 점성 늘어남 & 착지 찌그러짐 (Squish Landing Effect)**:
+     - 찹쌀떡/찰반죽 비대칭 변형 (): 잡은 위치는 뾰족하게 쭈욱 늘어나고 바탕은 묵직하게 뒤따르는 점성 딜레이 매커니즘.
+     - 비대칭 끈적한 슬로우 감쇄 ()와 복원 중반 제자리에 푹 찌그러졌다 천천히 부풀어 오르는  연출.
+  3. **🎈 2-Finger 멀티터치 풍선 부풀기 (Pinch Swell)**:
+     - 두 손가락 핀치/스프레드 시 캐릭터 중앙에서부터 전체 메쉬가 풍선처럼 방사형 부풀어 오르는 아우라 연출.
+  4. **🖼️ 100% 순수 클라이언트 배경 제거 및 세이프티 가드 파싱 완료**:
+     - JS 문법 검증 완료 (), 싱글 페이지 무결성 보장.
+
+## Master Release v242.0.0 (2026-08-08) - JELLY POCKET BILLIARDS GAME MODE IMPLEMENTED
+- **Version Checkpoint File**: 
+- **100% Jelly Pocket Billiards (당구 포켓볼 스타일) Game Mode Integrated**:
+  1. **🎱 4개 귀퉁이 젤리 포켓 & 중력 빨아들임 매커니즘**:
+     - 캔버스 4개 모서리(좌상, 우상, 좌하, 우하)에 입체 네온 젤리 포켓 배치 및 근접 시 부드럽게 빨려 들어가는 포켓 중력 끌림 연출.
+  2. **💥 벽 반사 횟수별 정확한 차등 점수 & WebAudio 차등 효과음 체계**:
+     - **0회 (직접 입수)**: 1점 + 귀여운 Pop 효과음 ()
+     - **벽 1회 부딪히고 입수**: 5점 + Duo-tone 튕 효과음 ()
+     - **벽 2회 부딪히고 입수**: 10점 + Arpeggio 팡파레 효과음 ()
+     - **벽 3회 이상 부딪히고 입수**: 30점 + **Sawtooth Triumph 빅토리 신디사이저 웅장한 음악 & 대형 Banner** ()
+  3. **🎯 실시간 반사 카운터 & 조준선 가이드**:
+     - 캐릭터 공중 비행 시 벽 충돌 때마다 , ,  실시간 둥둥 오버레이.
+     - 당길 때 점선 조준선() 및 발사 조준점 오버레이.
+  4. **🕹️ UI & 스코어보드**:
+     -  필 전용 HUD 스코어보드 (Current Score, Best Score, Reset 버튼).
+
+## Master Release v242.0.0 (2026-08-08) - JELLY POCKET BILLIARDS GAME MODE IMPLEMENTED
+- **Version Checkpoint File**: `v242.0.0_JELLY_POCKET_BILLIARDS_GAME_ENGINE.html`
+- **100% Jelly Pocket Billiards (당구 포켓볼 스타일) Game Mode Integrated**:
+  1. **🎱 4개 귀퉁이 젤리 포켓 & 중력 빨아들임 매커니즘**:
+     - 캔버스 4개 모서리(좌상, 우상, 좌하, 우하)에 입체 네온 젤리 포켓 배치 및 근접 시 부드럽게 빨려 들어가는 포켓 중력 끌림 연출.
+  2. **💥 벽 반사 횟수별 정확한 차등 점수 & WebAudio 차등 효과음 체계**:
+     - **0회 (직접 입수)**: 1점 + 귀여운 Pop 효과음 (`🎯 1점! 다이렉트 입수`)
+     - **벽 1회 부딪히고 입수**: 5점 + Duo-tone 튕 효과음 (`⚡ 5점! 1뱅크샷 입수`)
+     - **벽 2회 부딪히고 입수**: 10점 + Arpeggio 팡파레 효과음 (`🔥 10점! 2뱅크샷 입수`)
+     - **벽 3회 이상 부딪히고 입수**: 30점 + **Sawtooth Triumph 빅토리 신디사이저 웅장한 음악 & 대형 Banner** (`👑 30점! 3뱅크 마스터 샷!`)
+  3. **🎯 실시간 반사 카운터 & 조준선 가이드**:
+     - 캐릭터 공중 비행 시 벽 충돌 때마다 `[ 1 BOUNCE! (5점 조준) ]`, `[ 2 BOUNCES! (10점 조준) ]`, `[ 3 BOUNCES! (30점 조준 🔥) ]` 실시간 둥둥 오버레이.
+     - 당길 때 점선 조준선(`ctx.setLineDash`) 및 발사 조준점 오버레이.
+  4. **🕹️ UI & 스코어보드**:
+     - `[ 🎱 젤리당구 ]` 필 전용 HUD 스코어보드 (Current Score, Best Score, Reset 버튼).
