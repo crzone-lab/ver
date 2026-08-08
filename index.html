@@ -1889,7 +1889,7 @@
 
         let defaultStrawberrySrc = '';
 
-        const jellyImage = new Image();
+        var jellyImage = new Image();
         jellyImage.onload = function() {
             initMesh();
             draw();
@@ -5376,6 +5376,20 @@
             const char = lobbyCharacters[index];
             if (!char) return;
 
+            jellyIsFlying = false;
+            jellyCenterX = 0;
+            jellyCenterY = 0;
+            jellyFlightVx = 0;
+            jellyFlightVy = 0;
+            jellyRotation = 0;
+            jellySpinSpeed = 0;
+            jellyBounceCount = 0;
+            if (typeof currentLaunchBounceCount !== 'undefined') currentLaunchBounceCount = 0;
+            if (typeof isSuckingIntoPocket !== 'undefined') isSuckingIntoPocket = false;
+            if (typeof grabbedPointIndex !== 'undefined') grabbedPointIndex = null;
+            if (typeof floatingBounceTexts !== 'undefined') floatingBounceTexts = [];
+            if (typeof pocketScoreAnnouncements !== 'undefined') pocketScoreAnnouncements = [];
+
             activeEmoji = char.emoji || '🐰';
             activeBase = char.base;
             activeHue = char.hue || 350;
@@ -5389,8 +5403,26 @@
 
             const imageSrc = char.imgData || char.file || "strawberry_rabbit_jelly.png";
 
-            jellyImage.onload = function() {
-                bakedJellyTexture = jellyImage; // 100% Instant Direct Render Assignment
+            // Fresh image loader instance
+            const charImg = new Image();
+            
+            function applyLoadedTexture() {
+                jellyImage = charImg;
+                bakedJellyTexture = charImg;
+                if (typeof bakeSingleCompositeTexture === 'function') {
+                    bakeSingleCompositeTexture(charImg);
+                }
+                updateCharacterAlphaMap(charImg);
+                initMesh();
+                draw();
+            }
+
+            charImg.onload = function() {
+                applyLoadedTexture();
+            };
+
+            charImg.onerror = function() {
+                console.warn("Character image fallback used");
                 if (typeof bakeSingleCompositeTexture === 'function') {
                     bakeSingleCompositeTexture(jellyImage);
                 }
@@ -5399,20 +5431,18 @@
                 draw();
             };
 
-            jellyImage.src = imageSrc;
-            bakedJellyTexture = jellyImage; // Immediate fallback assignment
+            charImg.src = imageSrc;
 
-            if (jellyImage.complete && jellyImage.naturalWidth > 0) {
-                updateCharacterAlphaMap(jellyImage);
-                initMesh();
-                draw();
+            // Instant execution if image is already cached and complete!
+            if (charImg.complete && charImg.naturalWidth > 0) {
+                applyLoadedTexture();
             }
 
             initMesh();
             updateCharacterAlphaMap(jellyImage);
             generateDecoJellies(activeHue);
             setScreenMode("playground");
-            selectFeelPill('jelly');
+            selectFeelPill(typeof activeTextureMode !== 'undefined' ? activeTextureMode : 'jelly');
             showNotification(`${char.name || char.title || '토끼'} 선택되었습니다!`);
 
             // Highlight selected bubble

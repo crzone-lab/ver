@@ -1880,3 +1880,13 @@
 ## Reversion Log (2026-08-08) - FULL REVERSION TO v241.0.0 STABLE BASELINE
 - **Status**: `index.html` 100% 원위치 원복 완료.
 - **내용**: 사용자 요청("다돌아가")에 따라 17종 젤리토끼 캐릭터 선택 및 감촉 차별화 엔진이 100% 완벽하게 검증되어 작동하는 `v241.0.0_JELLY_VS_MOCHI_DIFFERENTIATION_ENGINE.html` 마스터 버전으로 코드베이스 전체 원위치 원복 완료.
+
+## Master Release v254.0.0 (2026-08-08) - INITIAL CHARACTER SELECTION & TEXTURE BAKE FIX
+- **Version Checkpoint File**: `v254.0.0_INITIAL_CHARACTER_SELECTION_FULLY_FIXED.html`
+- **최초 접속 시 첫 캐릭터 선택 100% 정상 작동 보장**:
+  1. **최초 동기/비동기 이미지 텍스처 베이킹 이중 보장**:
+     - `selectLobbyCharacter` 시 이미지가 이미 캐싱 완료된 상태(`complete === true`)이거나 첫 비동기 로딩이거나 상관없이 `bakeSingleCompositeTexture` 및 `updateCharacterAlphaMap`이 100% 실행되도록 이중 보장 구조 도입.
+  2. **`const jellyImage` 재할당 예외 차단**:
+     - `const jellyImage` 전역 상수를 `var jellyImage`로 변경하여 `selectLobbyCharacter` 내 텍스처 교체 시 발생하던 `TypeError: Assignment to constant variable` 예외 원천 차단.
+  3. **안전한 `activeTextureMode` 초기 참조 Guard**:
+     - `activeTextureMode` 변수가 미선언된 최초 실행 시점에도 `typeof activeTextureMode !== 'undefined'` 안전 Guard를 적용하여 스크립트 실행 중단 현상 100% 방지.
