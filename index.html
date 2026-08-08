@@ -4461,15 +4461,15 @@
                                     jellyTargetBounces = Math.round(1 + norm * 2);
                                     jellyCruiseSpeed = 1.4 + norm * 1.2;
                                 } else if (dragDist < 140) {
-                                    // 3. 세게 당겼을 때: 4~7회 튕기며 시원하게 멀리 이동
+                                    // 3. 세게 당겼을 때: 4~6회 튕김
                                     let norm = (dragDist - 75) / 65;
-                                    jellyTargetBounces = Math.round(4 + norm * 3);
-                                    jellyCruiseSpeed = 2.6 + norm * 1.4;
+                                    jellyTargetBounces = Math.round(4 + norm * 2);
+                                    jellyCruiseSpeed = 2.6 + norm * 1.2;
                                 } else {
-                                    // 4. 매우 세게 쭈욱 당겼을 때: 8~14회 튕기며 초고속 파워 서킷
+                                    // 4. 매우 세게 쭈욱 당겼을 때: 최대 9회까지만 튕기도록 조정 (사용자 요청 준수!)
                                     let norm = Math.min(1.0, (dragDist - 140) / 100);
-                                    jellyTargetBounces = Math.round(8 + norm * 6);
-                                    jellyCruiseSpeed = 4.0 + norm * 2.0;
+                                    jellyTargetBounces = Math.round(7 + norm * 2); // 최대 9회!
+                                    jellyCruiseSpeed = 3.6 + norm * 1.4;
                                 }
 
                                 // 발사 방향 및 계산된 순항 속도 적용
