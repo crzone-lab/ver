@@ -1772,3 +1772,15 @@
      - 당길 때 점선 조준선(`ctx.setLineDash`) 및 발사 조준점 오버레이.
   4. **🕹️ UI & 스코어보드**:
      - `[ 🎱 젤리당구 ]` 필 전용 HUD 스코어보드 (Current Score, Best Score, Reset 버튼).
+
+## Master Release v243.0.0 (2026-08-08) - DYNAMIC PULL FORCE & DISTANCE CONTINUOUS SCALING
+- **Version Checkpoint File**: `v243.0.0_DYNAMIC_PULL_FORCE_AND_DISTANCE_SCALING.html`
+- **100% Pull Force & Distance Proportional Dynamic Scaling Engine Integrated**:
+  1. **🎯 촘촘하고 섬세한 당김 거리-속도/바운스 횟수 연동**:
+     - **살짝 당겼을 때 (< 25px)**: 0~1회만 톡 움직이고 바로 정지 (`jellyTargetBounces = 0~1`, `speed = 0.6~1.4`). 당구 섬세 조준에 최적화.
+     - **약/중간 당겼을 때 (25 ~ 75px)**: 1~3회 튕김 (`jellyTargetBounces = 1~3`, `speed = 1.4~2.6`).
+     - **세게 당겼을 때 (75 ~ 140px)**: 4~7회 튕김 (`jellyTargetBounces = 4~7`, `speed = 2.6~4.0`).
+     - **최고 세게 당겼을 때 (140px+)**: 8~14회 튕기며 초고속 파워 서킷 (`jellyTargetBounces = 8~14`, `speed = 4.0~6.0`).
+  2. **🌈 실시간 파워 텐션 게이지 & 조준선 컬러 체인지**:
+     - 당기는 힘에 따라 조준선 색상이 **라이트 그린(약) ➔ 옐로우(중) ➔ 핫 핑크(강)**로 변화.
+     - 조준선 끝에 `POWER 0% ~ 100%` 실시간 텐션 수치 배지 표시.

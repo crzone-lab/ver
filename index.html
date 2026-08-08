@@ -4126,11 +4126,13 @@
                             let targetY = centerOy + Math.sin(launchAngle) * lineLen;
 
                             ctx.save();
-                            ctx.strokeStyle = '#00ffff';
-                            ctx.lineWidth = 3;
+                            let tensionRatio = Math.min(1.0, dragDist / 140.0);
+                            let tensionColor = tensionRatio < 0.35 ? '#76ff03' : (tensionRatio < 0.7 ? '#ffd700' : '#ff007f');
+                            ctx.strokeStyle = tensionColor;
+                            ctx.lineWidth = 3 + tensionRatio * 2;
                             ctx.setLineDash([8, 6]);
-                            ctx.shadowColor = '#00ffff';
-                            ctx.shadowBlur = 10;
+                            ctx.shadowColor = tensionColor;
+                            ctx.shadowBlur = 12;
                             ctx.beginPath();
                             ctx.moveTo(centerOx, centerOy);
                             ctx.lineTo(targetX, targetY);
@@ -4138,8 +4140,14 @@
 
                             ctx.fillStyle = '#ffffff';
                             ctx.beginPath();
-                            ctx.arc(targetX, targetY, 6, 0, Math.PI * 2);
+                            ctx.arc(targetX, targetY, 6 + tensionRatio * 3, 0, Math.PI * 2);
                             ctx.fill();
+
+                            // Power tension % badge
+                            ctx.fillStyle = tensionColor;
+                            ctx.font = 'bold 12px sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.fillText(`POWER ${Math.round(tensionRatio * 100)}%`, targetX, targetY - 14);
                             ctx.restore();
                         }
                     }
@@ -4276,21 +4284,26 @@
                                 currentLaunchBounceCount = 0;
                                 
                                 let dragDist = Math.hypot(maxDragX, maxDragY);
-                                // 당김 거리에 따른 튕김 횟수(Target Bounces) 및 순항 속도(Cruise Speed) 뚜렷하게 차등 부여
-                                if (dragDist < 40) {
-                                    // 살짝 당겼을 때: 2회만 튕기고 빠르게 귀환!
-                                    jellyTargetBounces = 2;
-                                    jellyCruiseSpeed = 1.8;
-                                } else if (dragDist < 90) {
-                                    // 보통 당겼을 때: 4~6회 튕김
-                                    let norm = (dragDist - 40) / 50;
-                                    jellyTargetBounces = Math.round(4 + norm * 2);
-                                    jellyCruiseSpeed = 2.2 + norm * 0.4;
+                                // 당기는 힘과 거리에 100% 촘촘하게 연동되는 이동 거리/바운스 횟수/속도 스케일링
+                                if (dragDist < 25) {
+                                    // 1. 아주 살짝 톡 당겼을 때: 0~1회만 톡 움직이고 바로 정지
+                                    jellyTargetBounces = (dragDist < 12) ? 0 : 1;
+                                    jellyCruiseSpeed = 0.6 + (dragDist / 25.0) * 0.8;
+                                } else if (dragDist < 75) {
+                                    // 2. 약/중간 당겼을 때: 1~3회 튕기며 섬세한 당구 조준
+                                    let norm = (dragDist - 25) / 50;
+                                    jellyTargetBounces = Math.round(1 + norm * 2);
+                                    jellyCruiseSpeed = 1.4 + norm * 1.2;
+                                } else if (dragDist < 140) {
+                                    // 3. 세게 당겼을 때: 4~7회 튕기며 시원하게 멀리 이동
+                                    let norm = (dragDist - 75) / 65;
+                                    jellyTargetBounces = Math.round(4 + norm * 3);
+                                    jellyCruiseSpeed = 2.6 + norm * 1.4;
                                 } else {
-                                    // 멀리/길게 당겼을 때 (90px 이상): 8회 ~ 16회까지 신나게 튕김!
-                                    let norm = Math.min(1.0, (dragDist - 90) / 110);
-                                    jellyTargetBounces = Math.round(8 + norm * 8);
-                                    jellyCruiseSpeed = 2.6 + norm * 1.0;
+                                    // 4. 매우 세게 쭈욱 당겼을 때: 8~14회 튕기며 초고속 파워 서킷
+                                    let norm = Math.min(1.0, (dragDist - 140) / 100);
+                                    jellyTargetBounces = Math.round(8 + norm * 6);
+                                    jellyCruiseSpeed = 4.0 + norm * 2.0;
                                 }
 
                                 // 발사 방향 및 계산된 순항 속도 적용
