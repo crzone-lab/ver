@@ -1904,3 +1904,11 @@
      - 개별 음향 생성 오실레이터 peak amplitude 자체를 0.35/0.25 ➔ 0.005~0.010 수준으로 30~40배 축소하여, 스피커 바로 옆에 대어도 깃털 터치처럼 극도로 작고 미세하게만 들리도록 대수정.
   2. **마스터 게인 0.1% / 슬라이더 5% 기본 배치**:
      - 마스터 게인 ceiling을 0.02(2%)로 제한하고 5% 기본 슬라이더 배치로 무음에 가깝게 완벽 감소.
+
+## Master Release v257.0.0 (2026-08-08) - COMPLETE SFX & BGM BELL CHIME VOLUME UNIFICATION
+- **Version Checkpoint File**: `v257.0.0_BGM_AND_SFX_VOLUME_FULLY_ROUTED_AND_SILENCED.html`
+- **소리가 줄어들지 않던 진짜 근본 원인(BGM 멜로디 오실레이터) 전면 차단 & 99% 하향**:
+  1. **BGM 오디오 배경 멜로디(200ms 종소리 오실레이터) 게인 90% 대폭 하향**:
+     - 기존 배경음 재생기(`bgmPlayer`)가 200ms마다 실행하던 고주파 종소리(sine bell pluck, 1567Hz) 멜로디 오실레이터가 효과음으로 오인되던 원인을 발견하여, 멜로디 및 코드 attack gain을 `0.07` ➔ `0.005`로 14배 이상 강제 감소.
+  2. **모든 오디오(SFX + BGM) 마스터 게인 통제 노드로 100% 통합 우회**:
+     - `bgmPlayer`의 최종 게인 노드를 `audioCtx.destination` 직결에서 `getMasterSFXGain()` 마스터 게인 통제 노드로 100% 우회시켜, 효과음 볼륨 조절 시 배경 종소리와 터치 효과음이 모두 통제되어 완벽한 극저음/무음이 조율되도록 완성.
