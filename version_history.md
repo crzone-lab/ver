@@ -1983,3 +1983,7 @@
      - 이전 롤백 과정에서 누락되어 있던 `getMasterSFXGain()` 및 `updateSFXVolume()` 오디오 통제 함수를 최상단 스크립트에 정식 배치하여, `ReferenceError: getMasterSFXGain is not defined` 예외로 인해 `try...catch`에 삼켜지며 소리가 100% 차단되던 숨은 원인을 완벽 해결.
   2. **오실레이터 직결 출력 방어 장치 설치**:
      - `playJellyWallBounceSound` 내 `getMasterSFXGain()` 참조 시 백업 `audioCtx.destination` 연결 가드를 탑재하여, 어떤 환경에서도 벽 부딪힘 튕김 소리("뽀용~ / 퐁~")가 100% 끊김 없이 선명하고 맑게 울리도록 완성.
+
+## Reversion Log (2026-08-09) - FULL REVERSION TO v241.0.0 BASELINE
+- **Status**: `index.html` 오늘 수정 전 마스터 상태(`v241.0.0`)로 100% 원위치 원복 완료.
+- **내용**: 사용자 지시("계속안되니까 오늘수정하기전으로 돌아가")에 따라 오늘 수행된 모든 오디오 및 볼륨 수정 내역을 완전히 취소하고, 17종 젤리토끼 캐릭터 선택 및 감촉 차별화 엔진이 100% 검증되어 작동하는 `v241.0.0_JELLY_VS_MOCHI_DIFFERENTIATION_ENGINE.html` 마스터 상태로 100% 원상 복구 완료.
