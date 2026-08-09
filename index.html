@@ -1152,6 +1152,14 @@
         }
 
 </style>
+
+    // Clear legacy broken transparent custom rabbit cache from localStorage
+    try {
+        if (typeof window !== 'undefined' && window.localStorage) {
+            window.localStorage.removeItem('user_custom_rabbits_v1');
+        }
+    } catch(e) {}
+    
 <script>
         window.addEventListener('DOMContentLoaded', function() {
             try {
@@ -3777,93 +3785,28 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                 let aspect = imgW / imgH;
                 if (isNaN(aspect) || aspect <= 0) aspect = 1;
 
-                // Canvas A: Original Image centered or cropped
+                // Canvas A: Original Image centered or fitted
                 const imgCanvas = document.createElement('canvas');
                 imgCanvas.width = size;
                 imgCanvas.height = size;
                 const imgCtx = imgCanvas.getContext('2d');
                 
-                if (isCamera) {
-                    function mapViewportToJellyCanvas(px, py) {
-                        let cx, cy;
-                        const safetyX = isNaN(px) ? 0.5 : px;
-                        const safetyY = isNaN(py) ? 0.5 : py;
-                        if (aspect < 1) {
-                            cx = safetyX * size;
-                            cy = (safetyY - 0.5) * (size / aspect) + (size / 2);
-                        } else {
-                            cx = (safetyX - 0.5) * (size * aspect) + (size / 2);
-                            cy = safetyY * size;
-                        }
-                        if (isNaN(cx)) cx = size / 2;
-                        if (isNaN(cy)) cy = size / 2;
-                        return { x: cx, y: cy };
-                    }
+                const margin = 35;
+                const fitSize = size - margin * 2;
+                const scale = Math.min(fitSize / imgW, fitSize / imgH);
+                const w = imgW * scale;
+                const h = imgH * scale;
+                const x = (size - w) / 2;
+                const y = (size - h) / 2;
+                imgCtx.drawImage(img, x, y, w, h);
 
-                    imgCtx.save();
-                    imgCtx.beginPath();
-                    if (customPath && customPath.length > 5) {
-                        const pt0 = mapViewportToJellyCanvas(customPath[0].x, customPath[0].y);
-                        imgCtx.moveTo(pt0.x, pt0.y);
-                        for (let i = 1; i < customPath.length; i++) {
-                            const pt = mapViewportToJellyCanvas(customPath[i].x, customPath[i].y);
-                            imgCtx.lineTo(pt.x, pt.y);
-                        }
-                        imgCtx.closePath();
-                    } else {
-                        const gc = guideCenter || { cx: 0.5, cy: 0.40, rx: 0.35, ry: 0.45 };
-                        const center = mapViewportToJellyCanvas(gc.cx, gc.cy);
-                        const rx = size * 0.45;
-                        const ry = size * 0.48;
-                        
-                        let finalRx = isNaN(rx) ? 133 : rx;
-                        let finalRy = isNaN(ry) ? 179 : ry;
-                        if (!isFinite(finalRx) || finalRx <= 0) finalRx = 133;
-                        if (!isFinite(finalRy) || finalRy <= 0) finalRy = 179;
-                        
-                        imgCtx.ellipse(center.x, center.y, finalRx, finalRy, 0, 0, Math.PI * 2);
-                    }
-                    imgCtx.clip();
+                // 🌟 Apply Keycap Lab & Silhouette Hull Background Removal Engine on ALL imported images!
+                smartRemoveBackgroundKeepSubjectWhite(imgCtx, size, size);
 
-                    const scale = Math.max(size / imgW, size / imgH);
-                    const w = imgW * scale;
-                    const h = imgH * scale;
-                    const x = (size - w) / 2;
-                    const y = (size - h) / 2;
-                    imgCtx.drawImage(img, x, y, w, h);
-                    imgCtx.restore();
-                } else {
-                    const margin = 45;
-                    const fitSize = size - margin * 2;
-                    const scale = Math.min(fitSize / imgW, fitSize / imgH);
-                    const w = imgW * scale;
-                    const h = imgH * scale;
-                    const x = (size - w) / 2;
-                    const y = (size - h) / 2;
-                    imgCtx.drawImage(img, x, y, w, h);
-
-                    // Check if image is already a transparent PNG (inspect 4 corners of actual drawn image rect)
-                    const imgData = imgCtx.getImageData(0, 0, size, size);
-                    const pixels = imgData.data;
-
-                    const iX = Math.max(0, Math.min(size - 1, Math.round(x + 4)));
-                    const iY = Math.max(0, Math.min(size - 1, Math.round(y + 4)));
-                    const iR = Math.max(0, Math.min(size - 1, Math.round(x + w - 5)));
-                    const iB = Math.max(0, Math.min(size - 1, Math.round(y + h - 5)));
-
-                    const c1Alpha = pixels[(iY * size + iX) * 4 + 3];
-                    const c2Alpha = pixels[(iY * size + iR) * 4 + 3];
-                    const c3Alpha = pixels[(iB * size + iX) * 4 + 3];
-                    const c4Alpha = pixels[(iB * size + iR) * 4 + 3];
-
-                    // Apply Keycap Lab's proven background removal engine on all imported images!
-                    smartRemoveBackgroundKeepSubjectWhite(imgCtx, size, size);
-
-                    // Normalize & Auto-Center subject
-                    const normalizedCanvas = normalizeImageForKeycap(imgCanvas, size);
-                    imgCtx.clearRect(0, 0, size, size);
-                    imgCtx.drawImage(normalizedCanvas, 0, 0);
-                }
+                // Normalize & Auto-Center subject inside 512x512 canvas
+                const normalizedCanvas = normalizeImageForKeycap(imgCanvas, size);
+                imgCtx.clearRect(0, 0, size, size);
+                imgCtx.drawImage(normalizedCanvas, 0, 0);
 
                 // Canvas B: Solid Character Mask Canvas
                 const maskCanvas = document.createElement('canvas');
@@ -3917,18 +3860,6 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                 // Step 3: Draw original crisp image/photo (100% crisp original artwork/photo)
                 finalCtx.drawImage(imgCanvas, 0, 0);
                 if (typeof applyTopBottomDomeCaps === 'function') { applyTopBottomDomeCaps(finalCtx); }
-
-                
-
-
-                
-                // Round off any flat top edge on rabbit ears with smooth dome mask
-                imgCtx.save();
-                imgCtx.globalCompositeOperation = 'destination-in';
-                imgCtx.beginPath();
-                imgCtx.ellipse(size / 2, size / 2 + 15, size * 0.48, size * 0.46, 0, 0, Math.PI * 2);
-                imgCtx.fill();
-                imgCtx.restore();
 
                 const finalImgData = finalCanvas.toDataURL('image/png');
                 
@@ -7229,10 +7160,10 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
 
         function saveCustomRabbitToPhone(customChar) {
             try {
-                let saved = null; try { if (typeof window !== 'undefined' && window.localStorage) saved = window.localStorage.getItem('user_custom_rabbits_v1'); } catch(e){}
+                let saved = null; try { if (typeof window !== 'undefined' && window.localStorage) saved = window.localStorage.getItem('user_custom_rabbits_v2'); } catch(e){}
                 let customList = saved ? JSON.parse(saved) : [];
                 customList.push(customChar);
-                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('user_custom_rabbits_v1', JSON.stringify(customList)); } catch(e){}
+                try { if (typeof window !== 'undefined' && window.localStorage) window.localStorage.setItem('user_custom_rabbits_v2', JSON.stringify(customList)); } catch(e){}
                 console.log("Saved new custom rabbit to user phone localStorage!");
             } catch (err) {
                 console.error("Failed to save custom rabbit to phone:", err);
@@ -7241,7 +7172,7 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
 
         function loadSavedCustomRabbitsFromPhone() {
             try {
-                let saved = null; try { if (typeof window !== 'undefined' && window.localStorage) saved = window.localStorage.getItem('user_custom_rabbits_v1'); } catch(e){}
+                let saved = null; try { if (typeof window !== 'undefined' && window.localStorage) saved = window.localStorage.getItem('user_custom_rabbits_v2'); } catch(e){}
                 if (saved) {
                     const customList = JSON.parse(saved);
                     if (Array.isArray(customList) && customList.length > 0) {

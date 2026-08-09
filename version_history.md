@@ -2353,3 +2353,13 @@
   2. **합성 단계 2.5 불투명 백색 베이스 캔버스 생성 (`Step 2.5 White Backing Layer`)**:
      - 텍스처 합성(Canvas C) 단계에서 그림 실루엣(`maskCanvas`) 뒤편에 **100% 불투명 순백색(`#ffffff`) 백킹 레이어**를 강제 배치.
      - 어떠한 그림이나 손그림 파일이 들어오더라도 캐릭터 몸통 내부의 투명 구멍이 분홍색 무대를 뚫고 보이는 현상을 100% 완벽 차단! 얼굴, 몸통, 이마, 귀, 배, 손 전체가 뽀얗고 선명한 백색으로 보존됨.
+
+## Master Release v310.0.0 (2026-08-09) - ROOT CAUSE FIX: REMOVED OVAL ELLIPSE CLIPPING MASK & LOCALSTORAGE CACHE RESET
+- **Version Checkpoint File**: `v310.0.0_OVAL_CLIP_REMOVED_AND_CACHE_RESET.html`
+- **얼굴, 몸통, 이마, 귀 잘림 버그의 근본적 원인(타원형 클리핑 마스크) 철거 & 로컬스토리지 캐시 마이그레이션**:
+  1. **타원형 컷아웃 클리핑 마스크(`imgCtx.clip()` Ellipse) 전면 철거**:
+     - 기존 `processImageToJelly` 함수에서 사진/그림 업로드 시 강제로 작동하던 133x179px 크기의 타원형 마스크(`imgCtx.ellipse`)를 완전히 철거하여, 토끼의 얼굴, 몸통, 이마, 귀, 손이 타원형으로 잘려 뚫리던 근본 원인을 100% 해결.
+  2. **모든 불러온 이미지/사진에 스마트 실루엣 누끼 엔진 자동 전면 적용**:
+     - 카메라, 갤러리, 불러오기 경로에 관계없이 모든 이미지가 `smartRemoveBackgroundKeepSubjectWhite`를 통과하도록 통일.
+  3. **브라우저 로컬스토리지 이전 구버전 투명 캐시 자동 청소 (`v1 -> v2`)**:
+     - 브라우저에 저장되어 있던 이전 버전의 잘린 투명 이미지 데이터 URL을 자동 삭제하고 캐시 키를 `user_custom_rabbits_v2`로 마이그레이션하여, 구버전 투명 이미지가 계속 재로드되던 현상 완전 차단.
