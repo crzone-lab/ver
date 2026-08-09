@@ -5388,6 +5388,14 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                     if (typeof ctx.filter !== 'undefined') ctx.filter = 'none';
                     ctx.restore();
 
+                    // 🌟 Draw solid opaque white backing behind character mesh so background jellies NEVER show through!
+                    ctx.save();
+                    ctx.fillStyle = '#ffffff';
+                    ctx.beginPath();
+                    ctx.ellipse(center.x, center.y + 10, 155, 175, 0, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.restore();
+
                     // Draw jelly mesh body
                     if (jellyImage.complete && jellyImage.naturalWidth > 0) {
                         for (let r = 0; r < rows - 1; r++) {
