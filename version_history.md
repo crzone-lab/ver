@@ -2344,3 +2344,12 @@
      - 플러드 필 탐색 조건에 `protectedInterior`를 철저히 적용하여, 어떠한 경우에도 캐릭터의 얼굴이나 몸통 내부로는 탐색 큐가 들어가지 못하도록 차단.
   4. **얼굴/몸통 100% 불투명 백색 완벽 보존**:
      - 첨부해 주신 스크린샷(`media_1786214115160.png`)처럼 손 부분만 흰색으로 남고 얼굴과 몸통 전체가 뚫려 분홍색 무대가 보이던 현상을 100% 완벽 해결! 얼굴과 몸통 전체가 뽀얗고 꽉 차게 보존됩니다.
+
+## Master Release v309.0.0 (2026-08-09) - DOUBLE-LOCK SILHOUETTE HULL & SOLID WHITE BACKING LAYER (FACE/BODY/EARS 100% PERFECT OPAQUE WHITE)
+- **Version Checkpoint File**: `v309.0.0_SILHOUETTE_HULL_AND_WHITE_BACKING_NUKKI.html`
+- **얼굴, 몸통, 이마, 귀, 배, 손 100% 완전 불투명 백색 이중 방어 이중 락(Double-Lock) 누끼 엔진 구현**:
+  1. **실루엣 바운딩 캡슐 탐색 차단 (`isSubjectHull`)**:
+     - 피사체가 존재하는 행(Row)의 최좌측(`rowLeft[y]`)부터 최우측(`rowRight[y]`)까지의 실루엣 영역 전체를 `isSubjectHull`로 지정하여, 귀 사이나 이마 근처의 펜선이 뚫려 있더라도 외각 플러드 필 탐색이 얼굴이나 몸통 내부로 들어가지 못하도록 탐색 큐 진입을 100% 원천 봉쇄.
+  2. **합성 단계 2.5 불투명 백색 베이스 캔버스 생성 (`Step 2.5 White Backing Layer`)**:
+     - 텍스처 합성(Canvas C) 단계에서 그림 실루엣(`maskCanvas`) 뒤편에 **100% 불투명 순백색(`#ffffff`) 백킹 레이어**를 강제 배치.
+     - 어떠한 그림이나 손그림 파일이 들어오더라도 캐릭터 몸통 내부의 투명 구멍이 분홍색 무대를 뚫고 보이는 현상을 100% 완벽 차단! 얼굴, 몸통, 이마, 귀, 배, 손 전체가 뽀얗고 선명한 백색으로 보존됨.
