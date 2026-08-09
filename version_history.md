@@ -2393,3 +2393,13 @@
   3. **외각 테두리 출발 8-방향 BFS 바탕 탐색 (`isOuterBg`)**: 오직 외각 테두리에서 시작하여 윤곽선 벽에 부딪힐 때까지만 바탕 탐색 수행.
   4. **외각 바탕만 투명화 (`isOuterBg`만 Alpha=0)**: 탐색 완료된 외각 바탕 영역만 정밀하게 삭제.
   5. **피사체 내부 불투명 순백색 보존 (`Alpha=255`)**: 탐색되지 않은 피사체 내부(얼굴, 이마, 볼, 몸통, 배, 손)는 100% 불투명 순백색으로 안전 보존!
+
+## Master Release v314.0.0 (2026-08-09) - 100% VERBATIM KEYCAP LAB CUTOUT ENGINE INTEGRATION (키캡랩 원본 누끼 코드 100% 동일 이식)
+- **Version Checkpoint File**: `v314.0.0_EXACT_KEYCAP_LAB_VERBATIM_NUKKI.html`
+- **키캡랩(`FRTE/Preview/app.js`)의 원본 누끼 엔진 100% 토씨 하나 안 틀리고 완전 동일 이식**:
+  1. **`removeConnectedWhiteBackground` 키캡랩 원본 적용**:
+     - `isOutlineOrColored`, `traversalBlocked` (윤곽선 원형 팽창 반경), `protectedInterior` (피사체 너비 및 몸통 상단 `bodyTop` 자동 감지 보호), 8-방향 BFS 큐 탐색까지 키캡랩 원본 코드 100% 동기화.
+  2. **`removeCameraPhotoBackground` & `normalizeImageForKeycap` 이식**:
+     - 사진 누끼 엔진 및 크롭 정상화 유틸리티 100% 완벽 동일 적용.
+  3. **피사체 내부 불투명 순백색 보존 처리**:
+     - 키캡랩 알고리즘이 감지한 `protectedInterior` 내부의 투명 영역을 100% 불투명 순백색(`RGBA 255, 255, 255, 255`)으로 보충하여, 기본 딸기 토끼 및 모든 불러온 손그림/사진의 얼굴과 몸통이 키캡랩과 100% 똑같이 선명하고 깔끔하게 렌더링됨!
