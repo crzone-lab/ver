@@ -2373,3 +2373,14 @@
      - 게임 시작 시 `strawberry_rabbit_jelly.png`를 512x512 캔버스에 로드하여, 피사체 실루엣 뒤편에 **100% 불투명 순백색 베이스 레이어(`#ffffff`)를 베이킹(Baking) 결합**하는 전처리 자동화.
   3. **결과**:
      - 기본 딸기 토끼 및 모든 불러온 캐릭터의 귀, 딸기씨, 나뭇잎, 이목구비, 펜선은 그대로 보존되면서, **얼굴과 몸통, 배, 손 전체가 100% 뽀얗고 선명한 불투명 흰색으로 완벽 변환**됨! 무대 배경이 몸통을 뚫고 비치던 버그가 100% 영구 소멸됨.
+
+## Master Release v312.0.0 (2026-08-09) - ULTIMATE SILHOUETTE HULL WHITE FILL FIX (DEFAULT STRAWBERRY RABBIT & ALL CHARACTERS 100% OPAQUE WHITE)
+- **Version Checkpoint File**: `v312.0.0_SILHOUETTE_HULL_FILL_COMPLETE_FIX.html`
+- **기본 딸기 토끼 및 모든 캐릭터 투명 몸통 뚫림 완벽 100% 영구 해결**:
+  1. **원인 최종 규명**:
+     - 기존 기본 에셋 파일(`strawberry_rabbit_jelly.png`) 자체의 얼굴과 몸통 부분이 투명 PNG(Alpha = 0)로 그려져 있어, 알파 알파 체크(`alpha > 10`) 기반 마스킹이 얼굴과 몸통을 감지하지 못하고 소거하여 분홍색 무대 배경과 젤리가 몸통을 뚫고 훤히 보였음.
+  2. **`fillSilhouetteHullWithWhite` 실루엣 캡슐 전체 순백색 자동 채움 기술 도입**:
+     - 캐릭터의 행(Row)별 최좌측(`rowLeft[y]`)부터 최우측(`rowRight[y]`)까지의 실루엣 영역 전체를 **100% 불투명 순백색(`RGBA 255, 255, 255, 255`) 캡슐 캔버스**로 자동 채움.
+     - 원본 에셋이 아무리 투명 구멍을 포함하고 있더라도, 실루엣 전체에 순백색 베이스 캔버스가 합성되어 **얼굴, 이마, 볼, 몸통, 배, 손 전체가 100% 뽀얗고 또렷한 순백색으로 완전 보존**됨!
+  3. **결과**:
+     - 분홍색 무대 및 floating 데코 젤리가 토끼 몸통을 뚫고 비치는 현상 100% 완벽 해결!
