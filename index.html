@@ -3613,6 +3613,146 @@ function normalizeImageForKeycap(sourceCanvas, size = 512) {
 
 
 
+
+// =========================================================================
+// 🐰 SMART CONTOUR-BARRIER BACKGROUND REMOVAL (흰색 캐릭터 몸통 100% 보존 누끼 엔진)
+// =========================================================================
+function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
+    const imageData = context.getImageData(0, 0, width, height);
+    const pixels = imageData.data;
+    const size = width * height;
+    
+    // 1. 이미지 사방 4개 테두리 외각 배경색 정밀 샘플링
+    const borderColors = [];
+    const sampleStep = Math.max(4, Math.round(Math.min(width, height) / 32));
+    
+    function samplePixel(x, y) {
+        const idx = (y * width + x) * 4;
+        if (pixels[idx + 3] < 16) return;
+        borderColors.push([pixels[idx], pixels[idx + 1], pixels[idx + 2]]);
+    }
+    
+    for (let x = 0; x < width; x += sampleStep) {
+        samplePixel(x, 0);
+        samplePixel(x, height - 1);
+    }
+    for (let y = sampleStep; y < height - sampleStep; y += sampleStep) {
+        samplePixel(0, y);
+        samplePixel(width - 1, y);
+    }
+    
+    // 테두리 배경색과의 유사도 검사
+    function isSimilarToBorder(dataIndex) {
+        if (borderColors.length === 0) return true; // Default transparent padding
+        const r = pixels[dataIndex];
+        const g = pixels[dataIndex + 1];
+        const b = pixels[dataIndex + 2];
+        const tolSq = 55 * 55; // 흰색/밝은회색/크림색/종이 배경 범용 허용치
+        for (const [br, bg, bb] of borderColors) {
+            const dr = r - br;
+            const dg = g - bg;
+            const db = b - bb;
+            if (dr * dr + dg * dg + db * db <= tolSq) return true;
+        }
+        return false;
+    }
+    
+    // 2. 검은 윤곽선(Outline) 및 피사체 컬러 경계선에 불침투 장벽 생성 (2px 팽창)
+    const isBarrier = new Uint8Array(size);
+    const boundaryRadius = 2;
+    
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = y * width + x;
+            const dIdx = idx * 4;
+            const a = pixels[dIdx + 3];
+            if (a < 16) continue;
+            
+            const r = pixels[dIdx];
+            const g = pixels[dIdx + 1];
+            const b = pixels[dIdx + 2];
+            const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+            const maxDiff = Math.max(r, g, b) - Math.min(r, g, b);
+            
+            // 검은 선화 윤곽선(lum < 165) 또는 캐릭터 유색 컬러(maxDiff > 35)
+            if ((lum < 165 || maxDiff > 35) && !isSimilarToBorder(dIdx)) {
+                for (let dy = -boundaryRadius; dy <= boundaryRadius; dy++) {
+                    const by = y + dy;
+                    if (by < 0 || by >= height) continue;
+                    for (let dx = -boundaryRadius; dx <= boundaryRadius; dx++) {
+                        if (dx * dx + dy * dy > boundaryRadius * boundaryRadius) continue;
+                        const bx = x + dx;
+                        if (bx < 0 || bx >= width) continue;
+                        isBarrier[by * width + bx] = 1;
+                    }
+                }
+            }
+        }
+    }
+    
+    // 3. 오직 캔버스 4개 바깥 테두리에서만 플러드 필 시작 (캐릭터 내부 탐색 차단!)
+    const isOuterBg = new Uint8Array(size);
+    const queue = new Int32Array(size);
+    let head = 0, tail = 0;
+    
+    function enqueueOuter(idx) {
+        if (isOuterBg[idx] || isBarrier[idx]) return;
+        const dIdx = idx * 4;
+        const a = pixels[dIdx + 3];
+        if (a < 16 || isSimilarToBorder(dIdx)) {
+            isOuterBg[idx] = 1;
+            queue[tail++] = idx;
+        }
+    }
+    
+    for (let x = 0; x < width; x++) {
+        enqueueOuter(x);
+        enqueueOuter((height - 1) * width + x);
+    }
+    for (let y = 0; y < height; y++) {
+        enqueueOuter(y * width);
+        enqueueOuter(y * width + width - 1);
+    }
+    
+    // 8-방향 대각선 BFS 플러드 필
+    while (head < tail) {
+        const pIdx = queue[head++];
+        const x = pIdx % width;
+        const y = Math.floor(pIdx / width);
+        
+        const neighbors = [
+            x > 0 ? pIdx - 1 : -1,
+            x + 1 < width ? pIdx + 1 : -1,
+            y > 0 ? pIdx - width : -1,
+            y + 1 < height ? pIdx + width : -1,
+            (x > 0 && y > 0) ? pIdx - width - 1 : -1,
+            (x + 1 < width && y > 0) ? pIdx - width + 1 : -1,
+            (x > 0 && y + 1 < height) ? pIdx + width - 1 : -1,
+            (x + 1 < width && y + 1 < height) ? pIdx + width + 1 : -1
+        ];
+        
+        for (const nIdx of neighbors) {
+            if (nIdx >= 0 && !isOuterBg[nIdx] && !isBarrier[nIdx]) {
+                const dIdx = nIdx * 4;
+                if (pixels[dIdx + 3] < 16 || isSimilarToBorder(dIdx)) {
+                    isOuterBg[nIdx] = 1;
+                    queue[tail++] = nIdx;
+                }
+            }
+        }
+    }
+    
+    // 4. 오직 바깥쪽 연결 배경만 투명화; 캐릭터 내부 흰색/크림색 몸통은 100% 선명하게 보존!
+    for (let i = 0; i < size; i++) {
+        if (isOuterBg[i]) {
+            pixels[i * 4 + 3] = 0;
+        }
+    }
+    
+    context.putImageData(imageData, 0, 0);
+}
+
+
 function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
             try {
                 const size = 512;
@@ -3705,7 +3845,7 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                     const c4Alpha = pixels[(iB * size + iR) * 4 + 3];
 
                     // Apply Keycap Lab's proven background removal engine on all imported images!
-                    removeConnectedWhiteBackground(imgCtx, size, size);
+                    smartRemoveBackgroundKeepSubjectWhite(imgCtx, size, size);
 
                     // Normalize & Auto-Center subject
                     const normalizedCanvas = normalizeImageForKeycap(imgCanvas, size);

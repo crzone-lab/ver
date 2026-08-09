@@ -2321,3 +2321,14 @@
      - 캔버스 모서리 투명도 조기 스킵(`isAlreadyTransparent`) 오작동 버그를 철거하고, 색상 오차 허용치(`toleranceSquared = 65 * 65`)를 대폭 상향하여 분홍색/크림색/연회색 등 불러온 사진 속 다양한 바닥 배경까지 100% 깔끔하게 제거.
   3. **불러온 사용자 그림 발사 속도 조율 (Moderate Pull Velocity)**:
      - 불러온 맞춤형 이미지 캐릭터를 당겼다 놓을 때 발사 속도가 너무 빠르던 현상을 부드럽고 묵직한 젤리 속도(`jellyCruiseSpeed * 0.45`, 최대 2.0)로 감속 조정.
+
+## Master Release v307.0.0 (2026-08-09) - SMART CONTOUR-BARRIER NUKKI ENGINE (WHITE RABBIT/SUBJECT BODY 100% OPAQUE PRESERVATION)
+- **Version Checkpoint File**: `v307.0.0_WHITE_SUBJECT_BODY_PROTECTION_NUKKI.html`
+- **흰색 토끼/고양이/피사체 몸통 투명화 현상 100% 완전 방지 스마트 누끼 엔진 개발**:
+  1. **윤곽선(Outline) 불침투 다일레이션 장벽 생성 (`isBarrier` & `boundaryRadius = 2`)**:
+     - 검은 선화 윤곽선(lum < 165) 또는 캐릭터 유색 컬러 경계에 2px 팽창 불침투 장벽을 생성하여, 2D/3D 손그림의 윤곽선을 탐색 차단벽으로 지정.
+  2. **오직 캔버스 4개 바깥 테두리에서만 외각 플러드 필 진입 (`smartRemoveBackgroundKeepSubjectWhite`)**:
+     - 기존에 단순 흰색(RGB 210 이상)이라는 이유만으로 피사체 내부까지 투명하게 만들던 구형 방식을 완전히 폐기.
+     - 오직 캔버스의 바깥쪽 4개 테두리에 직접 연결된 외각 배경만 탐색하여 제거하고, **윤곽선 내부의 흰색 토끼 몸통, 흰 배, 흰 눈, 흰 이빨은 100% 불투명(Opaque White)으로 완벽 보존**.
+  3. **분홍색/유색 무대 위에서도 흰색 캐릭터 몸통이 100% 선명하고 꽉 차게 유지됨**:
+     - 첨부해 주신 스크린샷의 흰색 토끼 젤리처럼 배경이 비쳐 뚫려 보이던 문제를 100% 완벽 해결.
