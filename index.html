@@ -4824,10 +4824,15 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                     } else if (currentMode === 'jelly' || currentMode === 'billiards') {
                         // [탱글젤리 릴리즈]: 당겼다 놓으면 느린 속도로 떠돌다 벽에 튕기고 원래 자리로 복귀!
                         if (jellyIsFlying) {
-                            // 1. 위치 및 천천히 지속되는 회전 갱신
+                            // 1. 위치 및 감속 공기저항(Friction Drag) 적용 (갈수록 힘이 빠져서 속도가 늦춰짐!)
                             jellyCenterX += jellyFlightVx;
                             jellyCenterY += jellyFlightVy;
                             jellyRotation += jellySpinSpeed;
+                            
+                            // 매 프레임 감속 Drag 적용 (속도 감쇄)
+                            jellyFlightVx *= 0.988;
+                            jellyFlightVy *= 0.988;
+                            jellySpinSpeed *= 0.985;
 
                             let centerOx = width * 0.5;
                             let centerOy = height * 0.48;
@@ -4869,7 +4874,7 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                             let shapeAngleShift = Math.sin(jellyRotation * 2.0) * 0.28; // 귀/머리/몸통 부딪힘 부위에 따른 반사 각도 변화
                             if (jellyCenterX <= minCX) {
                                 jellyCenterX = minCX;
-                                jellyFlightVx = Math.abs(jellyFlightVx) * 0.95;
+                                jellyFlightVx = Math.abs(jellyFlightVx) * 0.88;
                                 jellyFlightVy += jellyFlightVx * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 각도 변형
                                 jellySpinSpeed = -jellySpinSpeed * 0.85 + (jellyFlightVy * 0.005);
                                 hitWall = true;
@@ -4963,6 +4968,7 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                                     jellyIsFlying = false;
                                     jellyBounceCount = 0;
                                     currentLaunchBounceCount = 0;
+                                    if (typeof respawnAnimProgress !== 'undefined') respawnAnimProgress = 0.0; // 3~4번 천천히 튕기고 떨면서 정지 트리거!
                                     releaseTime = 999;
                                     if (points) {
                                         for (let i = 0; i < points.length; i++) {
@@ -4998,19 +5004,17 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                             let respawnTrembleY = 0;
 
                             if (respawnAnimProgress < 1.0) {
-                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.038);
+                                respawnAnimProgress = Math.min(1.0, respawnAnimProgress + 0.012); // ~1.8초간 3~4번 여유롭고 부드럽게 튕김!
                                 let progress = respawnAnimProgress;
-                                let env = Math.exp(-progress * 3.8); // 감쇄 포용선
+                                let env = Math.exp(-progress * 2.8); // 부드러운 감쇄 포용선
                                 
-                                // 1. 통~통 튕기는 고무 탄성 파동 (Squash-and-Stretch Wave)
-                                let bounceWave = Math.sin(progress * Math.PI * 5.0) * env;
-                                let basePop = (1.0 - env) + bounceWave * 0.35;
-                                
-                                respawnScaleX = basePop * (1.0 + bounceWave * 0.30);
-                                respawnScaleY = basePop * (1.0 - bounceWave * 0.30);
+                                // 3~4번 천천히 튕기는 고무 탄성 파동 (Slow 3~4 Spring Bounces: cos(7.0 * PI * progress))
+                                let bounceWave = Math.cos(progress * Math.PI * 7.0) * env * 0.32;
+                                respawnScaleX = (1.0 - env * 0.1) + bounceWave;
+                                respawnScaleY = (1.0 - env * 0.1) - bounceWave;
 
-                                // 2. 떨면서 정지하는 젤리 고주파 부르르 파동 (Tremble to Rest)
-                                let trembleIntensity = Math.sin(progress * Math.PI * 16.0) * env * 6.5;
+                                // 유연하게 떨면서 정지하는 젤리 잔여 진동 파동 (Tremble to Rest)
+                                let trembleIntensity = Math.sin(progress * Math.PI * 14.0) * env * 8.0;
                                 respawnTrembleX = (Math.random() - 0.5) * trembleIntensity;
                                 respawnTrembleY = (Math.random() - 0.5) * trembleIntensity;
                             }
