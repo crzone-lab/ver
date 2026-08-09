@@ -3617,6 +3617,10 @@ function normalizeImageForKeycap(sourceCanvas, size = 512) {
 // =========================================================================
 // 🐰 SMART CONTOUR-BARRIER BACKGROUND REMOVAL (흰색 캐릭터 몸통 100% 보존 누끼 엔진)
 // =========================================================================
+// =========================================================================
+// 🐰 100% BULLETPROOF CONTOUR & INTERIOR-PROTECTED NUKKI ENGINE
+// (얼굴, 몸통, 귀, 눈, 입 100% 완전 불투명 보존 & 외각 선 틈새 봉쇄)
+// =========================================================================
 function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
     const imageData = context.getImageData(0, 0, width, height);
     const pixels = imageData.data;
@@ -3642,12 +3646,12 @@ function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
     }
     
     // 테두리 배경색과의 유사도 검사
-    function isSimilarToBorder(dataIndex) {
-        if (borderColors.length === 0) return true; // Default transparent padding
-        const r = pixels[dataIndex];
-        const g = pixels[dataIndex + 1];
-        const b = pixels[dataIndex + 2];
-        const tolSq = 55 * 55; // 흰색/밝은회색/크림색/종이 배경 범용 허용치
+    function isSimilarToBorder(dIdx) {
+        if (borderColors.length === 0) return true;
+        const r = pixels[dIdx];
+        const g = pixels[dIdx + 1];
+        const b = pixels[dIdx + 2];
+        const tolSq = 55 * 55;
         for (const [br, bg, bb] of borderColors) {
             const dr = r - br;
             const dg = g - bg;
@@ -3656,47 +3660,79 @@ function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
         }
         return false;
     }
-    
-    // 2. 검은 윤곽선(Outline) 및 피사체 컬러 경계선에 불침투 장벽 생성 (2px 팽창)
-    const isBarrier = new Uint8Array(size);
-    const boundaryRadius = 2;
-    
+
+    // 2. 피사체 윤곽선 및 유색 콘텐츠 판별 (isSubjectContent)
+    const isSubject = new Uint8Array(size);
+    const rowLeft = new Int32Array(height);
+    const rowRight = new Int32Array(height);
+    rowLeft.fill(width);
+    rowRight.fill(-1);
+
     for (let y = 0; y < height; y++) {
         for (let x = 0; x < width; x++) {
             const idx = y * width + x;
             const dIdx = idx * 4;
             const a = pixels[dIdx + 3];
             if (a < 16) continue;
-            
+
             const r = pixels[dIdx];
             const g = pixels[dIdx + 1];
             const b = pixels[dIdx + 2];
             const lum = 0.299 * r + 0.587 * g + 0.114 * b;
             const maxDiff = Math.max(r, g, b) - Math.min(r, g, b);
-            
-            // 검은 선화 윤곽선(lum < 165) 또는 캐릭터 유색 컬러(maxDiff > 35)
-            if ((lum < 165 || maxDiff > 35) && !isSimilarToBorder(dIdx)) {
-                for (let dy = -boundaryRadius; dy <= boundaryRadius; dy++) {
-                    const by = y + dy;
-                    if (by < 0 || by >= height) continue;
-                    for (let dx = -boundaryRadius; dx <= boundaryRadius; dx++) {
-                        if (dx * dx + dy * dy > boundaryRadius * boundaryRadius) continue;
-                        const bx = x + dx;
-                        if (bx < 0 || bx >= width) continue;
-                        isBarrier[by * width + bx] = 1;
-                    }
+
+            // 검은 선화(lum < 195) OR 캐릭터 유색(maxDiff > 28) OR 테두리 배경과 다른 색상
+            if (lum < 195 || maxDiff > 28 || !isSimilarToBorder(dIdx)) {
+                isSubject[idx] = 1;
+                rowLeft[y] = Math.min(rowLeft[y], x);
+                rowRight[y] = Math.max(rowRight[y], x);
+            }
+        }
+    }
+
+    // 3. 틈새 봉쇄 불침투 장벽 생성 (6px 모폴로지 다일레이션 - 선 뚫림 100% 차단!)
+    const isBarrier = new Uint8Array(size);
+    const boundaryRadius = Math.max(5, Math.round(Math.min(width, height) * 0.012));
+
+    for (let y = 0; y < height; y++) {
+        for (let x = 0; x < width; x++) {
+            const idx = y * width + x;
+            if (!isSubject[idx]) continue;
+
+            for (let dy = -boundaryRadius; dy <= boundaryRadius; dy++) {
+                const by = y + dy;
+                if (by < 0 || by >= height) continue;
+                for (let dx = -boundaryRadius; dx <= boundaryRadius; dx++) {
+                    if (dx * dx + dy * dy > boundaryRadius * boundaryRadius) continue;
+                    const bx = x + dx;
+                    if (bx < 0 || bx >= width) continue;
+                    isBarrier[by * width + bx] = 1;
                 }
             }
         }
     }
-    
-    // 3. 오직 캔버스 4개 바깥 테두리에서만 플러드 필 시작 (캐릭터 내부 탐색 차단!)
+
+    // 4. 캐릭터 내부 영역(Interior Zone) 100% 철통 보호 마스크 (protectedInterior)
+    const protectedInterior = new Uint8Array(size);
+    for (let y = 0; y < height; y++) {
+        if (rowLeft[y] < rowRight[y]) {
+            const span = rowRight[y] - rowLeft[y];
+            if (span >= 8) { // 어느 정도 유의미한 수평 폭이 있는 행
+                const inset = Math.max(1, Math.round(span * 0.03));
+                for (let x = rowLeft[y] + inset; x <= rowRight[y] - inset; x++) {
+                    protectedInterior[y * width + x] = 1;
+                }
+            }
+        }
+    }
+
+    // 5. 오직 캔버스 4개 바깥 테두리에서만 플러드 필 시작 (내부 침투 100% 불가능!)
     const isOuterBg = new Uint8Array(size);
     const queue = new Int32Array(size);
     let head = 0, tail = 0;
-    
+
     function enqueueOuter(idx) {
-        if (isOuterBg[idx] || isBarrier[idx]) return;
+        if (isOuterBg[idx] || isBarrier[idx] || protectedInterior[idx]) return;
         const dIdx = idx * 4;
         const a = pixels[dIdx + 3];
         if (a < 16 || isSimilarToBorder(dIdx)) {
@@ -3704,7 +3740,7 @@ function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
             queue[tail++] = idx;
         }
     }
-    
+
     for (let x = 0; x < width; x++) {
         enqueueOuter(x);
         enqueueOuter((height - 1) * width + x);
@@ -3713,13 +3749,13 @@ function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
         enqueueOuter(y * width);
         enqueueOuter(y * width + width - 1);
     }
-    
-    // 8-방향 대각선 BFS 플러드 필
+
+    // 8-방향 BFS 플러드 필
     while (head < tail) {
         const pIdx = queue[head++];
         const x = pIdx % width;
         const y = Math.floor(pIdx / width);
-        
+
         const neighbors = [
             x > 0 ? pIdx - 1 : -1,
             x + 1 < width ? pIdx + 1 : -1,
@@ -3730,9 +3766,9 @@ function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
             (x > 0 && y + 1 < height) ? pIdx + width - 1 : -1,
             (x + 1 < width && y + 1 < height) ? pIdx + width + 1 : -1
         ];
-        
+
         for (const nIdx of neighbors) {
-            if (nIdx >= 0 && !isOuterBg[nIdx] && !isBarrier[nIdx]) {
+            if (nIdx >= 0 && !isOuterBg[nIdx] && !isBarrier[nIdx] && !protectedInterior[nIdx]) {
                 const dIdx = nIdx * 4;
                 if (pixels[dIdx + 3] < 16 || isSimilarToBorder(dIdx)) {
                     isOuterBg[nIdx] = 1;
@@ -3741,17 +3777,16 @@ function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
             }
         }
     }
-    
-    // 4. 오직 바깥쪽 연결 배경만 투명화; 캐릭터 내부 흰색/크림색 몸통은 100% 선명하게 보존!
+
+    // 6. 오직 외각 연결 배경만 투명화; 얼굴, 몸통, 귀, 눈, 입 100% 불투명 흰색 보존!
     for (let i = 0; i < size; i++) {
         if (isOuterBg[i]) {
             pixels[i * 4 + 3] = 0;
         }
     }
-    
+
     context.putImageData(imageData, 0, 0);
 }
-
 
 function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
             try {

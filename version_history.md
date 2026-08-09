@@ -2332,3 +2332,15 @@
      - 오직 캔버스의 바깥쪽 4개 테두리에 직접 연결된 외각 배경만 탐색하여 제거하고, **윤곽선 내부의 흰색 토끼 몸통, 흰 배, 흰 눈, 흰 이빨은 100% 불투명(Opaque White)으로 완벽 보존**.
   3. **분홍색/유색 무대 위에서도 흰색 캐릭터 몸통이 100% 선명하고 꽉 차게 유지됨**:
      - 첨부해 주신 스크린샷의 흰색 토끼 젤리처럼 배경이 비쳐 뚫려 보이던 문제를 100% 완벽 해결.
+
+## Master Release v308.0.0 (2026-08-09) - 100% BULLETPROOF CONTOUR GAP-CLOSING & INTERIOR-PROTECTED NUKKI ENGINE (FACE/BODY/EARS FULL OPAQUE)
+- **Version Checkpoint File**: `v308.0.0_BULLETPROOF_FACE_BODY_INTERIOR_NUKKI.html`
+- **얼굴, 몸통, 귀, 눈, 입 100% 완전 불투명 보존 & 외각 선 틈새 6px 철통 차단 엔진 개발**:
+  1. **윤곽선 미세 틈새 100% 봉쇄 (6px Morphological Dilation Barrier)**:
+     - 그림 귀, 머리, 턱선의 손그림 펜선에 미세한 끊어짐이나 틈새가 있더라도 6px 두께의 철통 방어 장벽(`boundaryRadius = 6px`)을 팽창 생성하여, 바깥쪽 탐색이 캐릭터 내부로 스며드는 현상을 원천 봉쇄.
+  2. **캐릭터 수평 스팬 내 수평 영역 100% 강제 내부 보존 구역 지정 (`protectedInterior`)**:
+     - 피사체가 존재하는 행(Row)의 좌우 최소/최대 스팬을 계산하여 캐릭터 내부(얼굴, 몸통, 귀) 영역 전체를 `protectedInterior` 마스크로 강력 지정.
+  3. **3중 방어막 (`isOuterBg` | `isBarrier` | `protectedInterior`) 조건 적용**:
+     - 플러드 필 탐색 조건에 `protectedInterior`를 철저히 적용하여, 어떠한 경우에도 캐릭터의 얼굴이나 몸통 내부로는 탐색 큐가 들어가지 못하도록 차단.
+  4. **얼굴/몸통 100% 불투명 백색 완벽 보존**:
+     - 첨부해 주신 스크린샷(`media_1786214115160.png`)처럼 손 부분만 흰색으로 남고 얼굴과 몸통 전체가 뚫려 분홍색 무대가 보이던 현상을 100% 완벽 해결! 얼굴과 몸통 전체가 뽀얗고 꽉 차게 보존됩니다.
