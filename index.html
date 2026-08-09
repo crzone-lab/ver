@@ -2615,6 +2615,32 @@
         let activeTornHole = null;
         let popFlashEffect = null;
 
+        // 🟢 [Jelly Pop Swelling Tone]: 부풀어오를 때 톤이 점점 올라가는 영롱한 팽창음
+        function playInflateTone(progressRatio) {
+            if (!isSoundEnabled) return;
+            try {
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                let now = audioCtx.currentTime;
+                
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                osc.type = 'sine';
+                let startFreq = 220 + (progressRatio || 0) * 450;
+                osc.frequency.setValueAtTime(startFreq, now);
+                osc.frequency.exponentialRampToValueAtTime(startFreq + 65, now + 0.08);
+                
+                gain.gain.setValueAtTime(0.22, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.08);
+            } catch (e) {}
+        }
+
+        // 🟢 [Jelly Pop Burst Sound]: 팡! 하고 터질 때 영롱하고 시원한 폭발 효과음
         function playPopSound() {
             if (!isSoundEnabled) return;
             try {
@@ -2622,38 +2648,55 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
+                // 1. Crisp Triangle Pop Pitch Drop (780Hz -> 120Hz)
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(680, now);
-                osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+                osc.frequency.setValueAtTime(780, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.15);
 
-                gain.gain.setValueAtTime(0.38, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                gain.gain.setValueAtTime(0.45, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
 
                 osc.connect(gain);
                 gain.connect(audioCtx.destination);
                 osc.start(now);
-                osc.stop(now + 0.14);
+                osc.stop(now + 0.15);
 
-                let bufferSize = audioCtx.sampleRate * 0.08;
+                // 2. Juicy Sine Thump Body (280Hz -> 60Hz)
+                let bodyOsc = audioCtx.createOscillator();
+                let bodyGain = audioCtx.createGain();
+                bodyOsc.type = 'sine';
+                bodyOsc.frequency.setValueAtTime(280, now);
+                bodyOsc.frequency.exponentialRampToValueAtTime(60, now + 0.18);
+                bodyGain.gain.setValueAtTime(0.35, now);
+                bodyGain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+
+                bodyOsc.connect(bodyGain);
+                bodyGain.connect(audioCtx.destination);
+                bodyOsc.start(now);
+                bodyOsc.stop(now + 0.18);
+
+                // 3. Crisp Noise Burst Snap (Liquid Pop Splash)
+                let bufferSize = Math.floor(audioCtx.sampleRate * 0.09);
                 let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
                 let data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) {
-                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.25));
+                    data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.22));
                 }
                 let noise = audioCtx.createBufferSource();
                 noise.buffer = buffer;
                 let nGain = audioCtx.createGain();
-                nGain.gain.setValueAtTime(0.28, now);
-                nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                nGain.gain.setValueAtTime(0.32, now);
+                nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+
                 noise.connect(nGain);
                 nGain.connect(audioCtx.destination);
                 noise.start(now);
             } catch (e) {}
         }
 
-        function activateNearbyControlPoints(clickX, clickY) {
+function activateNearbyControlPoints(clickX, clickY) {
             activeRBFs = [];
             activeTornHole = null;
             popFlashEffect = null;
@@ -5183,10 +5226,17 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
 
                     if (mainRBF && !mainPopped) {
                         if (isTouching) {
-                            // 화면/터치를 누르고 있는 동안 잔잔하고 천천히(+0.25px/frame) 팽창!
-                            mainRBF.currentRadius += 0.25;
+                            // 화면/터치를 누르고 있는 동안 잔잔하고 천천히(+0.28px/frame) 팽창!
+                            mainRBF.currentRadius += 0.28;
+                            let swellRatio = Math.min(1.0, mainRBF.currentRadius / (mainRBF.burstThreshold || 100));
 
-                            // 메인 방울 한계 크기 도달 시 팡! 터짐
+                            // 6프레임마다 팽창음(playInflateTone) 주기적 발동!
+                            swellSoundTimer = (typeof swellSoundTimer !== 'undefined' ? swellSoundTimer : 0) + 1;
+                            if (swellSoundTimer % 6 === 0) {
+                                playInflateTone(swellRatio);
+                            }
+
+                            // 메인 방울 한계 크기 도달 시 팡! 터짐 효과음 & 파편 폭발
                             if (mainRBF.currentRadius >= mainRBF.burstThreshold) {
                                 triggerMainPopWithTear(mainRBF);
                             }
