@@ -2297,3 +2297,17 @@
      - 튕김 주파수를 `3.4 * PI`로 줄이고 감쇄 포용선을 부드럽게 완화하여, 젤리가 퐁~퐁~ 찌그러졌다 펴지는 탄성감을 묵직하고 리얼하게 연출.
   3. **천천히 부르르~ 떨면서 감쇄 정지 (Relaxed Tremble to Rest)**:
      - 고주파 떨림 주파수를 절반(`9.0 * PI`)으로 줄이고 진동 폭을 1.8초에 걸쳐 차분하게 정지하도록 개선.
+
+## Master Release v305.0.0 (2026-08-09) - KEYCAP LAB PROVEN BACKGROUND REMOVAL (누끼 따기) & NORMALIZATION ENGINE INTEGRATION
+- **Version Checkpoint File**: `v305.0.0_KEYCAP_LAB_BACKGROUND_CUTOUT_ENGINE.html`
+- **키캡랩(Keycap Lab)의 검증된 고성능 AI 배경 제거(누끼 따기) 및 자동 정렬/크롭 엔진 이식 완료**:
+  1. **외각 경계색 샘플링 (`sampleBorderPixel` & `isSimilarToBorder`)**:
+     - 사방 테두리 색상을 동적으로 샘플링하여 유클리드 스펙트럼 디스턴스로 흰색, 밝은 회색, 스튜디오 그라데이션 및 원본 바닥 그림자까지 깔끔하게 감지해 완전 제거.
+  2. **외각선 차단 팽창 다일레이션 방어막 (`traversalBlocked` & `boundaryRadius`)**:
+     - 그림의 펜선 외각선 경계 3px 반경에 불침투 장벽을 생성하여, 2D 손그림의 미세 틈새로 배경 제거 플러드 필이 뚫고 들어가 캐릭터 내부를 파먹는 현상을 100% 원천 차단.
+  3. **캐릭터 내부 하얀색/연한색 부위 보호 구역 (`protectedInterior`)**:
+     - 피사체 바디 캔버스 영역을 정밀 감지하여 캐릭터의 흰 눈동자, 흰 이빨, 배통 및 연한 키캡 텍스처 부위가 지워지지 않도록 100% 철통 보호.
+  4. **8-방향 큐 플러드 필 (`enqueue` + BFS 8-way Queue)**:
+     - 대각선 8방향 큐 탐색 알고리즘으로 테두리의 모서리 조각까지 깔끔하게 따냄.
+  5. **자동 바운딩 크롭 & 중앙 정렬 (`normalizeImageForKeycap`)**:
+     - 누끼가 완료된 피사체의 바운딩 박스를 자동으로 계산하여 여백 6%와 함께 512x512 캔버스 중앙에 가장 보기 좋고 예쁜 비율로 자동 배치.

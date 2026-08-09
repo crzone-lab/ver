@@ -3324,7 +3324,296 @@
             img.src = imgSrc;
         }
 
-        function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
+        
+// =========================================================================
+// 🎨 KEYCAP LAB PROVEN BACKGROUND REMOVAL (누끼 따기) & NORMALIZATION ENGINE
+// =========================================================================
+function removeConnectedWhiteBackground(context, width, height) {
+  const imageData = context.getImageData(0, 0, width, height);
+  const pixels = imageData.data;
+  const visited = new Uint8Array(width * height);
+  const traversalBlocked = new Uint8Array(width * height);
+  const protectedInterior = new Uint8Array(width * height);
+  const queue = new Int32Array(width * height);
+  let head = 0;
+  let tail = 0;
+
+  const borderColors = [];
+  function sampleBorderPixel(x, y) {
+    const dataIndex = (y * width + x) * 4;
+    if (pixels[dataIndex + 3] < 16) return;
+    borderColors.push([pixels[dataIndex], pixels[dataIndex + 1], pixels[dataIndex + 2]]);
+  }
+
+  const sampleStep = Math.max(6, Math.round(Math.min(width, height) / 24));
+  for (let x = 0; x < width; x += sampleStep) {
+    sampleBorderPixel(x, 0);
+    sampleBorderPixel(x, height - 1);
+  }
+  for (let y = sampleStep; y < height - sampleStep; y += sampleStep) {
+    sampleBorderPixel(0, y);
+    sampleBorderPixel(width - 1, y);
+  }
+
+  function isSimilarToBorder(dataIndex) {
+    const red = pixels[dataIndex];
+    const green = pixels[dataIndex + 1];
+    const blue = pixels[dataIndex + 2];
+    const toleranceSquared = 36 * 36;
+    return borderColors.some(([borderRed, borderGreen, borderBlue]) => {
+      const redDifference = red - borderRed;
+      const greenDifference = green - borderGreen;
+      const blueDifference = blue - borderBlue;
+      return redDifference * redDifference
+        + greenDifference * greenDifference
+        + blueDifference * blueDifference <= toleranceSquared;
+    });
+  }
+
+  function isBrightNeutral(dataIndex) {
+    const red = pixels[dataIndex];
+    const green = pixels[dataIndex + 1];
+    const blue = pixels[dataIndex + 2];
+    const minimum = Math.min(red, green, blue);
+    const maximum = Math.max(red, green, blue);
+    return minimum >= 210 && maximum - minimum <= 38;
+  }
+
+  function isOutlineOrColored(dataIndex) {
+    if (pixels[dataIndex + 3] < 16) return false;
+    if (isSimilarToBorder(dataIndex)) return false;
+    const red = pixels[dataIndex];
+    const green = pixels[dataIndex + 1];
+    const blue = pixels[dataIndex + 2];
+    const minimum = Math.min(red, green, blue);
+    const maximum = Math.max(red, green, blue);
+    return minimum < 185 || maximum - minimum > 45;
+  }
+
+  const boundaryRadius = Math.max(3, Math.round(Math.min(width, height) * 0.008));
+  const rowLeft = new Int32Array(height);
+  const rowRight = new Int32Array(height);
+  const rowSpan = new Int32Array(height);
+  rowLeft.fill(width);
+  rowRight.fill(-1);
+  let widestSpan = 0;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const pixelIndex = y * width + x;
+      const dataIndex = pixelIndex * 4;
+      if (!isOutlineOrColored(dataIndex)) continue;
+      rowLeft[y] = Math.min(rowLeft[y], x);
+      rowRight[y] = Math.max(rowRight[y], x);
+      for (let offsetY = -boundaryRadius; offsetY <= boundaryRadius; offsetY += 1) {
+        const blockedY = y + offsetY;
+        if (blockedY < 0 || blockedY >= height) continue;
+        for (let offsetX = -boundaryRadius; offsetX <= boundaryRadius; offsetX += 1) {
+          if (offsetX * offsetX + offsetY * offsetY > boundaryRadius * boundaryRadius) continue;
+          const blockedX = x + offsetX;
+          if (blockedX < 0 || blockedX >= width) continue;
+          traversalBlocked[blockedY * width + blockedX] = 1;
+        }
+      }
+    }
+    rowSpan[y] = Math.max(0, rowRight[y] - rowLeft[y]);
+    widestSpan = Math.max(widestSpan, rowSpan[y]);
+  }
+
+  let bodyTop = -1;
+  for (let y = 0; y < height - 4; y += 1) {
+    let broadRowCount = 0;
+    for (let offset = 0; offset < 5; offset += 1) {
+      if (rowSpan[y + offset] >= widestSpan * 0.68) broadRowCount += 1;
+    }
+    if (broadRowCount === 5) {
+      bodyTop = y;
+      break;
+    }
+  }
+
+  if (bodyTop >= 0) {
+    for (let y = bodyTop; y < height; y += 1) {
+      if (rowSpan[y] < widestSpan * 0.26) continue;
+      const inset = Math.max(1, Math.round(width * 0.002));
+      for (let x = rowLeft[y] + inset; x <= rowRight[y] - inset; x += 1) {
+        protectedInterior[y * width + x] = 1;
+      }
+    }
+  }
+
+  function enqueue(pixelIndex) {
+    if (visited[pixelIndex] || traversalBlocked[pixelIndex] || protectedInterior[pixelIndex]) return;
+    const dataIndex = pixelIndex * 4;
+    const alpha = pixels[dataIndex + 3];
+    const isTransparentOutside = alpha < 16;
+    const isBrightNeutralBackground = isBrightNeutral(dataIndex);
+    const isConnectedBorderBackground = isSimilarToBorder(dataIndex);
+    if (!isTransparentOutside && !isBrightNeutralBackground && !isConnectedBorderBackground) return;
+    visited[pixelIndex] = 1;
+    queue[tail] = pixelIndex;
+    tail += 1;
+  }
+
+  for (let x = 0; x < width; x += 1) {
+    enqueue(x);
+    enqueue((height - 1) * width + x);
+  }
+  for (let y = 0; y < height; y += 1) {
+    enqueue(y * width);
+    enqueue(y * width + width - 1);
+  }
+
+  while (head < tail) {
+    const pixelIndex = queue[head];
+    head += 1;
+    const x = pixelIndex % width;
+    const y = Math.floor(pixelIndex / width);
+    pixels[pixelIndex * 4 + 3] = 0;
+    if (x > 0) enqueue(pixelIndex - 1);
+    if (x + 1 < width) enqueue(pixelIndex + 1);
+    if (y > 0) enqueue(pixelIndex - width);
+    if (y + 1 < height) enqueue(pixelIndex + width);
+    if (x > 0 && y > 0) enqueue(pixelIndex - width - 1);
+    if (x + 1 < width && y > 0) enqueue(pixelIndex - width + 1);
+    if (x > 0 && y + 1 < height) enqueue(pixelIndex + width - 1);
+    if (x + 1 < width && y + 1 < height) enqueue(pixelIndex + width + 1);
+  }
+
+  context.putImageData(imageData, 0, 0);
+}
+
+function removeCameraPhotoBackground(context, width, height) {
+  const imageData = context.getImageData(0, 0, width, height);
+  const pixels = imageData.data;
+  const visited = new Uint8Array(width * height);
+  const queue = new Int32Array(width * height);
+  const borderColors = [];
+  let head = 0;
+  let tail = 0;
+
+  function samplePixel(x, y) {
+    const dataIndex = (y * width + x) * 4;
+    borderColors.push([pixels[dataIndex], pixels[dataIndex + 1], pixels[dataIndex + 2]]);
+  }
+
+  const sampleStep = Math.max(8, Math.round(Math.min(width, height) / 16));
+  for (let x = 0; x < width; x += sampleStep) {
+    samplePixel(x, 0);
+    samplePixel(x, height - 1);
+  }
+  for (let y = sampleStep; y < height - sampleStep; y += sampleStep) {
+    samplePixel(0, y);
+    samplePixel(width - 1, y);
+  }
+
+  function isSimilarToBorder(dataIndex) {
+    const red = pixels[dataIndex];
+    const green = pixels[dataIndex + 1];
+    const blue = pixels[dataIndex + 2];
+    const toleranceSquared = 30 * 30;
+    for (const color of borderColors) {
+      const redDelta = red - color[0];
+      const greenDelta = green - color[1];
+      const blueDelta = blue - color[2];
+      const distanceSquared = redDelta * redDelta + greenDelta * greenDelta + blueDelta * blueDelta;
+      if (distanceSquared <= toleranceSquared) return true;
+    }
+    return false;
+  }
+
+  function enqueue(pixelIndex) {
+    if (visited[pixelIndex]) return;
+    const dataIndex = pixelIndex * 4;
+    if (pixels[dataIndex + 3] >= 16 && !isSimilarToBorder(dataIndex)) return;
+    visited[pixelIndex] = 1;
+    queue[tail] = pixelIndex;
+    tail += 1;
+  }
+
+  for (let x = 0; x < width; x += 1) {
+    enqueue(x);
+    enqueue((height - 1) * width + x);
+  }
+  for (let y = 0; y < height; y += 1) {
+    enqueue(y * width);
+    enqueue(y * width + width - 1);
+  }
+
+  while (head < tail) {
+    const pixelIndex = queue[head];
+    head += 1;
+    const x = pixelIndex % width;
+    const y = Math.floor(pixelIndex / width);
+    pixels[pixelIndex * 4 + 3] = 0;
+    if (x > 0) enqueue(pixelIndex - 1);
+    if (x + 1 < width) enqueue(pixelIndex + 1);
+    if (y > 0) enqueue(pixelIndex - width);
+    if (y + 1 < height) enqueue(pixelIndex + width);
+  }
+
+  const centerX = width * 0.5;
+  const centerY = height * 0.49;
+  const radiusX = width * 0.48;
+  const radiusY = height * 0.5;
+  for (let y = 0; y < height; y += 1) {
+    for (let x = 0; x < width; x += 1) {
+      const normalizedX = (x - centerX) / radiusX;
+      const normalizedY = (y - centerY) / radiusY;
+      const distance = Math.sqrt(normalizedX * normalizedX + normalizedY * normalizedY);
+      if (distance <= 0.88) continue;
+      const dataIndex = (y * width + x) * 4;
+      const feather = Math.max(0, Math.min(1, (1 - distance) / 0.12));
+      pixels[dataIndex + 3] = Math.round(pixels[dataIndex + 3] * feather);
+    }
+  }
+
+  context.putImageData(imageData, 0, 0);
+}
+
+
+
+function normalizeImageForKeycap(sourceCanvas, size = 512) {
+  const sourceContext = sourceCanvas.getContext("2d");
+  const pixels = sourceContext.getImageData(0, 0, sourceCanvas.width, sourceCanvas.height).data;
+  let left = sourceCanvas.width;
+  let top = sourceCanvas.height;
+  let right = -1;
+  let bottom = -1;
+
+  for (let y = 0; y < sourceCanvas.height; y += 1) {
+    for (let x = 0; x < sourceCanvas.width; x += 1) {
+      if (pixels[(y * sourceCanvas.width + x) * 4 + 3] < 20) continue;
+      left = Math.min(left, x);
+      top = Math.min(top, y);
+      right = Math.max(right, x);
+      bottom = Math.max(bottom, y);
+    }
+  }
+
+  if (right < left || bottom < top) return sourceCanvas;
+
+  const subjectWidth = right - left + 1;
+  const subjectHeight = bottom - top + 1;
+  const padding = Math.round(size * 0.06);
+  const availableSize = size - padding * 2;
+  const scale = Math.min(availableSize / subjectWidth, availableSize / subjectHeight);
+  const outputWidth = subjectWidth * scale;
+  const outputHeight = subjectHeight * scale;
+  const outputCanvas = document.createElement("canvas");
+  outputCanvas.width = size;
+  outputCanvas.height = size;
+  outputCanvas.getContext("2d").drawImage(
+    sourceCanvas,
+    left, top, subjectWidth, subjectHeight,
+    (size - outputWidth) / 2, (size - outputHeight) / 2,
+    outputWidth, outputHeight
+  );
+  return outputCanvas;
+}
+
+
+
+function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {
             try {
                 const size = 512;
                 
@@ -3438,95 +3727,17 @@
                             if (pixels[rightIdx + 3] > 20) { sampleR += pixels[rightIdx]; sampleG += pixels[rightIdx + 1]; sampleB += pixels[rightIdx + 2]; count++; }
                         }
 
-                        const bgR = count > 0 ? sampleR / count : 255;
-                        const bgG = count > 0 ? sampleG / count : 255;
-                        const bgB = count > 0 ? sampleB / count : 255;
-
-                        function getBgDist(r, g, b) {
-                            return Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB);
+                        // Apply Keycap Lab's proven background removal engine!
+                        if (isDrawing) {
+                            removeConnectedWhiteBackground(imgCtx, size, size);
+                        } else {
+                            removeCameraPhotoBackground(imgCtx, size, size);
                         }
 
-                        const isBarrier = new Uint8Array(size * size);
-                        for (let py = 0; py < size; py++) {
-                            for (let px = 0; px < size; px++) {
-                                let idx = py * size + px;
-                                if (px < startX || px >= endX || py < startY || py >= endY) {
-                                    isBarrier[idx] = 0; // Outside image rect -> Not a barrier
-                                    continue;
-                                }
-                                let pi = idx * 4;
-                                let r = pixels[pi], g = pixels[pi + 1], b = pixels[pi + 2], a = pixels[pi + 3];
-                                if (a <= 20) {
-                                    isBarrier[idx] = 0;
-                                    continue;
-                                }
-                                let lum = 0.299 * r + 0.587 * g + 0.114 * b;
-                                let bgDist = getBgDist(r, g, b);
-
-                                // Character barrier: Dark outline OR distinct character color
-                                if (lum < 110 || bgDist > 65) {
-                                    isBarrier[idx] = 1;
-                                }
-                            }
-                        }
-
-                        const transparentBackground = new Uint8Array(size * size);
-                        const queue = [];
-
-                        // Seed queue with canvas boundaries and image rect boundaries
-                        for (let px = 0; px < size; px++) {
-                            let top = px, bot = (size - 1) * size + px;
-                            if (!isBarrier[top] && !transparentBackground[top]) { transparentBackground[top] = 1; queue.push(top); }
-                            if (!isBarrier[bot] && !transparentBackground[bot]) { transparentBackground[bot] = 1; queue.push(bot); }
-                        }
-                        for (let py = 0; py < size; py++) {
-                            let left = py * size, right = py * size + (size - 1);
-                            if (!isBarrier[left] && !transparentBackground[left]) { transparentBackground[left] = 1; queue.push(left); }
-                            if (!isBarrier[right] && !transparentBackground[right]) { transparentBackground[right] = 1; queue.push(right); }
-                        }
-                        for (let px = startX; px < endX; px++) {
-                            if (px < 0 || px >= size) continue;
-                            let topImg = startY * size + px;
-                            let botImg = Math.min(size - 1, endY - 1) * size + px;
-                            if (!isBarrier[topImg] && !transparentBackground[topImg]) { transparentBackground[topImg] = 1; queue.push(topImg); }
-                            if (!isBarrier[botImg] && !transparentBackground[botImg]) { transparentBackground[botImg] = 1; queue.push(botImg); }
-                        }
-                        for (let py = startY; py < endY; py++) {
-                            if (py < 0 || py >= size) continue;
-                            let leftImg = py * size + startX;
-                            let rightImg = py * size + Math.min(size - 1, endX - 1);
-                            if (!isBarrier[leftImg] && !transparentBackground[leftImg]) { transparentBackground[leftImg] = 1; queue.push(leftImg); }
-                            if (!isBarrier[rightImg] && !transparentBackground[rightImg]) { transparentBackground[rightImg] = 1; queue.push(rightImg); }
-                        }
-
-                        let qHead = 0;
-                        while (qHead < queue.length) {
-                            const idx = queue[qHead++];
-                            const cx = idx % size;
-                            const cy = Math.floor(idx / size);
-
-                            const neighbors = [
-                                cx > 0 ? idx - 1 : -1,
-                                cx < size - 1 ? idx + 1 : -1,
-                                cy > 0 ? idx - size : -1,
-                                cy < size - 1 ? idx + size : -1
-                            ];
-
-                            for (const nIdx of neighbors) {
-                                if (nIdx >= 0 && !isBarrier[nIdx] && !transparentBackground[nIdx]) {
-                                    transparentBackground[nIdx] = 1;
-                                    queue.push(nIdx);
-                                }
-                            }
-                        }
-
-                        for (let i = 0; i < pixels.length; i += 4) {
-                            const idx = i / 4;
-                            if (transparentBackground[idx]) {
-                                pixels[i + 3] = 0;
-                            }
-                        }
-                        imgCtx.putImageData(imgData, 0, 0);
+                        // Normalize & Auto-Center subject
+                        const normalizedCanvas = normalizeImageForKeycap(imgCanvas, size);
+                        imgCtx.clearRect(0, 0, size, size);
+                        imgCtx.drawImage(normalizedCanvas, 0, 0);
                     }
                 }
 
