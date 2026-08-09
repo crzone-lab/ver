@@ -3643,6 +3643,10 @@ function normalizeImageForKeycap(sourceCanvas, size = 512) {
   return outputCanvas;
 }
 
+// =========================================================================
+// 🐰 EXACT CHARACTER SILHOUETTE WHITE BODY BAKING ENGINE
+// (캐릭터 외각 선 내부만 정확히 100% 불투명 순백색으로 채움; 거대한 타원 오버플로우 전면 제거!)
+// =========================================================================
 function bakeSolidWhiteBodyBacking(img, callback) {
     if (!img) {
         if (callback) callback('');
@@ -3665,16 +3669,11 @@ function bakeSolidWhiteBodyBacking(img, callback) {
         const y = (size - h) / 2;
         
         ctx.drawImage(img, x, y, w, h);
-        
-        // 1. 스마트 누끼 엔진 실행 (외각 배경 제거)
-        if (typeof smartRemoveBackgroundKeepSubjectWhite === 'function') {
-            smartRemoveBackgroundKeepSubjectWhite(ctx, size, size);
-        }
 
-        // 2. 피사체 실루엣 캡슐(leftX ~ rightX) 정밀 탐색 및 100% 불투명 순백색 캔버스 생성
         const imgData = ctx.getImageData(0, 0, size, size);
         const pixels = imgData.data;
 
+        // 1. 캐릭터 윤곽선(알파 > 10 또는 어두운 선/색상) 행별 최좌측/최우측 탐색
         const rowLeft = new Int32Array(size);
         const rowRight = new Int32Array(size);
         rowLeft.fill(size);
@@ -3683,14 +3682,23 @@ function bakeSolidWhiteBodyBacking(img, callback) {
         for (let py = 0; py < size; py++) {
             for (let px = 0; px < size; px++) {
                 const idx = (py * size + px) * 4;
-                if (pixels[idx + 3] > 10) {
-                    rowLeft[py] = Math.min(rowLeft[py], px);
-                    rowRight[py] = Math.max(rowRight[py], px);
+                const a = pixels[idx + 3];
+                if (a > 10) {
+                    const r = pixels[idx];
+                    const g = pixels[idx + 1];
+                    const b = pixels[idx + 2];
+                    const lum = 0.299 * r + 0.587 * g + 0.114 * b;
+                    const maxDiff = Math.max(r, g, b) - Math.min(r, g, b);
+                    // 윤곽선이나 유색 피사체 요소 발견 시
+                    if (lum < 220 || maxDiff > 15 || a > 50) {
+                        rowLeft[py] = Math.min(rowLeft[py], px);
+                        rowRight[py] = Math.max(rowRight[py], px);
+                    }
                 }
             }
         }
 
-        // 3. 순백색(#ffffff) 100% 불투명 실루엣 베이스 캔버스 채우기
+        // 2. 캐릭터 윤곽선 내부만 순백색(#ffffff, Alpha=255) 베이스 캔버스 채우기
         const hullCanvas = document.createElement('canvas');
         hullCanvas.width = size;
         hullCanvas.height = size;
@@ -3700,40 +3708,28 @@ function bakeSolidWhiteBodyBacking(img, callback) {
 
         for (let py = 0; py < size; py++) {
             if (rowLeft[py] <= rowRight[py]) {
-                for (let px = rowLeft[py]; px <= rowRight[py]; px++) {
+                const marginInset = 1;
+                for (let px = rowLeft[py] + marginInset; px <= rowRight[py] - marginInset; px++) {
                     const idx = (py * size + px) * 4;
                     hPixels[idx] = 255;     // R
                     hPixels[idx + 1] = 255; // G
                     hPixels[idx + 2] = 255; // B
-                    hPixels[idx + 3] = 255; // A (100% OPAQUE WHITE!)
+                    hPixels[idx + 3] = 255; // A (100% OPAQUE WHITE)
                 }
             }
         }
         hullCtx.putImageData(hullImgData, 0, 0);
 
-        // 4. 최종 3-step 레이어 합성 (그림자 + 순백색 실루엣 베이스 + 원본 그림/사진)
+        // 3. 최종 합성: 순백색 실루엣 베이스 레이어 + 원본 캐릭터 아크워크 (귀, 나뭇잎, 이목구비, 펜선)
         const finalCanvas = document.createElement('canvas');
         finalCanvas.width = size;
         finalCanvas.height = size;
         const finalCtx = finalCanvas.getContext('2d');
 
-        // 4a. 그림자 렌더링
-        finalCtx.save();
-        finalCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
-        finalCtx.shadowBlur = 16;
-        finalCtx.shadowOffsetY = 8;
-        finalCtx.drawImage(hullCanvas, 0, 0);
-        finalCtx.restore();
-
-        // 4b. 그림자 내부 소거
-        finalCtx.globalCompositeOperation = 'destination-out';
-        finalCtx.drawImage(hullCanvas, 0, 0);
-        finalCtx.globalCompositeOperation = 'source-over';
-
-        // 4c. 🌟 100% 불투명 순백색(#ffffff) 강제 베이스 레이어 (얼굴, 이마, 볼, 몸통, 배, 손 전체를 뽀얗게 백색 처리!)
+        // 3a. 순백색 실루엣 베이스 레이어 (얼굴, 몸통, 배, 손 내부를 100% 불투명 순백색으로 강제 배치)
         finalCtx.drawImage(hullCanvas, 0, 0);
 
-        // 4d. 원본 텍스처(귀, 딸기씨, 나뭇잎, 이목구비, 윤곽선)를 순백색 베이스 위에 배치
+        // 3b. 원본 텍스처(귀, 나뭇잎, 눈, 입, 볼터치, 검은 펜선)를 순백색 베이스 위에 인쇄
         finalCtx.drawImage(canvas, 0, 0);
 
         const bakedDataUrl = finalCanvas.toDataURL('image/png');
@@ -5388,13 +5384,7 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                     if (typeof ctx.filter !== 'undefined') ctx.filter = 'none';
                     ctx.restore();
 
-                    // 🌟 Draw solid opaque white backing behind character mesh so background jellies NEVER show through!
-                    ctx.save();
-                    ctx.fillStyle = '#ffffff';
-                    ctx.beginPath();
-                    ctx.ellipse(center.x, center.y + 10, 155, 175, 0, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.restore();
+
 
                     // Draw jelly mesh body
                     if (jellyImage.complete && jellyImage.naturalWidth > 0) {
