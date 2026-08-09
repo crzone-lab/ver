@@ -3359,7 +3359,7 @@ function removeConnectedWhiteBackground(context, width, height) {
     const red = pixels[dataIndex];
     const green = pixels[dataIndex + 1];
     const blue = pixels[dataIndex + 2];
-    const toleranceSquared = 36 * 36;
+    const toleranceSquared = 65 * 65; // High-precision color tolerance for pink/colored backgrounds
     return borderColors.some(([borderRed, borderGreen, borderBlue]) => {
       const redDifference = red - borderRed;
       const greenDifference = green - borderGreen;
@@ -3510,7 +3510,7 @@ function removeCameraPhotoBackground(context, width, height) {
     const red = pixels[dataIndex];
     const green = pixels[dataIndex + 1];
     const blue = pixels[dataIndex + 2];
-    const toleranceSquared = 30 * 30;
+    const toleranceSquared = 65 * 65;
     for (const color of borderColors) {
       const redDelta = red - color[0];
       const greenDelta = green - color[1];
@@ -3704,41 +3704,13 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                     const c3Alpha = pixels[(iB * size + iX) * 4 + 3];
                     const c4Alpha = pixels[(iB * size + iR) * 4 + 3];
 
-                    const isAlreadyTransparent = (c1Alpha < 20 && c2Alpha < 20 && c3Alpha < 20 && c4Alpha < 20);
+                    // Apply Keycap Lab's proven background removal engine on all imported images!
+                    removeConnectedWhiteBackground(imgCtx, size, size);
 
-                    if (!isAlreadyTransparent) {
-                        // Sample background color strictly along the 4 edges of the drawn image rectangle
-                        let sampleR = 0, sampleG = 0, sampleB = 0, count = 0;
-                        const startX = Math.round(x), endX = Math.round(x + w);
-                        const startY = Math.round(y), endY = Math.round(y + h);
-
-                        for (let px = startX; px < endX; px++) {
-                            if (px < 0 || px >= size) continue;
-                            let topIdx = (startY * size + px) * 4;
-                            let botIdx = (Math.min(size - 1, endY - 1) * size + px) * 4;
-                            if (pixels[topIdx + 3] > 20) { sampleR += pixels[topIdx]; sampleG += pixels[topIdx + 1]; sampleB += pixels[topIdx + 2]; count++; }
-                            if (pixels[botIdx + 3] > 20) { sampleR += pixels[botIdx]; sampleG += pixels[botIdx + 1]; sampleB += pixels[botIdx + 2]; count++; }
-                        }
-                        for (let py = startY; py < endY; py++) {
-                            if (py < 0 || py >= size) continue;
-                            let leftIdx = (py * size + startX) * 4;
-                            let rightIdx = (py * size + Math.min(size - 1, endX - 1)) * 4;
-                            if (pixels[leftIdx + 3] > 20) { sampleR += pixels[leftIdx]; sampleG += pixels[leftIdx + 1]; sampleB += pixels[leftIdx + 2]; count++; }
-                            if (pixels[rightIdx + 3] > 20) { sampleR += pixels[rightIdx]; sampleG += pixels[rightIdx + 1]; sampleB += pixels[rightIdx + 2]; count++; }
-                        }
-
-                        // Apply Keycap Lab's proven background removal engine!
-                        if (isDrawing) {
-                            removeConnectedWhiteBackground(imgCtx, size, size);
-                        } else {
-                            removeCameraPhotoBackground(imgCtx, size, size);
-                        }
-
-                        // Normalize & Auto-Center subject
-                        const normalizedCanvas = normalizeImageForKeycap(imgCanvas, size);
-                        imgCtx.clearRect(0, 0, size, size);
-                        imgCtx.drawImage(normalizedCanvas, 0, 0);
-                    }
+                    // Normalize & Auto-Center subject
+                    const normalizedCanvas = normalizeImageForKeycap(imgCanvas, size);
+                    imgCtx.clearRect(0, 0, size, size);
+                    imgCtx.drawImage(normalizedCanvas, 0, 0);
                 }
 
                 // Canvas B: Solid Character Mask Canvas
@@ -4701,6 +4673,10 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                                 }
 
                                 // 발사 방향 및 계산된 순항 속도 적용
+                                // Moderate launch speed for custom imported images so they don't fly too fast!
+                                if (activeBase && activeBase.startsWith('custom_')) {
+                                    jellyCruiseSpeed = Math.min(2.0, jellyCruiseSpeed * 0.45);
+                                }
                                 jellyFlightVx = (-maxDragX / (dragDist || 1)) * jellyCruiseSpeed;
                                 jellyFlightVy = (-maxDragY / (dragDist || 1)) * jellyCruiseSpeed;
                                 jellyCenterX = maxDragX * 0.2;
@@ -4934,6 +4910,19 @@ function processImageToJelly(img, isCamera = false, customPath = null, guideCent
                                     jellyIsFlying = false;
                                     jellyBounceCount = 0;
                                     currentLaunchBounceCount = 0;
+                                    releaseTime = 999;
+                                    if (points) {
+                                        for (let i = 0; i < points.length; i++) {
+                                            if (points[i]) {
+                                                points[i].x = points[i].ox;
+                                                points[i].y = points[i].oy;
+                                                points[i].oldx = points[i].ox;
+                                                points[i].oldy = points[i].oy;
+                                                points[i].lastDx = 0;
+                                                points[i].lastDy = 0;
+                                            }
+                                        }
+                                    }
                                 }
                             }
 

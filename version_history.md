@@ -2311,3 +2311,13 @@
      - 대각선 8방향 큐 탐색 알고리즘으로 테두리의 모서리 조각까지 깔끔하게 따냄.
   5. **자동 바운딩 크롭 & 중앙 정렬 (`normalizeImageForKeycap`)**:
      - 누끼가 완료된 피사체의 바운딩 박스를 자동으로 계산하여 여백 6%와 함께 512x512 캔버스 중앙에 가장 보기 좋고 예쁜 비율로 자동 배치.
+
+## Master Release v306.0.0 (2026-08-09) - UPRIGHT LANDING SETTLE & IMPORTED IMAGE BACKGROUND REMOVAL / SPEED FIX
+- **Version Checkpoint File**: `v306.0.0_UPRIGHT_SETTLE_AND_IMPORTED_NUKKI_FIX.html`
+- **캐릭터 되돌아옴 후 정위치 정립 고정 & 불러온 그림 배경 제거 100% 보정 및 속도 조율**:
+  1. **캐릭터 되돌아온 후 기울어짐 현상 원천 해결 (Upright Landing Settle)**:
+     - 젤리당구 및 젤리 모드에서 캐릭터가 중앙으로 복귀하여 멈출 때 `releaseTime = 999;`로 초기화하고 `points[i].lastDx = 0; points[i].lastDy = 0;`을 완전 청소하여, 당겼던 이전 기울어짐 각도가 남지 않고 **100% 똑바른 원래 수직 정위치로 정갈하게 정지**하도록 보정.
+  2. **그림 불러오기 누끼 따기 잔여 배경 100% 제거 (Perfect Background Cutout)**:
+     - 캔버스 모서리 투명도 조기 스킵(`isAlreadyTransparent`) 오작동 버그를 철거하고, 색상 오차 허용치(`toleranceSquared = 65 * 65`)를 대폭 상향하여 분홍색/크림색/연회색 등 불러온 사진 속 다양한 바닥 배경까지 100% 깔끔하게 제거.
+  3. **불러온 사용자 그림 발사 속도 조율 (Moderate Pull Velocity)**:
+     - 불러온 맞춤형 이미지 캐릭터를 당겼다 놓을 때 발사 속도가 너무 빠르던 현상을 부드럽고 묵직한 젤리 속도(`jellyCruiseSpeed * 0.45`, 최대 2.0)로 감속 조정.
