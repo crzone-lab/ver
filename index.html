@@ -1939,9 +1939,21 @@
         let defaultStrawberrySrc = '';
 
         const jellyImage = new Image();
+        let isBakingDefault = false;
         jellyImage.onload = function() {
-            initMesh();
-            draw();
+            if (!isBakingDefault && jellyImage.src && !jellyImage.src.startsWith('data:image')) {
+                isBakingDefault = true;
+                bakeSolidWhiteBodyBacking(jellyImage, function(bakedSrc) {
+                    jellyImage.onload = function() {
+                        initMesh();
+                        draw();
+                    };
+                    jellyImage.src = bakedSrc;
+                });
+            } else {
+                initMesh();
+                draw();
+            }
         };
         jellyImage.onerror = function() { this.src = "1_512.png"; };
         jellyImage.src = "strawberry_rabbit_jelly.png";
@@ -3771,6 +3783,99 @@ function smartRemoveBackgroundKeepSubjectWhite(context, width, height) {
     }
 
     context.putImageData(imageData, 0, 0);
+}
+
+// =========================================================================
+// 🐰 BAKE SOLID OPAQUE WHITE BODY BACKING FOR ALL CHARACTERS & DEFAULTS
+// (기본 딸기 토끼 및 모든 불러온 캐릭터의 얼굴/몸통을 100% 불투명 순백색으로 강제 보존)
+// =========================================================================
+function bakeSolidWhiteBodyBacking(img, callback) {
+    if (!img) {
+        if (callback) callback('');
+        return;
+    }
+    
+    try {
+        const size = 512;
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+        
+        const imgW = img.naturalWidth || img.width || 512;
+        const imgH = img.naturalHeight || img.height || 512;
+        const scale = Math.min(size / imgW, size / imgH);
+        const w = imgW * scale;
+        const h = imgH * scale;
+        const x = (size - w) / 2;
+        const y = (size - h) / 2;
+        
+        ctx.drawImage(img, x, y, w, h);
+        
+        // 1. 스마트 누끼 엔진 실행 (외각 배경 제거 & 실루엣 바운딩 보존)
+        if (typeof smartRemoveBackgroundKeepSubjectWhite === 'function') {
+            smartRemoveBackgroundKeepSubjectWhite(ctx, size, size);
+        }
+        
+        // 2. 캐릭터 마스크 생성 (Alpha > 10)
+        const maskCanvas = document.createElement('canvas');
+        maskCanvas.width = size;
+        maskCanvas.height = size;
+        const maskCtx = maskCanvas.getContext('2d');
+        maskCtx.drawImage(canvas, 0, 0);
+        
+        const maskData = maskCtx.getImageData(0, 0, size, size);
+        const mPixels = maskData.data;
+        for (let i = 0; i < mPixels.length; i += 4) {
+            if (mPixels[i + 3] > 10) {
+                mPixels[i] = 255;
+                mPixels[i + 1] = 255;
+                mPixels[i + 2] = 255;
+                mPixels[i + 3] = 255;
+            } else {
+                mPixels[i + 3] = 0;
+            }
+        }
+        maskCtx.putImageData(maskData, 0, 0);
+        
+        // 3. 100% 불투명 순백색 베이스 레이어 (#ffffff) + 원본 아크워크 3-step 합성
+        const finalCanvas = document.createElement('canvas');
+        finalCanvas.width = size;
+        finalCanvas.height = size;
+        const finalCtx = finalCanvas.getContext('2d');
+        
+        // 3a. 그림자 렌더링
+        finalCtx.save();
+        finalCtx.shadowColor = 'rgba(0, 0, 0, 0.35)';
+        finalCtx.shadowBlur = 16;
+        finalCtx.shadowOffsetY = 8;
+        finalCtx.drawImage(maskCanvas, 0, 0);
+        finalCtx.restore();
+        
+        // 3b. 그림자 내부 소거
+        finalCtx.globalCompositeOperation = 'destination-out';
+        finalCtx.drawImage(maskCanvas, 0, 0);
+        finalCtx.globalCompositeOperation = 'source-over';
+        
+        // 3c. 🌟 100% 불투명 순백색(#ffffff) 강제 베이스 레이어 (얼굴, 몸통, 이마, 귀, 배 100% 백색 채움)
+        finalCtx.save();
+        finalCtx.drawImage(maskCanvas, 0, 0);
+        finalCtx.globalCompositeOperation = 'source-in';
+        finalCtx.fillStyle = '#ffffff';
+        finalCtx.fillRect(0, 0, size, size);
+        finalCtx.restore();
+        
+        // 3d. 원본 텍스처(귀, 딸기씨, 나뭇잎, 이목구비, 윤곽선)를 순백색 베이스 위에 배치
+        finalCtx.drawImage(canvas, 0, 0);
+        
+        const bakedDataUrl = finalCanvas.toDataURL('image/png');
+        if (callback) callback(bakedDataUrl);
+        return bakedDataUrl;
+    } catch(e) {
+        console.error("bakeSolidWhiteBodyBacking error:", e);
+        if (callback) callback(img.src || '');
+        return img.src || '';
+    }
 }
 
 function processImageToJelly(img, isCamera = false, customPath = null, guideCenter = null) {

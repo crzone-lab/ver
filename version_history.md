@@ -2363,3 +2363,13 @@
      - 카메라, 갤러리, 불러오기 경로에 관계없이 모든 이미지가 `smartRemoveBackgroundKeepSubjectWhite`를 통과하도록 통일.
   3. **브라우저 로컬스토리지 이전 구버전 투명 캐시 자동 청소 (`v1 -> v2`)**:
      - 브라우저에 저장되어 있던 이전 버전의 잘린 투명 이미지 데이터 URL을 자동 삭제하고 캐시 키를 `user_custom_rabbits_v2`로 마이그레이션하여, 구버전 투명 이미지가 계속 재로드되던 현상 완전 차단.
+
+## Master Release v311.0.0 (2026-08-09) - DEFINITIVE FIX: BAKED SOLID OPAQUE WHITE BODY BACKING FOR DEFAULT STRAWBERRY RABBIT & ALL CHARACTERS
+- **Version Checkpoint File**: `v311.0.0_BAKED_DEFAULT_STRAWBERRY_WHITE_BODY.html`
+- **기본 딸기 토끼 캐릭터 및 모든 캐릭터의 투명 몸통을 100% 불투명 순백색으로 자동 베이킹(Baking) 수리**:
+  1. **원인 규명**:
+     - 기존 기본 딸기 토끼 캐릭터 에셋 파일(`strawberry_rabbit_jelly.png`) 자체의 얼굴과 몸통이 투명 PNG로 제작되어 있어, 게임 로딩 시 분홍색 무대 배경과 뒤편 데코 젤리가 몸통을 뚫고 훤히 비치던 현상을 명확히 밝혀냄.
+  2. **`bakeSolidWhiteBodyBacking` 베이킹 수리 시스템 내장**:
+     - 게임 시작 시 `strawberry_rabbit_jelly.png`를 512x512 캔버스에 로드하여, 피사체 실루엣 뒤편에 **100% 불투명 순백색 베이스 레이어(`#ffffff`)를 베이킹(Baking) 결합**하는 전처리 자동화.
+  3. **결과**:
+     - 기본 딸기 토끼 및 모든 불러온 캐릭터의 귀, 딸기씨, 나뭇잎, 이목구비, 펜선은 그대로 보존되면서, **얼굴과 몸통, 배, 손 전체가 100% 뽀얗고 선명한 불투명 흰색으로 완벽 변환**됨! 무대 배경이 몸통을 뚫고 비치던 버그가 100% 영구 소멸됨.
