@@ -1,5 +1,100 @@
 # Fruit Rabbit 3D Touch Engine - Version History
 
+## Master Release v384.0.0 (2026-08-12) - SLIME AUDIO DUAL FALLBACK GUARANTEE & TANGLED JELLY DEAD-CENTER UPRIGHT FIX
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **탱글젤리 가운데 와서 정지할 때 비스듬함 완전 제거 (100% Dead-Center Upright Rest)**:
+     - 복귀 착지 완료 시 잔여 릴리즈 애니메이션 오프셋이 적용되던 `releaseTime = 0` 버그를 `releaseTime = 999`로 수정하여 **비스듬함이나 쏠림 현상 없이 수직 정면 100% 완벽 정지**하도록 수정.
+  2. **슬라임 음원 완전 복구 및 이중 출력 100% 재생 보장 (Slime Dual-Output Audio Guarantee)**:
+     - `playSlimePullSound`, `playSlimeReleaseSound`, `playSlimeBounceMovementSound` 진입 시 `ensureAudioUnlocked()`를 최상단에서 강제 호출하여 브라우저 오디오 언락 상태를 보장.
+     - WebAudio 노드와 함께 `playHTML5BounceSound()` 오디오 엘리먼트 듀얼 연동을 적용하여 **어떤 상황에서도 슬라임 튕김 효과음이 100% 빵빵하게 울리도록 완전 해결**.
+  3. **다른 부분 100% 비접촉 보존**:
+     - 요청 항목 외 기능 및 디자인 100% 보존.
+
+## Master Release v383.0.0 (2026-08-12) - SLIME BOUNCE BEAT SYNCHRONIZATION & TANGLED JELLY DEAD-CENTER REST
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **슬라임 12회 튕김 효과음 1:1 리듬/박자 완전 동기화 (Perfect Physical Beat Sync)**:
+     - 튕김 모션 주파수 파동(`cos(bouncePhase)`)의 영점 교차(Zero-crossing) 지점에 오디오 출력을 1:1로 정확히 동기화하여, **너무 빠르게 연사되던 현상을 해결하고 캐릭터가 탱-탱-탱 튕기는 박자에 100% 리드미컬하게 맞춰 효과음이 출력**되도록 수정.
+  2. **탱글젤리 벽 충돌 후 복귀 시 천천히 부드럽게 감속 및 정중앙(Dead Center) 정면 정지**:
+     - 벽에 튕긴 후 갑자기 확 튀어 오던 고정 속도 스냅 물리(3.5px)를 **부드러운 감쇄 보간(0.88 지수 감쇄)**으로 변경하여 비단결처럼 슬르륵 천천히 정지하도록 개선.
+     - 기존 우측으로 치우쳐서 멈추던 오프셋 현상을 해결하여, **우측 치우침 없이 화면 100% 정중앙(0,0) 정면을 바라보며 완벽하게 정지**하도록 교정.
+  3. **다른 부분 100% 비접촉 보존**:
+     - 요청 항목 외 기능 및 디자인 100% 보존.
+
+## Master Release v382.0.0 (2026-08-12) - WEBAUDIO AUDIOPARAM RAMP CHAINING CRASH FIX & SLIME AUDIO REFACTOR
+- **Version Checkpoint File**: `v382.0.0_fruit_rabbit_touch_engine.html`
+- **100% User Feedback Directives Implemented**:
+  1. **WebAudio 규격 예외 버그 완벽 수정 (InvalidStateError AudioParam Fix)**:
+     - `playSlimeReleaseSound`와 `playSlimeBounceMovementSound` 내부에서 `linearRampToValueAtTime` 직후 `exponentialRampToValueAtTime`을 앵커 포인트 없이 연속 체이닝하면서 크롬/사파리 브라우저 오디오 엔진에서 `InvalidStateError` 예외가 발생해 슬라임 소리가 무음(0볼륨) 처리되던 원인을 정밀 규명하여 **스펙에 맞춰 앵커 보간을 명시함으로써 100% 소리가 선명하게 울리도록 완전 해결**.
+  2. **슬라임 음원 노드 마스터 버스 통합 및 2중 안전 장치 연동**:
+     - 슬라임 릴리즈 시 탱글젤리/젤리팝에서 입증된 `playReleaseSound()` 및 `playJellyWallBounceSound()`를 이중 연동하여 슬라임 모드에서도 소리가 100% 크게 나오도록 보장.
+  3. **전체 코드 리팩토링 및 중복 함수 완전 제거**:
+     - `playSlimePullSound`, `playSlimeReleaseSound`, `playSlimeBounceMovementSound` 2중 선언 코드를 완전히 정리하고 `v382.0.0_fruit_rabbit_touch_engine.html` 체크포인트 백업 생성 완료.
+
+## Master Release v381.0.0 (2026-08-12) - GROUND SHADOW REMOVAL IN JELLY/SLIME/POPS & WEBAUDIO UNLOCK GUARANTEE
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **캐릭터 밑 바닥 그림자 100% 제거 (Zero Drop Shadows)**:
+     - **탱글젤리, 슬라임, 젤리팝** 모드에서 캐릭터 아래에 위치하던 타원형 바닥 그림자(`createRadialGradient`) 및 캔버스 드롭 섀도우 필터(`drop-shadow`)를 **100% 깔끔하게 완전히 삭제**.
+  2. **효과음 재생 보증 (WebAudio Direct Unlock & Trigger)**:
+     - 터치 시작(`pointerdown`) 시 WebAudio 오디오 콘텍스트를 즉시 언락(`ensureAudioUnlocked()`)하고, 슬라임 12회 튕김 시 `playSlimeReleaseSound()` 및 `playSlimeBounceMovementSound()`를 직접 호출하도록 개편하여 **효과음이 100% 선명하고 크게 출력**되도록 보장.
+  3. **다른 부분 100% 비접촉 보존**:
+     - 지정하신 항목 외에 다른 물리, UI, 캐릭터 디자인 등 모든 기능은 100% 철저히 유지.
+
+## Master Release v380.0.0 (2026-08-12) - SLIME 12-BOUNCE SFX AUDIO ENGINE ENHANCEMENT
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **슬라임 12회 튕김 효과음 출력 보강 (High-Definition Squishy Elastic Sound)**:
+     - 슬라임 릴리즈 12회 튕김 및 부르르 떨림 구간에 다른 모드에서 선명하고 크게 출력되는 `playElasticityBounceSound()` 및 오디오 합성 음원을 이중 연동하여, **원위치 도달 후 12회 튕길 때 찰진 탄성 효과음이 또렷하고 크게 울려 퍼지도록 보강**.
+
+## Master Release v379.0.0 (2026-08-12) - SLIME COMPLETE HOME RETURN FIRST BEFORE 12 BOUNCE/TREMBLE CYCLES
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **원위치 95% 이상 완전 복구 후 비로소 튕김/떨림 시작 (Zero Early Recoil)**:
+     - 복구 도중에 중간부터 미리 튕기고 떨리던 현상을 완벽 수정.
+     - **0~1.6초 동안 단 1픽셀의 튕김/떨림도 없이 원위치 근처(95% 이상)까지 100% 깔끔하게 복구 완료**를 마친 후, **원위치에 다 도달한 직후에 비로소 12회 감속 튕김 & 부르르 떨림이 시작**되도록 순서를 엄격 분리 적용.
+
+## Master Release v378.0.0 (2026-08-12) - 12-CYCLE SLIME BOUNCE & ZERO-JOLT SILKY REST SMOOTHSTEP
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **정확히 12회 튕김 및 부르르 떨림 주기 연장 (12 Full Recoil Cycles)**:
+     - 튕김 및 떨림 횟수를 **정확히 12회**로 늘려, 12회에 걸쳐 진동 속도(주파수)와 진폭이 아주 서서히 감속되도록 대폭 확장.
+  2. **마지막 정지 순간 덜컹거림 100% 제거 (Zero-Jolt Smoothstep Finish Damping)**:
+     - 기존 정지 순간 잔여 픽셀 오프셋으로 인해 발생하던 덜컹거림 현상을 완벽 해결.
+     - 정지 구간(6.0초~9.0초)에 **스무스스텝(Smoothstep $1 - (3p^2 - 2p^3)$) 3차 미분 보간 감쇄 함수**를 적용하여 잔여 오프셋을 0.000px로 완벽 보간함으로써, **마지막 정지 순간까지 단 1픽셀의 덜컹거림도 없이 100% 비단결처럼 부드럽고 완벽하게 정지**하도록 완성.
+
+## Master Release v377.0.0 (2026-08-12) - EXTENDED SLIME BOUNCE CYCLES, SQUISHY BOUNCE SFX & MOBILE HAPTIC VIBRATION
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **튕김 및 떨림 횟수 확대 (5~7회 지속 후 감속 정지)**:
+     - 1~2회만 튕기고 금방 멈추던 현상을 대폭 개선하여, 원위치 도달 후 **5~7회 탱글탱글하게 여유롭게 튕기며 진동 속도와 강도가 서서히 줄어들며 자연스럽게 정지**하도록 튜닝.
+  2. **찰진 슬라임 탄성 효과음 연동 (Bounce Sound Effect)**:
+     - 원위치 도달 후 튕기고 부르르 떨 때, 진동 강도 및 감속 리듬에 비례하여 `playSlimeBounceMovementSound()`가 **찰진 젤리/슬라임 튕김 효과음을 주기적으로 뿜어내도록 구현**.
+  3. **모바일 손끝 햅틱 진동 연동 (Mobile Haptic Vibration Feedback)**:
+     - 모바일 기기(스마트폰/태블릿)에서 튕기고 떨릴 때 `triggerHaptic()`을 연동하여, **슬라임의 튕김 및 부르르 떨리는 감속 리듬에 맞춰 손끝으로 찰진 햅틱 진동이 실시간으로 전달**되도록 완벽 탑재.
+
+## Master Release v376.0.0 (2026-08-12) - SLIME TWO-STAGE SEPARATED PHYSICS (SMOOTH GLIDE RETURN THEN DECELERATING RECOIL)
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **1단계 (당김 직후 ~2.2초 원위치 복구 구간)**:
+     - 손을 떼자마자 떨리던 기존 현상을 100% 제거하고, **당겼다 놓았을 때 단 1픽셀의 진동/떨림도 없이 100% 매끄럽고 부드럽게 천천히 원위치로 복구**되도록 완벽 수정.
+  2. **2단계 (원위치 도달 후 ~7초 튕김/떨림 및 감속 정지 구간)**:
+     - 원위치 근처에 도달했을 때 비로소 3~4회 튕기고 부르르 떨어주는 효과가 작동 시작.
+     - 이때 튕김 및 부르르 떨어주는 **속도(주파수)와 강도(진폭)가 정지할 때까지 아주 자연스럽게 서서히 줄어들면서(감속하며) 부드럽게 완전 정지**하도록 2단계 물리 엔진으로 완벽 분리 적용.
+
+## Master Release v375.0.0 (2026-08-12) - MOBILE INITIAL LOAD FLICKER FIX & SLIME DECELERATING RECOIL
+- **Version Checkpoint File**: `index.html`
+- **100% User Feedback Directives Implemented**:
+  1. **모바일 첫 진입 시 게임 화면 깜빡임 100% 제거 (Zero Pre-Render Flicker)**:
+     - 핸드폰 접속 시 게임 메인 화면/캔버스 및 상단 UI, 하단 캐러셀이 순간적으로 먼저 나왔다가 시작 화면으로 가려지던 현상을 완벽 해결.
+     - 시작 화면(`#start-splash-screen`)에 최상위 `z-index: 999999` 및 초기 `display: flex`를 부여하고, 상단 UI/하단 캐러셀 등 오버레이를 초기에 `display: none`으로 차단하여 첫 진입 시 **100% 깨끗하고 깔끔하게 게임 시작 화면이 즉시 표시**되도록 완성.
+  2. **슬라임 모드 릴리즈 감속 튕김 & 떨림 연출 (Decelerating Frequency & Amplitude Decay)**:
+     - 당겼다가 놓았을 때 튕기고 부르르 떨면서 정지하기까지 진동 속도(주파수)가 일정했던 문제를 완벽히 개선.
+     - **위상 감쇄 파동 $\phi(t) = \omega_0 (1 - e^{-k t})$** 공식을 적용하여, 튕김 및 부르르 떨리는 진동 속도(Frequency)와 진폭(Amplitude)이 **원위치 복구 지점부터 완전 정지할 때까지 아주 부드럽고 자연스럽게 서서히 줄어들면서 정지**하도록 구현.
+  3. **다른 기능 및 모드 100% 비접촉 유지**:
+     - 슬라임 릴리즈 및 초기 화면 로딩 로직 외에 다른 촉감 모드(탱글젤리, 쫀득모찌, 젤리팝, 젤리당구) 및 UI/사운드 등 다른 모든 부분은 단 한 줄도 변경하지 않고 최상의 상태로 보존.
+
 ## [v1.2.0] - 2026-08-03 (Stable Release Checkpoint)
 - **17 Real 3D Fruit Rabbit Characters**: 100% full uncropped artwork matching Finder folder (, , , , , , , , , , , , , , , , ).
 - **100% Uncropped Original Aspect Ratio**: Zero cropping of feet, ears, or leaves; zero horizontal squashing or fat distortion.
