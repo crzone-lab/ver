@@ -2639,93 +2639,135 @@
 
         // 🟢 [RESTORED]: 버블 팝 소리 ("팝!")
         
-        // 🟢 [SLIME PULL SOUND]: Played when pulling/stretching the slime
+        // 🟢 [SLIME SOUND SYSTEM ENHANCED]: Warm, Viscous, Gooey Slime Sound Effects
+        let lastSlimePullSoundTime = 0;
+        let lastSlimeBounceSoundTime = 0;
+
+        // 🟢 [SLIME PULL SOUND]: Played when pulling/stretching the slime (Paced, Soft & Gooey)
         function playSlimePullSound(dragDist) {
             if (!isSoundEnabled) return;
             ensureAudioUnlocked();
             try {
                 let now = (audioCtx && audioCtx.currentTime) ? audioCtx.currentTime : (Date.now() / 1000);
-                if (now - lastSlimePullSoundTime < 0.08) return;
+                // 🌟 Pacing Fix: Slow down trigger rate from 0.08s to 0.28s to prevent rapid-fire clicks
+                if (now - lastSlimePullSoundTime < 0.28) return;
                 lastSlimePullSoundTime = now;
 
-                playHTML5BounceSound(0.5); // 🌟 Dual output fallback for 100% audio guarantee!
+                let sfxEl = document.getElementById('sfx-volume');
+                let volMult = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (volMult <= 0.001) return;
+
+                // Layer A: Soft native HTML5 audio fallback
+                playHTML5BounceSound(volMult * 0.40);
+
+                // Layer B: Deep, smooth WebAudio viscous squish (Low-pass filtered sine sweep)
                 let masterNode = getMasterSFXGain();
                 if (!masterNode || !audioCtx) return;
 
+                let actNow = audioCtx.currentTime;
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(520, actNow);
+
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
-                let pitch = 160 + Math.min(320, (dragDist || 50) * 1.5);
-                osc.type = 'triangle';
-                osc.frequency.setValueAtTime(pitch, now);
-                osc.frequency.linearRampToValueAtTime(pitch + 80, now + 0.08);
+                
+                // Warm pitch sweep: 130Hz -> 230Hz -> 160Hz (쫠~~깃...)
+                let basePitch = 130 + Math.min(110, (dragDist || 50) * 0.7);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(basePitch, actNow);
+                osc.frequency.linearRampToValueAtTime(basePitch + 90, actNow + 0.12);
+                osc.frequency.linearRampToValueAtTime(basePitch - 20, actNow + 0.25);
 
-                gain.gain.setValueAtTime(0.55, now);
-                gain.gain.linearRampToValueAtTime(0.001, now + 0.08);
+                gain.gain.setValueAtTime(0.35 * volMult, actNow);
+                gain.gain.linearRampToValueAtTime(0.0001, actNow + 0.25);
 
                 osc.connect(gain);
-                gain.connect(masterNode);
-                osc.start(now);
-                osc.stop(now + 0.08);
+                gain.connect(filter);
+                filter.connect(masterNode);
+                osc.start(actNow);
+                osc.stop(actNow + 0.25);
             } catch (e) {}
         }
 
-        // 🟢 [SLIME RELEASE SOUND]: Played when releasing the finger
+        // 🟢 [SLIME RELEASE SOUND]: Played when releasing the finger (Soft Elastic Release)
         function playSlimeReleaseSound() {
             if (!isSoundEnabled) return;
             ensureAudioUnlocked();
             try {
-                playHTML5BounceSound(0.8); // 🌟 Dual output fallback for 100% audio guarantee!
+                let sfxEl = document.getElementById('sfx-volume');
+                let volMult = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (volMult <= 0.001) return;
+
+                playHTML5BounceSound(volMult * 0.55);
+
                 let masterNode = getMasterSFXGain();
                 if (!masterNode || !audioCtx) return;
                 let now = audioCtx.currentTime;
+
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(600, now);
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(280, now);
-                osc.frequency.linearRampToValueAtTime(680, now + 0.04);
-                osc.frequency.setValueAtTime(680, now + 0.04);
-                osc.frequency.linearRampToValueAtTime(140, now + 0.18);
+                osc.frequency.setValueAtTime(180, now);
+                osc.frequency.linearRampToValueAtTime(320, now + 0.08);
+                osc.frequency.linearRampToValueAtTime(110, now + 0.28);
 
-                gain.gain.setValueAtTime(0.75, now);
-                gain.gain.linearRampToValueAtTime(0.001, now + 0.18);
+                gain.gain.setValueAtTime(0.45 * volMult, now);
+                gain.gain.linearRampToValueAtTime(0.0001, now + 0.28);
 
                 osc.connect(gain);
-                gain.connect(masterNode);
+                gain.connect(filter);
+                filter.connect(masterNode);
                 osc.start(now);
-                osc.stop(now + 0.18);
+                osc.stop(now + 0.28);
             } catch (e) {}
         }
 
-        // 🟢 [SLIME BOUNCE MOVEMENT SOUND]: Played on elasticity bounce steps (decays with speed)
+        // 🟢 [SLIME BOUNCE MOVEMENT SOUND]: Played on elasticity bounce steps (Paced & Soft)
         function playSlimeBounceMovementSound(spd) {
             if (!isSoundEnabled) return;
             ensureAudioUnlocked();
             try {
-                playHTML5BounceSound(0.6); // 🌟 Dual output fallback for 100% audio guarantee!
+                let now = (audioCtx && audioCtx.currentTime) ? audioCtx.currentTime : (Date.now() / 1000);
+                if (now - lastSlimeBounceSoundTime < 0.24) return;
+                lastSlimeBounceSoundTime = now;
+
+                let sfxEl = document.getElementById('sfx-volume');
+                let volMult = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (volMult <= 0.001) return;
+
+                playHTML5BounceSound(volMult * 0.35);
+
                 let masterNode = getMasterSFXGain();
                 if (!masterNode || !audioCtx) return;
-                let now = audioCtx.currentTime;
+                let actNow = audioCtx.currentTime;
 
-                let normSpd = Math.min(1.0, Math.max(0.20, (spd || 15) / 20.0));
-                
-                let osc1 = audioCtx.createOscillator();
-                let gain1 = audioCtx.createGain();
-                let freq1 = 220 + normSpd * 240;
+                let normSpd = Math.min(1.0, Math.max(0.15, (spd || 15) / 25.0));
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(450, actNow);
 
-                osc1.type = 'sine';
-                osc1.frequency.setValueAtTime(freq1, now);
-                osc1.frequency.linearRampToValueAtTime(freq1 * 1.5, now + 0.03);
-                osc1.frequency.setValueAtTime(freq1 * 1.5, now + 0.03);
-                osc1.frequency.linearRampToValueAtTime(Math.max(60, freq1 * 0.40), now + 0.14);
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+                let freq = 160 + normSpd * 140;
 
-                gain1.gain.setValueAtTime(0.85 * normSpd, now);
-                gain1.gain.linearRampToValueAtTime(0.001, now + 0.14);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, actNow);
+                osc.frequency.linearRampToValueAtTime(freq * 1.3, actNow + 0.06);
+                osc.frequency.linearRampToValueAtTime(Math.max(50, freq * 0.50), actNow + 0.22);
 
-                osc1.connect(gain1);
-                gain1.connect(masterNode);
-                osc1.start(now);
-                osc1.stop(now + 0.14);
+                gain.gain.setValueAtTime(0.38 * normSpd * volMult, actNow);
+                gain.gain.linearRampToValueAtTime(0.0001, actNow + 0.22);
+
+                osc.connect(gain);
+                gain.connect(filter);
+                filter.connect(masterNode);
+                osc.start(actNow);
+                osc.stop(actNow + 0.22);
             } catch (e) {}
         }
 
