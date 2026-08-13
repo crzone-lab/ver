@@ -2639,58 +2639,58 @@
 
         // 🟢 [RESTORED]: 버블 팝 소리 ("팝!")
         
-        // 🟢 [SLIME SOUND SYSTEM ENHANCED]: Warm, Viscous, Gooey Slime Sound Effects
+        // 🟢 [SLIME SOUND SYSTEM ULTRA-SLOW & DEEP]: Slow, Luxurious, Viscous Slime Sound Effects
         let lastSlimePullSoundTime = 0;
         let lastSlimeBounceSoundTime = 0;
 
-        // 🟢 [SLIME PULL SOUND]: Played when pulling/stretching the slime (Paced, Soft & Gooey)
+        // 🟢 [SLIME PULL SOUND]: Played when pulling/stretching the slime (Ultra-Slow 0.75s Pacing, 0.70s Duration)
         function playSlimePullSound(dragDist) {
             if (!isSoundEnabled) return;
             ensureAudioUnlocked();
             try {
                 let now = (audioCtx && audioCtx.currentTime) ? audioCtx.currentTime : (Date.now() / 1000);
-                // 🌟 Pacing Fix: Slow down trigger rate from 0.08s to 0.28s to prevent rapid-fire clicks
-                if (now - lastSlimePullSoundTime < 0.28) return;
+                // 🌟 Pacing Fix: Slower trigger rate (0.75s) to eliminate rapid firing completely!
+                if (now - lastSlimePullSoundTime < 0.75) return;
                 lastSlimePullSoundTime = now;
 
                 let sfxEl = document.getElementById('sfx-volume');
                 let volMult = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
                 if (volMult <= 0.001) return;
 
-                // Layer A: Soft native HTML5 audio fallback
-                playHTML5BounceSound(volMult * 0.40);
-
-                // Layer B: Deep, smooth WebAudio viscous squish (Low-pass filtered sine sweep)
                 let masterNode = getMasterSFXGain();
                 if (!masterNode || !audioCtx) return;
 
                 let actNow = audioCtx.currentTime;
+                
+                // Deep, heavy low-pass filter (340Hz) for thick viscous squish
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(520, actNow);
+                filter.frequency.setValueAtTime(340, actNow);
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 
-                // Warm pitch sweep: 130Hz -> 230Hz -> 160Hz (쫠~~깃...)
-                let basePitch = 130 + Math.min(110, (dragDist || 50) * 0.7);
+                // Ultra-slow deep pitch glide over 0.70 seconds (쫠~~~~~~~~~깃...)
+                let basePitch = 95 + Math.min(60, (dragDist || 50) * 0.4);
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(basePitch, actNow);
-                osc.frequency.linearRampToValueAtTime(basePitch + 90, actNow + 0.12);
-                osc.frequency.linearRampToValueAtTime(basePitch - 20, actNow + 0.25);
+                osc.frequency.linearRampToValueAtTime(basePitch + 55, actNow + 0.35);
+                osc.frequency.linearRampToValueAtTime(basePitch - 15, actNow + 0.70);
 
-                gain.gain.setValueAtTime(0.35 * volMult, actNow);
-                gain.gain.linearRampToValueAtTime(0.0001, actNow + 0.25);
+                // Smooth 0.15s attack, 0.55s exponential decay
+                gain.gain.setValueAtTime(0.001, actNow);
+                gain.gain.linearRampToValueAtTime(0.38 * volMult, actNow + 0.15);
+                gain.gain.exponentialRampToValueAtTime(0.0001, actNow + 0.70);
 
                 osc.connect(gain);
                 gain.connect(filter);
                 filter.connect(masterNode);
                 osc.start(actNow);
-                osc.stop(actNow + 0.25);
+                osc.stop(actNow + 0.70);
             } catch (e) {}
         }
 
-        // 🟢 [SLIME RELEASE SOUND]: Played when releasing the finger (Soft Elastic Release)
+        // 🟢 [SLIME RELEASE SOUND]: Played when releasing the finger (Ultra-Slow 0.65s Elastic Release)
         function playSlimeReleaseSound() {
             if (!isSoundEnabled) return;
             ensureAudioUnlocked();
@@ -2699,48 +2699,45 @@
                 let volMult = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
                 if (volMult <= 0.001) return;
 
-                playHTML5BounceSound(volMult * 0.55);
-
                 let masterNode = getMasterSFXGain();
                 if (!masterNode || !audioCtx) return;
                 let now = audioCtx.currentTime;
 
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(600, now);
+                filter.frequency.setValueAtTime(420, now);
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(180, now);
-                osc.frequency.linearRampToValueAtTime(320, now + 0.08);
-                osc.frequency.linearRampToValueAtTime(110, now + 0.28);
+                osc.frequency.setValueAtTime(140, now);
+                osc.frequency.linearRampToValueAtTime(240, now + 0.20);
+                osc.frequency.linearRampToValueAtTime(85, now + 0.65);
 
-                gain.gain.setValueAtTime(0.45 * volMult, now);
-                gain.gain.linearRampToValueAtTime(0.0001, now + 0.28);
+                gain.gain.setValueAtTime(0.001, now);
+                gain.gain.linearRampToValueAtTime(0.42 * volMult, now + 0.10);
+                gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.65);
 
                 osc.connect(gain);
                 gain.connect(filter);
                 filter.connect(masterNode);
                 osc.start(now);
-                osc.stop(now + 0.28);
+                osc.stop(now + 0.65);
             } catch (e) {}
         }
 
-        // 🟢 [SLIME BOUNCE MOVEMENT SOUND]: Played on elasticity bounce steps (Paced & Soft)
+        // 🟢 [SLIME BOUNCE MOVEMENT SOUND]: Played on elasticity bounce steps (Ultra-Slow 0.65s Pacing)
         function playSlimeBounceMovementSound(spd) {
             if (!isSoundEnabled) return;
             ensureAudioUnlocked();
             try {
                 let now = (audioCtx && audioCtx.currentTime) ? audioCtx.currentTime : (Date.now() / 1000);
-                if (now - lastSlimeBounceSoundTime < 0.24) return;
+                if (now - lastSlimeBounceSoundTime < 0.65) return;
                 lastSlimeBounceSoundTime = now;
 
                 let sfxEl = document.getElementById('sfx-volume');
                 let volMult = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
                 if (volMult <= 0.001) return;
-
-                playHTML5BounceSound(volMult * 0.35);
 
                 let masterNode = getMasterSFXGain();
                 if (!masterNode || !audioCtx) return;
@@ -2749,25 +2746,26 @@
                 let normSpd = Math.min(1.0, Math.max(0.15, (spd || 15) / 25.0));
                 let filter = audioCtx.createBiquadFilter();
                 filter.type = 'lowpass';
-                filter.frequency.setValueAtTime(450, actNow);
+                filter.frequency.setValueAtTime(320, actNow);
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
-                let freq = 160 + normSpd * 140;
+                let freq = 120 + normSpd * 90;
 
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, actNow);
-                osc.frequency.linearRampToValueAtTime(freq * 1.3, actNow + 0.06);
-                osc.frequency.linearRampToValueAtTime(Math.max(50, freq * 0.50), actNow + 0.22);
+                osc.frequency.linearRampToValueAtTime(freq * 1.2, actNow + 0.15);
+                osc.frequency.linearRampToValueAtTime(Math.max(45, freq * 0.50), actNow + 0.50);
 
-                gain.gain.setValueAtTime(0.38 * normSpd * volMult, actNow);
-                gain.gain.linearRampToValueAtTime(0.0001, actNow + 0.22);
+                gain.gain.setValueAtTime(0.001, actNow);
+                gain.gain.linearRampToValueAtTime(0.35 * normSpd * volMult, actNow + 0.10);
+                gain.gain.exponentialRampToValueAtTime(0.0001, actNow + 0.50);
 
                 osc.connect(gain);
                 gain.connect(filter);
                 filter.connect(masterNode);
                 osc.start(actNow);
-                osc.stop(actNow + 0.22);
+                osc.stop(actNow + 0.50);
             } catch (e) {}
         }
 
@@ -4920,12 +4918,9 @@
                             let trembleX = 0;
                             let trembleY = 0;
 
-                            // 🎵 [슬라임 원위치 복구 구간 효과음 (0~1.6초)]: 손을 놓은 직후 복구되는 1.6초 동안 찰진 슬라이딩 효과음 계속 출력!
-                            if (tSec <= 1.6) {
-                                if (releaseTime % 8 === 0 && returnEnv > 0.05) {
-                                    playSlimePullSound(returnEnv * 120.0);
-                                    playElasticityBounceSound(1.0 - returnEnv);
-                                }
+                            // 🎵 [슬라임 원위치 복구 구간 효과음]: 손을 놓은 직후 1회만 고품질 슬라임 리스폰 오디오 출력
+                            if (tSec <= 0.05 && releaseTime === 1) {
+                                playSlimeReleaseSound();
                             }
                             // 🌟 원위치에 95% 이상 거의 완전히 돌아왔을 때(tSec > 1.6s) 비로소 12회 튕김 & 부르르 떨림 시작!
                             else if (tSec > 1.6) {
