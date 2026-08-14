@@ -1386,8 +1386,8 @@
             </div>
         </div>
 
-        <!-- 3. Game Start Splash Screen Stage (Bypassed) -->
-        <div id="start-splash-screen" class="start-splash-screen">
+        <!-- 3. Game Start Splash Screen Stage (Bypassed completely for instant seamless load) -->
+        <div id="start-splash-screen" class="start-splash-screen" style="display: none !important; opacity: 0; pointer-events: none;">
             <div class="start-logo-container">
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
@@ -1396,8 +1396,8 @@
             <div class="start-footer-text">© 2026 Fruitrabbit Malrangi</div>
         </div>
 
-        <!-- 6. Lobby / Main Selection Screen (Foreground Overlay) -->
-        <div id="lobby-screen" class="lobby-screen" style="display: none; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;">
+        <!-- 6. Lobby / Main Selection Screen (Foreground Overlay - Default Initial Mode) -->
+        <div id="lobby-screen" class="lobby-screen" style="display: flex; position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 10000;">
             <div class="lobby-grid-container">
                 <div class="character-grid" id="lobby-character-grid">
                 </div>
@@ -6746,7 +6746,8 @@
 
         function exitGame() {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
-            setScreenMode("splash");
+            setScreenMode("lobby");
+            renderLobbyGrid();
         }
 
         const bgmPlayer = {
@@ -7438,7 +7439,7 @@
             initMesh();
             draw();
             renderLobbyGrid();
-            setScreenMode("splash");
+            setScreenMode("lobby");
         } catch(err) {
             console.error("Boot init error:", err);
         }
