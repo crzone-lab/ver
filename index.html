@@ -1228,13 +1228,10 @@
         }
 
         // Handlers delegated cleanly to canvas scope
-    var isStartingGameSession = false;
     window.startGameSession = function(e) {
-        if (e) {
-            try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+        if (e && e.stopPropagation) {
+            try { e.stopPropagation(); } catch(err) {}
         }
-        if (isStartingGameSession) return;
-        isStartingGameSession = true;
         console.log("startGameSession executed!");
         var splash = document.getElementById("start-splash-screen");
         var lobby = document.getElementById("lobby-screen");
@@ -1243,23 +1240,22 @@
             lobby.style.opacity = "1";
             lobby.style.visibility = "visible";
             lobby.style.zIndex = "10000";
+            lobby.style.pointerEvents = "auto";
         }
         if (splash) {
-            splash.classList.add("fade-out");
+            splash.style.opacity = "0";
             splash.style.pointerEvents = "none";
             setTimeout(function() {
-                if (splash.classList.contains("fade-out")) {
-                    splash.style.display = "none";
-                }
-            }, 450);
+                splash.style.display = "none";
+            }, 350);
         }
         if (typeof setScreenMode === "function") {
             try { setScreenMode("lobby"); } catch(e) {}
         }
         if (typeof renderLobbyGrid === "function") {
             try { 
-                loadSavedCustomRabbitsFromPhone();
-                initFileInputListener();
+                if (typeof loadSavedCustomRabbitsFromPhone === "function") loadSavedCustomRabbitsFromPhone();
+                if (typeof initFileInputListener === "function") initFileInputListener();
                 renderLobbyGrid(); 
             } catch(e) {}
         }
@@ -1273,7 +1269,6 @@
                 triggerHaptic(40);
             }
         } catch(e) {}
-        setTimeout(function() { isStartingGameSession = false; }, 800);
     };
 </script>
 </head>
@@ -1392,7 +1387,7 @@
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
             
-            <button class="start-game-btn" onclick="startGameSession(event)" data-i18n="btn-gamestart">게임 시작</button>
+            <button class="start-game-btn" onclick="startGameSession(event)" ontouchstart="startGameSession(event)" data-i18n="btn-gamestart">게임 시작</button>
             <div class="start-footer-text">© 2026 Fruitrabbit Malrangi</div>
         </div>
 
