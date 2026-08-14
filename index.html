@@ -1182,11 +1182,6 @@
 
 </style>
 <script>
-        window.addEventListener('DOMContentLoaded', function() {
-            try {
-                if (typeof setScreenMode === 'function') setScreenMode('splash');
-            } catch(e) {}
-        });
     // Guaranteed global touch handler registration
         function handleGlobalTouchStart(e) {
             const splash = document.getElementById('start-splash-screen');
@@ -1386,7 +1381,7 @@
         </div>
 
         <!-- 3. Game Start Splash Screen Stage (Bypassed) -->
-        <div id="start-splash-screen" class="start-splash-screen" onclick="startGameSession(event)">
+        <div id="start-splash-screen" class="start-splash-screen">
             <div class="start-logo-container">
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
