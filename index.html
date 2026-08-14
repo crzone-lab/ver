@@ -1459,19 +1459,19 @@
         </div>
 
         <!-- 6. Billiards Game HUD Overlay (z-index: 25000) -->
-        <div id="billiards-hud" style="display: none; position: absolute; top: 78px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(30, 48, 25, 0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 24px; padding: 6px 16px; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.35); white-space: nowrap; align-items: center; gap: 10px;">
-            <div style="font-size: 14px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px;">
+        <div id="billiards-hud" style="display: none; position: absolute; top: 78px; left: 50%; transform: translateX(-50%); z-index: 25000; pointer-events: auto; background: rgba(30, 48, 25, 0.65); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border: 1.5px solid rgba(255, 255, 255, 0.4); border-radius: 24px; padding: 6px 20px; color: #fff; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; text-align: center; box-shadow: 0 8px 24px rgba(0,0,0,0.35); white-space: nowrap; align-items: center; gap: 10px;">
+            <div style="font-size: 15px; font-weight: bold; color: #ffffff; letter-spacing: 0.5px; white-space: nowrap; display: inline-flex; align-items: center; gap: 8px;">
                 <span>score : <span id="billiards-score-val" style="color: #76ff03; font-weight: 900;">0</span></span>
                 <span style="opacity: 0.4;">|</span>
                 <span>best : <span id="billiards-best-val" style="color: #ffd700; font-weight: 900;">0</span></span>
             </div>
-            <button id="billiards-help-btn" onclick="showBilliardsGuideModal()" style="background: linear-gradient(135deg, rgba(118, 255, 3, 0.35), rgba(0, 229, 255, 0.25)); border: 1px solid rgba(255, 255, 255, 0.5); border-radius: 12px; padding: 3px 10px; color: #ffffff; font-size: 12px; font-weight: 800; cursor: pointer; backdrop-filter: blur(4px); box-shadow: 0 2px 8px rgba(0,0,0,0.2); transition: all 0.2s ease;">
+            <button id="billiards-help-btn" style="display: none !important;">
                 📖 규칙
             </button>
         </div>
 
-        <!-- 🎱 젤리당구 점수 규칙 안내 팝업 모달 (z-index: 30000) -->
-        <div id="billiards-guide-modal" onclick="if(event.target === this) hideBilliardsGuideModal();" style="display: none; position: fixed; inset: 0; z-index: 30000; background: rgba(8, 16, 12, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 20px;">
+        <!-- 🎱 젤리당구 점수 규칙 안내 팝업 모달 (z-index: 30000 - Permanently visible until explicit close) -->
+        <div id="billiards-guide-modal" style="display: none; position: fixed; inset: 0; z-index: 30000; background: rgba(8, 16, 12, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 20px;">
             <div style="background: linear-gradient(150deg, rgba(22, 38, 26, 0.96), rgba(10, 20, 14, 0.98)); border: 2px solid rgba(118, 255, 3, 0.45); border-radius: 26px; width: 100%; max-width: 340px; padding: 22px 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(118, 255, 3, 0.25); color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; text-align: center; position: relative;">
                 
                 <!-- Header -->
@@ -6612,14 +6612,13 @@
                 if (p) p.classList.remove("active");
             });
 
-            const topResetBtn = document.getElementById("billiards-top-reset-btn");
-            const topControls = document.getElementById("billiards-top-bar-controls");
+            const globalResetBtn = document.getElementById("top-reset-btn");
             const mainLogo = document.getElementById("main-logo-img");
 
             if (feel === "billiards") {
                 if (pBilliards) pBilliards.classList.add("active");
                 if (bHud) bHud.style.display = "flex";
-                if (topControls) topControls.style.display = "flex";
+                if (globalResetBtn) globalResetBtn.style.display = "none";
                 if (mainLogo) mainLogo.style.display = "none";
                 if (feelUI) feelUI.style.display = "none";
                 if (bottomCarousel) bottomCarousel.style.display = "none";
@@ -6630,7 +6629,7 @@
             } else {
                 hideBilliardsGuideModal();
                 if (bHud) bHud.style.display = "none";
-                if (topControls) topControls.style.display = "none";
+                if (globalResetBtn) globalResetBtn.style.display = "flex";
                 if (mainLogo) mainLogo.style.display = "block";
                 if (feelUI) feelUI.style.display = "flex";
                 if (bottomCarousel) bottomCarousel.style.display = "flex";
