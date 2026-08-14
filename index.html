@@ -1462,7 +1462,7 @@
         </div>
 
         <!-- 🎱 젤리당구 점수 규칙 안내 팝업 모달 (z-index: 30000) -->
-        <div id="billiards-guide-modal" onclick="if(event.target === this) hideBilliardsGuideModal();" style="display: none; position: fixed; inset: 0; z-index: 30000; background: rgba(8, 16, 12, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 20px;">
+        <div id="billiards-guide-modal" style="display: none; position: fixed; inset: 0; z-index: 30000; background: rgba(8, 16, 12, 0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); align-items: center; justify-content: center; padding: 20px;">
             <div style="background: linear-gradient(150deg, rgba(22, 38, 26, 0.96), rgba(10, 20, 14, 0.98)); border: 2px solid rgba(118, 255, 3, 0.45); border-radius: 26px; width: 100%; max-width: 340px; padding: 22px 18px; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.7), 0 0 35px rgba(118, 255, 3, 0.25); color: #ffffff; font-family: -apple-system, BlinkMacSystemFont, 'Pretendard', sans-serif; text-align: center; position: relative;">
                 
                 <!-- Header -->
@@ -4403,18 +4403,14 @@
             showNotification("🎱 당구 게임 점수가 리셋되었습니다!");
         }
 
-        let billiardsGuideModalOpenTime = 0;
-
         function showBilliardsGuideModal() {
             const modal = document.getElementById("billiards-guide-modal");
             if (modal) {
                 modal.style.display = "flex";
-                billiardsGuideModalOpenTime = Date.now();
             }
         }
 
         function hideBilliardsGuideModal() {
-            if (Date.now() - billiardsGuideModalOpenTime < 400) return;
             const modal = document.getElementById("billiards-guide-modal");
             if (modal) {
                 modal.style.display = "none";
