@@ -6655,7 +6655,12 @@
             syncSliderLabels();
         }
 
+        let currentScreenMode = 'splash';
         function setScreenMode(mode) {
+            if (currentScreenMode === mode && mode === 'splash') {
+                return;
+            }
+            currentScreenMode = mode;
             const lobby = document.getElementById("lobby-screen");
             const splash = document.getElementById("start-splash-screen");
             const btn = document.getElementById("global-home-exit-btn") || document.getElementById("home-btn");
