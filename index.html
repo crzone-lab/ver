@@ -1424,16 +1424,7 @@
 
             <div style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 4px;">
                 <img id="main-logo-img" src="logo_font.png" alt="Logo" style="height: 74px; max-width: 260px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)); transition: transform 0.2s ease;">
-                
-                <div id="billiards-top-bar-controls" style="display: none; align-items: center; gap: 10px; background: rgba(0, 0, 0, 0.75); padding: 6px 14px; border-radius: 22px; border: 1.5px solid rgba(255, 255, 255, 0.35); box-shadow: 0 4px 16px rgba(0,0,0,0.4); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); pointer-events: auto;">
-                    <span style="font-weight: 800; color: #ffffff; font-size: 15px; letter-spacing: -0.2px; display: flex; align-items: center; gap: 4px;">
-                        <span>🎱</span> 당구 게임
-                    </span>
-                    <button id="billiards-top-help-btn" onclick="showBilliardsGuideModal()" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 50%; width: 26px; height: 26px; color: #ffffff; font-size: 13px; font-weight: 900; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s ease;" title="게임 규칙 안내">?</button>
-                    <button id="billiards-top-reset-btn" onclick="resetBilliardsGame()" style="background: rgba(255, 255, 255, 0.2); border: 1px solid rgba(255, 255, 255, 0.4); border-radius: 14px; padding: 4px 12px; color: #ffffff; font-size: 13px; font-weight: 800; cursor: pointer; display: flex; align-items: center; gap: 4px; transition: all 0.2s ease;" title="점수 리셋">
-                        <span style="font-size: 14px; font-weight: bold;">↺</span> 리셋
-                    </button>
-                </div>
+
             </div>
             
             <div style="display: flex; gap: 4px;">
@@ -1519,10 +1510,10 @@
 
         <!-- 5. Unified Global Feel Selector pills (z-index: 25000) -->
         <div class="lobby-feel-selector" style="z-index: 25000; pointer-events: none; display: none;">
-            <div style="pointer-events: auto !important;" class="feel-pill active" id="pill-jelly" onclick="selectFeelPill('jelly')" ontouchstart="selectFeelPill('jelly')" data-i18n="pill-jelly">탱글젤리</div>
-            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-slime" onclick="selectFeelPill('slime')" ontouchstart="selectFeelPill('slime')" data-i18n="pill-slime">슬라임</div>
-            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-bubble" onclick="selectFeelPill('bubble')" ontouchstart="selectFeelPill('bubble')" data-i18n="pill-bubble">🫧 젤리팝</div>
-            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-billiards" onclick="selectFeelPill('billiards')" ontouchstart="selectFeelPill('billiards')">🎱 젤리당구</div>
+            <div style="pointer-events: auto !important;" class="feel-pill active" id="pill-jelly" onclick="selectFeelPill('jelly')" data-i18n="pill-jelly">탱글젤리</div>
+            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-slime" onclick="selectFeelPill('slime')" data-i18n="pill-slime">슬라임</div>
+            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-bubble" onclick="selectFeelPill('bubble')" data-i18n="pill-bubble">🫧 젤리팝</div>
+            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-billiards" onclick="selectFeelPill('billiards')">🎱 젤리당구</div>
         </div>
     </div>
 
@@ -4412,14 +4403,18 @@
             showNotification("🎱 당구 게임 점수가 리셋되었습니다!");
         }
 
+        let billiardsGuideModalOpenTime = 0;
+
         function showBilliardsGuideModal() {
             const modal = document.getElementById("billiards-guide-modal");
             if (modal) {
                 modal.style.display = "flex";
+                billiardsGuideModalOpenTime = Date.now();
             }
         }
 
         function hideBilliardsGuideModal() {
+            if (Date.now() - billiardsGuideModalOpenTime < 400) return;
             const modal = document.getElementById("billiards-guide-modal");
             if (modal) {
                 modal.style.display = "none";
@@ -6612,15 +6607,12 @@
                 if (p) p.classList.remove("active");
             });
 
-            const topResetBtn = document.getElementById("billiards-top-reset-btn");
-            const topControls = document.getElementById("billiards-top-bar-controls");
             const mainLogo = document.getElementById("main-logo-img");
 
             if (feel === "billiards") {
                 if (pBilliards) pBilliards.classList.add("active");
                 if (bHud) bHud.style.display = "flex";
-                if (topControls) topControls.style.display = "flex";
-                if (mainLogo) mainLogo.style.display = "none";
+                if (mainLogo) mainLogo.style.display = "block";
                 if (feelUI) feelUI.style.display = "none";
                 if (bottomCarousel) bottomCarousel.style.display = "none";
                 stiffness = 50; damping = 8;
@@ -6630,7 +6622,6 @@
             } else {
                 hideBilliardsGuideModal();
                 if (bHud) bHud.style.display = "none";
-                if (topControls) topControls.style.display = "none";
                 if (mainLogo) mainLogo.style.display = "block";
                 if (feelUI) feelUI.style.display = "flex";
                 if (bottomCarousel) bottomCarousel.style.display = "flex";
