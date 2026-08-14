@@ -1231,14 +1231,19 @@
         }
 
         // Handlers delegated cleanly to canvas scope
-</script>
-<script>
-    window.startGameSession = function() {
+    var isStartingGameSession = false;
+    window.startGameSession = function(e) {
+        if (e) {
+            try { e.preventDefault(); e.stopPropagation(); } catch(err) {}
+        }
+        if (isStartingGameSession) return;
+        isStartingGameSession = true;
         console.log("startGameSession executed!");
         var splash = document.getElementById("start-splash-screen");
         if (splash) {
             splash.classList.add("fade-out");
             splash.style.display = "none";
+            splash.style.pointerEvents = "none";
         }
         var lobby = document.getElementById("lobby-screen");
         if (lobby) {
@@ -1251,9 +1256,11 @@
             try { setScreenMode("lobby"); } catch(e) {}
         }
         if (typeof renderLobbyGrid === "function") {
-            try { loadSavedCustomRabbitsFromPhone();
-            initFileInputListener();
-            renderLobbyGrid(); } catch(e) {}
+            try { 
+                loadSavedCustomRabbitsFromPhone();
+                initFileInputListener();
+                renderLobbyGrid(); 
+            } catch(e) {}
         }
         try {
             if (typeof bgmPlayer !== "undefined" && bgmPlayer && bgmPlayer.start) {
@@ -1265,6 +1272,7 @@
                 triggerHaptic(40);
             }
         } catch(e) {}
+        setTimeout(function() { isStartingGameSession = false; }, 600);
     };
 </script>
 </head>
@@ -1378,14 +1386,12 @@
         </div>
 
         <!-- 3. Game Start Splash Screen Stage (Bypassed) -->
-        <div id="start-splash-screen" class="start-splash-screen" onclick="startGameSession()" ontouchstart="startGameSession()" onpointerdown="startGameSession()">
+        <div id="start-splash-screen" class="start-splash-screen" onclick="startGameSession(event)">
             <div class="start-logo-container">
                 <img src="logo_illust.png" alt="Fruitrabbit Malrangi" class="start-logo-img">
             </div>
-                        
             
-            
-            <button class="start-game-btn" onclick="startGameSession()" ontouchstart="startGameSession()" onpointerdown="startGameSession()" data-i18n="btn-gamestart">게임 시작</button>
+            <button class="start-game-btn" onclick="startGameSession(event)" data-i18n="btn-gamestart">게임 시작</button>
             <div class="start-footer-text">© 2026 Fruitrabbit Malrangi</div>
         </div>
 
@@ -6905,24 +6911,18 @@
             syncSliderLabels();
         }
 
-        function startGameSession() {
+        function startGameSession(e) {
+            if (typeof window.startGameSession === 'function') {
+                window.startGameSession(e);
+                return;
+            }
             const splash = document.getElementById('start-splash-screen');
             if (splash) {
                 splash.classList.add('fade-out');
                 splash.style.display = 'none';
+                splash.style.pointerEvents = 'none';
             }
-            try { setScreenMode('lobby'); renderLobbyGrid(); } catch(e) {}
-
-            try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
-            } catch (err) {}
-            try { if (typeof triggerHaptic === 'function') triggerHaptic(40); } catch(err) {}
-            try { if (typeof bgmPlayer !== 'undefined' && bgmPlayer && bgmPlayer.start) bgmPlayer.start(); } catch(err) {}
+            try { setScreenMode('lobby'); renderLobbyGrid(); } catch(err) {}
         }
 
         function resetLobby() {
