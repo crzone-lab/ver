@@ -4147,6 +4147,7 @@
         }
 
         function handleRecordToggle() {
+            console.log("handleRecordToggle triggered!");
             try {
                 if (typeof stopAutopilot === 'function') stopAutopilot();
                 if (typeof releaseGrab === 'function') releaseGrab(true);
