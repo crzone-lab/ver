@@ -4365,6 +4365,10 @@
         let jellyBounceCount = 0;
         let jellyTargetBounces = 4;
         let jellyCruiseSpeed = 2.2;
+        let jellyReturnSpringPhase = false;
+        let jellySpringProgress = 0;
+        let jellySpringStartX = 0;
+        let jellySpringStartY = 0;
 
         // 🎱 Billiards Pocket Mode State & Audio System
         let pocketScore = 0;
@@ -4765,6 +4769,8 @@
                                 jellyIsFlying = true;
                                 jellyBounceCount = 0;
                                 currentLaunchBounceCount = 0;
+                                jellyReturnSpringPhase = false;
+                                jellySpringProgress = 0;
                                 
                                 let dragDist = Math.hypot(maxDragX, maxDragY);
                                 // 당기는 힘과 거리에 연동되는 천천히 3~4회 튕김 및 완만한 속도 튜닝
@@ -5044,10 +5050,7 @@
                                     jellySpinSpeed = (jellySpinSpeed >= 0 ? 0.015 : -0.015);
                                 }
                             } else {
-                                // 🌟 [탱글젤리 천천히 완만하게 센터 정면 정지 엔진]:
-                                // 1. 확 오지 않고 부드럽게 감속(0.88 감쇄)하여 천천히 원위치로 이동
-                                jellyCenterX *= 0.88;
-                                jellyCenterY *= 0.88;
+                                // 🌟 [탱글젤리 천천히 완만하게 센터 정면 정지 & 3~4회 탄성 튕김 물리 엔진]:
                                 if (currentMode === 'jelly') {
                                     jellyRotation = 0;
                                     jellySpinSpeed = 0;
@@ -5055,37 +5058,53 @@
                                     jellyRotation *= 0.82;
                                 }
 
-                                let distToCenter = Math.hypot(jellyCenterX, jellyCenterY);
+                                if (!jellyReturnSpringPhase) {
+                                    // 1. 확 쏠리지 않고 느리고 완만하게 감속하며 센터로 이동 (0.955 감쇄)
+                                    jellyCenterX *= 0.955;
+                                    jellyCenterY *= 0.955;
 
-                                // 🌟 [정지 직전 3~4회 탄성 튕김 연출]: 가운데 도달 직전에 3~4회 탄성 튕김 진동
-                                if (distToCenter < 14 && distToCenter > 0.4) {
-                                    if (typeof centerElasticBouncing === 'undefined') centerElasticBouncing = 0;
-                                    centerElasticBouncing += 0.08;
-                                    let bounceOsc = Math.sin(centerElasticBouncing * Math.PI * 3.6) * Math.exp(-2.2 * centerElasticBouncing) * 8.0;
-                                    jellyCenterX += (Math.random() - 0.5) * bounceOsc;
-                                    jellyCenterY += (Math.random() - 0.5) * bounceOsc;
+                                    let distToCenter = Math.hypot(jellyCenterX, jellyCenterY);
+                                    // 센터 40px 범위 내 진입 시 3~4회 탄성 스프링 튕김 단계 진입!
+                                    if (distToCenter < 40) {
+                                        jellyReturnSpringPhase = true;
+                                        jellySpringProgress = 0;
+                                        jellySpringStartX = jellyCenterX;
+                                        jellySpringStartY = jellyCenterY;
+                                    }
                                 }
 
-                                if (distToCenter < 0.45) {
-                                    if (typeof centerElasticBouncing !== 'undefined') centerElasticBouncing = 0;
-                                    jellyCenterX = 0;
-                                    jellyCenterY = 0;
-                                    jellyFlightVx = 0;
-                                    jellyFlightVy = 0;
-                                    jellyRotation = 0;
-                                    jellySpinSpeed = 0;
-                                    jellyIsFlying = false;
-                                    jellyBounceCount = 0;
-                                    currentLaunchBounceCount = 0;
-                                    releaseTime = 999; // 🌟 착지 완료 시 잔여 릴리즈 오프셋 및 비스듬함 100% 원천 차단!
-                                    for (let k = 0; k < points.length; k++) {
-                                        if (points[k]) {
-                                            points[k].x = points[k].ox;
-                                            points[k].y = points[k].oy;
-                                            points[k].oldx = points[k].ox;
-                                            points[k].oldy = points[k].oy;
-                                            points[k].lastDx = 0;
-                                            points[k].lastDy = 0;
+                                if (jellyReturnSpringPhase) {
+                                    // 2. 정지 직전 정확히 3.5주기 (3~4회) 탄성 오버슈트 튕김 (Bounce 3~4 times across center)
+                                    jellySpringProgress += 0.022; // ~45프레임 동안 선명한 탄성 튕김
+                                    let cycles = 3.5;
+                                    let springWave = Math.cos(jellySpringProgress * Math.PI * 2.0 * cycles) * Math.exp(-2.6 * jellySpringProgress);
+
+                                    jellyCenterX = jellySpringStartX * springWave;
+                                    jellyCenterY = jellySpringStartY * springWave;
+
+                                    if (jellySpringProgress >= 1.0 || (Math.hypot(jellyCenterX, jellyCenterY) < 0.2 && jellySpringProgress > 0.8)) {
+                                        // 3. 3~4회 탄성 튕김 완료 후 정중앙(0,0) 수직 정면 100% 완벽 정지!
+                                        jellyReturnSpringPhase = false;
+                                        jellySpringProgress = 0;
+                                        jellyCenterX = 0;
+                                        jellyCenterY = 0;
+                                        jellyFlightVx = 0;
+                                        jellyFlightVy = 0;
+                                        jellyRotation = 0;
+                                        jellySpinSpeed = 0;
+                                        jellyIsFlying = false;
+                                        jellyBounceCount = 0;
+                                        currentLaunchBounceCount = 0;
+                                        releaseTime = 999; // 🌟 착지 완료 시 잔여 릴리즈 오프셋 100% 차단!
+                                        for (let k = 0; k < points.length; k++) {
+                                            if (points[k]) {
+                                                points[k].x = points[k].ox;
+                                                points[k].y = points[k].oy;
+                                                points[k].oldx = points[k].ox;
+                                                points[k].oldy = points[k].oy;
+                                                points[k].lastDx = 0;
+                                                points[k].lastDy = 0;
+                                            }
                                         }
                                     }
                                 }
