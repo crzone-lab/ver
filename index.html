@@ -5112,13 +5112,16 @@
                                 }
 
                                 if (!jellyReturnSpringPhase) {
-                                    // 1. 확 쏠리지 않고 느리고 완만하게 감속하며 센터로 이동 (0.955 감쇄)
-                                    jellyCenterX *= 0.955;
-                                    jellyCenterY *= 0.955;
-
+                                    // 1. 🌟 [당구 & 젤리]: 마지막 원위치(센터) 복귀 시 급하게 쏠리지 않고 아주 아주 천천히 부드럽게 글라이딩 복귀!
                                     let distToCenter = Math.hypot(jellyCenterX, jellyCenterY);
-                                    // 센터 40px 범위 내 진입 시 3~4회 탄성 스프링 튕김 단계 진입!
-                                    if (distToCenter < 40) {
+                                    let slowReturnSpeed = Math.min(distToCenter * 0.03, 1.8); // 최대 1.8px/frame 이하의 느리고 완정한 복귀 속도
+                                    if (distToCenter > 0.1) {
+                                        jellyCenterX -= (jellyCenterX / distToCenter) * slowReturnSpeed;
+                                        jellyCenterY -= (jellyCenterY / distToCenter) * slowReturnSpeed;
+                                    }
+
+                                    // 센터 45px 범위 내 진입 시 은은하고 부드러운 3~4회 스프링 튕김 단계 진입!
+                                    if (distToCenter < 45) {
                                         jellyReturnSpringPhase = true;
                                         jellySpringProgress = 0;
                                         jellySpringStartX = jellyCenterX;
@@ -5127,10 +5130,10 @@
                                 }
 
                                 if (jellyReturnSpringPhase) {
-                                    // 2. 정지 직전 정확히 3.5주기 (3~4회) 탄성 오버슈트 튕김 (Bounce 3~4 times across center)
-                                    jellySpringProgress += 0.022; // ~45프레임 동안 선명한 탄성 튕김
+                                    // 2. 정지 직전 정확히 3.5주기 (3~4회) 아주 천천히 탄성 오버슈트 튕김 (Bounce 3~4 times across center)
+                                    jellySpringProgress += 0.012; // ~80프레임 동안 아주 아주 천천히 은은한 탄성 튕김
                                     let cycles = 3.5;
-                                    let springWave = Math.cos(jellySpringProgress * Math.PI * 2.0 * cycles) * Math.exp(-2.6 * jellySpringProgress);
+                                    let springWave = Math.cos(jellySpringProgress * Math.PI * 2.0 * cycles) * Math.exp(-2.2 * jellySpringProgress);
 
                                     jellyCenterX = jellySpringStartX * springWave;
                                     jellyCenterY = jellySpringStartY * springWave;
