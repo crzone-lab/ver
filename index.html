@@ -4978,14 +4978,29 @@
                                 }
                             }
 
-                            // 🌟 시각적 4각 화면 벽면에 정확히 닿아 충돌하도록 정밀 바운더리 설정!
-                            let charVisualRadius = 88; // 캐릭터 외곽 시각적 반지름
-                            let maxCX = Math.max(10, width * 0.5 - charVisualRadius);
-                            let minCX = -maxCX;
+                            // 🌟 시각적 4각 화면 벽면에 100% 정밀히 닿아 충돌하도록 실시간 flightScale 반영 정밀 바운더리!
+                            let maxDist = Math.hypot(width * 0.5, height * 0.5) || 1;
+                            let currentDist = Math.hypot(jellyCenterX, jellyCenterY);
+                            let currentFlightScale = Math.max(0.22, 1.0 - (currentDist / maxDist) * 0.78);
                             
-                            let tableTopLimitY = (activeTextureMode === 'billiards') ? 100 : 20; // 당구대는 빨간선(100px), 일반모드는 상단(20px)
-                            let minCY = -Math.max(10, centerOy - tableTopLimitY - charVisualRadius);
-                            let maxCY = Math.max(10, height - centerOy - charVisualRadius);
+                            // 실시간 렌더링되는 캐릭터 외곽 반지름 (귀/몸통 패딩 포함 78px * flightScale)
+                            let dynamicCharRadius = 78 * currentFlightScale;
+                            
+                            // 좌측 벽: 10px 위치에서 정확히 닿음
+                            let leftLimitX = 10;
+                            let minCX = - (centerOx - leftLimitX - dynamicCharRadius);
+                            
+                            // 우측 벽: 화면 우측 10px 위치에서 정확히 닿음
+                            let rightLimitX = width - 10;
+                            let maxCX = rightLimitX - centerOx - dynamicCharRadius;
+                            
+                            // 상단 벽: 당구대는 빨간선(100px), 일반모드는 상단(10px)
+                            let tableTopLimitY = (activeTextureMode === 'billiards') ? 100 : 10;
+                            let minCY = - (centerOy - tableTopLimitY - dynamicCharRadius);
+                            
+                            // 하단 벽: 당구대는 하단 10px, 일반모드는 바텀탭 위(75px)
+                            let tableBottomLimitY = (activeTextureMode === 'billiards') ? (height - 10) : (height - 75);
+                            let maxCY = tableBottomLimitY - centerOy - dynamicCharRadius;
 
                             let hitWall = false;
                             let sparkX = centerOx + jellyCenterX;
@@ -5007,7 +5022,7 @@
                                 wallSquishAmp = 1.0;
                                 wallSquishDirX = 1.0;
                                 wallSquishDirY = 0;
-                                sparkX = 10;
+                                sparkX = leftLimitX;
                             } else if (jellyCenterX >= maxCX) {
                                 jellyCenterX = maxCX;
                                 jellyFlightVx = -Math.abs(jellyFlightVx) * bounceDamp;
@@ -5017,7 +5032,7 @@
                                 wallSquishAmp = 1.0;
                                 wallSquishDirX = -1.0;
                                 wallSquishDirY = 0;
-                                sparkX = width - 10;
+                                sparkX = rightLimitX;
                             }
 
                             // 상하 벽 충돌 (눈에 보이는 당구대 상단 빨간선/하단 벽면까지 100% 가서 닿은 후 완만한 탄성 찌그러짐!)
@@ -5040,7 +5055,7 @@
                                 wallSquishAmp = 1.0;
                                 wallSquishDirX = 0;
                                 wallSquishDirY = -1.0;
-                                sparkY = height - 10;
+                                sparkY = tableBottomLimitY;
                             }
 
                             // 벽 충돌 시 퐁! 효과음, 바운스 횟수 증가 및 파티클 스파크 연출
