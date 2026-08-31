@@ -1439,10 +1439,10 @@
             </div>
             
             <div style="display: flex; gap: 4px;">
-                <div class="action-circle-btn" style="pointer-events: auto;" id="autopilot-btn" onclick="toggleAutopilot()" title="Autopilot Test" data-i18n-title="btn-auto" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto; display: flex; align-items: center; justify-content: center;" id="autopilot-btn" onclick="toggleAutopilot()" title="Autopilot Test" data-i18n-title="btn-auto">
                     <img src="auto.png" alt="Autopilot" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
-                <div class="action-circle-btn" style="pointer-events: auto;" onclick="handlePhotoZoneGlobal()" title="Capture Snapshot" data-i18n-title="btn-photo" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto; display: flex; align-items: center; justify-content: center;" onclick="handlePhotoZoneGlobal()" title="Capture Snapshot" data-i18n-title="btn-photo">
                     <img src="photo.png" alt="Snapshot" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
                 <label for="illust-input" class="action-circle-btn" style="pointer-events: auto; position: relative; overflow: hidden; display: flex; align-items: center; justify-content: center; width: 32px; height: 32px; border-radius: 50%; background: #8854d0; border: none; box-shadow: 0 4px 10px rgba(136, 84, 208, 0.4); transition: transform 0.2s ease; cursor: pointer;" id="top-import-btn" title="그림 불러오기">
@@ -1454,7 +1454,7 @@
                         <line x1="9" y1="14" x2="15" y2="14"></line>
                     </svg>
                 </label>
-                <div class="action-circle-btn" style="pointer-events: auto;" id="global-rec-btn" onclick="handleRecordToggle()" title="Record Video" data-i18n-title="btn-rec" style="display: flex; align-items: center; justify-content: center;">
+                <div class="action-circle-btn" style="pointer-events: auto; display: flex; align-items: center; justify-content: center;" id="global-rec-btn" onclick="handleRecordToggle()" title="Record Video" data-i18n-title="btn-rec">
                     <img src="movie.png" alt="Record" style="width: 32px; height: 32px; object-fit: contain;">
                 </div>
             </div>
@@ -2472,6 +2472,65 @@
                 osc.start(now);
                 osc.stop(now + 0.16);
             } catch (e) {}
+        }
+
+        // 🎵 [당구 포켓 쒸익--- 입수 효과음]: Web Audio 진공 유도 Sweep + 밴드패스 노이즈
+        function playPocketSuckSound() {
+            if (!isSoundEnabled) return;
+            try {
+                ensureAudioUnlocked();
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
+                let now = audioCtx.currentTime;
+
+                let sfxEl = document.getElementById('sfx-volume');
+                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.65;
+                if (sliderGain <= 0.001) return;
+
+                // 1. "쒸익---" Sweep Oscillator
+                let osc = audioCtx.createOscillator();
+                let gain = audioCtx.createGain();
+
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(1500, now);
+                osc.frequency.exponentialRampToValueAtTime(140, now + 0.55);
+
+                gain.gain.setValueAtTime(0.01, now);
+                gain.gain.linearRampToValueAtTime(0.75 * sliderGain, now + 0.12);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                osc.start(now);
+                osc.stop(now + 0.55);
+
+                // 2. White noise wind / vacuum sucking filter layer
+                let bufferSize = Math.floor(audioCtx.sampleRate * 0.55);
+                let noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                let output = noiseBuffer.getChannelData(0);
+                for (let i = 0; i < bufferSize; i++) {
+                    output[i] = Math.random() * 2 - 1;
+                }
+                let whiteNoise = audioCtx.createBufferSource();
+                whiteNoise.buffer = noiseBuffer;
+
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.setValueAtTime(3000, now);
+                filter.frequency.exponentialRampToValueAtTime(280, now + 0.55);
+                filter.Q.value = 3.2;
+
+                let noiseGain = audioCtx.createGain();
+                noiseGain.gain.setValueAtTime(0.01, now);
+                noiseGain.gain.linearRampToValueAtTime(0.55 * sliderGain, now + 0.15);
+                noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.55);
+
+                whiteNoise.connect(filter);
+                filter.connect(noiseGain);
+                noiseGain.connect(audioCtx.destination);
+                whiteNoise.start(now);
+                whiteNoise.stop(now + 0.55);
+            } catch(e) {}
         }
 
                 function requestMobileFullscreen() {
@@ -4067,45 +4126,19 @@
             }
         }
 
-        let isRecCountdown = false;
-
         function handleRecordToggle() {
             stopAutopilot(); releaseGrab(true); releaseGrab(true);
-            if (isRecording || isRecCountdown) {
+            if (isRecording) {
                 stopVideoRecording();
             } else {
                 startVideoRecording();
             }
         }
 
-        // 📹 녹화 시작
+        // 📹 녹화 시작 (터치 시 즉시 100% 녹화 개시!)
         function startVideoRecording() {
-            if (isRecording || isRecCountdown) return;
-            isRecCountdown = true;
-            
-            const countdown = document.getElementById('countdown-overlay');
-            if (countdown) {
-                countdown.style.display = 'flex';
-                let count = 3;
-                countdown.innerText = count;
-
-                if (countdownInterval) clearInterval(countdownInterval);
-                countdownInterval = setInterval(() => {
-                    count--;
-                    if (count > 0) {
-                        countdown.innerText = count;
-                    } else {
-                        clearInterval(countdownInterval);
-                        countdownInterval = null;
-                        countdown.style.display = 'none';
-                        isRecCountdown = false;
-                        triggerRecLoop();
-                    }
-                }, 700);
-            } else {
-                isRecCountdown = false;
-                triggerRecLoop();
-            }
+            if (isRecording) return;
+            triggerRecLoop();
         }
 
         function triggerRecLoop() {
@@ -4212,17 +4245,14 @@
 
         // ⏹️ 녹화 정지
         function stopVideoRecording() {
-            if (!isRecording) {
-                // If countdown is active, cancel it
-                if (countdownInterval) {
-                    clearInterval(countdownInterval);
-                    countdownInterval = null;
-                    const countdown = document.getElementById('countdown-overlay');
-                    if (countdown) countdown.style.display = 'none';
-                }
-                return;
+            if (countdownInterval) {
+                clearInterval(countdownInterval);
+                countdownInterval = null;
             }
+            const countdown = document.getElementById('countdown-overlay');
+            if (countdown) countdown.style.display = 'none';
 
+            if (!isRecording) return;
             isRecording = false;
             
             if (recordingTimerInterval) {
@@ -4552,8 +4582,9 @@
             jellyFlightVx = (pocket.x - (width * 0.5 + jellyCenterX)) * 0.15;
             jellyFlightVy = (pocket.y - (height * 0.48 + jellyCenterY)) * 0.15;
 
-            // 1. Play "쏙~!" Suction Sound + Pop Sound + Haptic Vibration!
+            // 1. Play "쒸익---!" Vacuum Suction Sound + Pop Sound + Haptic Vibration!
             playSuckInSound();
+            if (typeof playPocketSuckSound === 'function') playPocketSuckSound();
             if (typeof playPopSound === 'function') playPopSound();
             if (typeof triggerHaptic === 'function') triggerHaptic(50);
 
@@ -4955,7 +4986,7 @@
                             let centerOx = width * 0.5;
                             let centerOy = height * 0.48;
 
-                            // 당구 포켓 자석 빨려들기 유도 및 골든 입수 판정 (점수가 신나게 잘 나오도록 튜닝!)
+                            // 당구 포켓 자석 빨려들기 유도 및 골든 입수 판정 (훨씬 더 기분 좋게 쏙 잘 들어가도록 튜닝!)
                             if (activeTextureMode === 'billiards' && !isSuckingIntoPocket) {
                                 let currX = centerOx + jellyCenterX;
                                 let currY = centerOy + jellyCenterY;
@@ -4963,15 +4994,15 @@
                                 for (let pk of pockets) {
                                     let distToPocket = Math.hypot(currX - pk.x, currY - pk.y);
                                     
-                                    // 1. 포켓 근처(pk.r * 1.15)에 가면 포켓 중심으로 자석처럼 부드럽게 유도 휨
-                                    if (distToPocket < pk.r * 1.15) {
-                                        let pullForce = 0.12;
+                                    // 1. 포켓 근처(pk.r * 1.65 = 약 125px)에 가면 포켓 중심으로 자석처럼 쒸익 강력하게 유도 휨
+                                    if (distToPocket < pk.r * 1.65) {
+                                        let pullForce = 0.25;
                                         jellyFlightVx += (pk.x - currX) * pullForce;
                                         jellyFlightVy += (pk.y - currY) * pullForce;
                                     }
 
-                                    // 2. 골든 입수 판정 (pk.r * 0.82 = 약 62px 반경으로 기분 좋게 쏙 입수!)
-                                    if (distToPocket < pk.r * 0.82) {
+                                    // 2. 골든 입수 판정 (pk.r * 1.35 = 약 100px 반경으로 기분 좋게 쏙 100% 잘 입수!)
+                                    if (distToPocket < pk.r * 1.35) {
                                         triggerPocketHoleIn(pk, currentLaunchBounceCount);
                                         break;
                                     }
