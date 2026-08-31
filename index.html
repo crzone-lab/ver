@@ -1242,20 +1242,13 @@
             splash.classList.add("fade-out");
             splash.style.display = "none";
         }
-        var lobby = document.getElementById("lobby-screen");
-        if (lobby) {
-            lobby.style.display = "flex";
-            lobby.style.opacity = "1";
-            lobby.style.visibility = "visible";
-            lobby.style.zIndex = "10000";
+        if (typeof selectLobbyCharacter === "function") {
+            try { selectLobbyCharacter(typeof activeLobbyIndex !== 'undefined' ? activeLobbyIndex : 0, null); } catch(e) { if (typeof setScreenMode === "function") setScreenMode("playground"); }
+        } else if (typeof setScreenMode === "function") {
+            try { setScreenMode("playground"); } catch(e) {}
         }
-        if (typeof setScreenMode === "function") {
-            try { setScreenMode("lobby"); } catch(e) {}
-        }
-        if (typeof renderLobbyGrid === "function") {
-            try { loadSavedCustomRabbitsFromPhone();
-            initFileInputListener();
-            renderLobbyGrid(); } catch(e) {}
+        if (typeof loadSavedCustomRabbitsFromPhone === "function") {
+            try { loadSavedCustomRabbitsFromPhone(); } catch(e) {}
         }
         try {
             if (typeof bgmPlayer !== "undefined" && bgmPlayer && bgmPlayer.start) {
@@ -7075,7 +7068,11 @@
                 splash.classList.add('fade-out');
                 splash.style.display = 'none';
             }
-            try { setScreenMode('lobby'); renderLobbyGrid(); } catch(e) {}
+            if (typeof selectLobbyCharacter === 'function') {
+                try { selectLobbyCharacter(activeLobbyIndex || 0, null); } catch(e) { setScreenMode('playground'); }
+            } else {
+                setScreenMode('playground');
+            }
 
             try {
                 if (!audioCtx) {
