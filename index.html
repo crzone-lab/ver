@@ -2292,9 +2292,6 @@
             }
 
             let sizeScale = 1.0;
-            if (activeBase === "strawberry_rabbit" || (jellyImage && jellyImage.src && jellyImage.src.includes("strawberry_rabbit"))) {
-                sizeScale = 1.35;
-            }
 
             let maxW = canvasW * 0.78 * sizeScale;
             let maxH = canvasH * 0.49 * sizeScale;
@@ -4369,6 +4366,9 @@
         let jellySpringProgress = 0;
         let jellySpringStartX = 0;
         let jellySpringStartY = 0;
+        let wallSquishAmp = 0;
+        let wallSquishDirX = 0;
+        let wallSquishDirY = 0;
 
         // 🎱 Billiards Pocket Mode State & Audio System
         let pocketScore = 0;
@@ -4392,7 +4392,7 @@
             let pR = 75; // 4 Corner Pockets matching Image 2 layout
             let w = (typeof width === 'number' && width > 200) ? width : (window.innerWidth || 360);
             let h = (typeof height === 'number' && height > 200) ? height : (window.innerHeight || 640);
-            let topBarOffset = 60; // Top bar height offset matching sketch Image 2!
+            let topBarOffset = 152; // 🌟 상단 아이콘/탭과 겹치지 않도록 내려간 구멍 Y 위치
             return [
                 { id: 'tl', x: 0, y: topBarOffset, r: pR, name: '좌상단' },
                 { id: 'tr', x: w, y: topBarOffset, r: pR, name: '우상단' },
@@ -4955,11 +4955,11 @@
                                 }
                             }
 
-                            // 벽 충돌 바운더리 한계 측정 (핸드폰 화면 가장자리 벽면)
-                            let minCX = -(width * 0.5 - 50);
-                            let maxCX = (width * 0.5 - 50);
-                            let minCY = -(height * 0.5 - 70);
-                            let maxCY = (height * 0.5 - 70);
+                            // 🌟 벽 충돌 바운더리 엄격 제한 (캐릭터 외곽이 화면 벽 밖으로 나가지 않도록 100% 원천 차단!)
+                            let maxCX = Math.max(10, width * 0.5 - 128);
+                            let minCX = -maxCX;
+                            let minCY = -Math.max(10, centerOy - 152); // 상단 아이콘/탭 바 아래로 정밀 제한
+                            let maxCY = Math.max(10, height - centerOy - 128); // 하단 바운더리 내부 제한
 
                             let hitWall = false;
                             let sparkX = centerOx + jellyCenterX;
@@ -4969,38 +4969,50 @@
                                 jellyFlightVx = 0;
                                 jellyFlightVy = 0;
                             } else {
-                            // 좌우 벽 충돌 (캐릭터 회전 각도 및 귀/몸통 부딪힘 지점에 따른 실시간 반사각 물리!)
-                            let shapeAngleShift = Math.sin(jellyRotation * 2.0) * 0.28; // 귀/머리/몸통 부딪힘 부위에 따른 반사 각도 변화
+                            // 좌우 벽 충돌 (벽 밖 탈출 100% 차단 + 물리적 찌그러짐 후 반동 복원 연출)
+                            let shapeAngleShift = Math.sin(jellyRotation * 2.0) * 0.28;
                             if (jellyCenterX <= minCX) {
                                 jellyCenterX = minCX;
                                 jellyFlightVx = Math.abs(jellyFlightVx) * 0.95;
-                                jellyFlightVy += jellyFlightVx * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 각도 변형
+                                jellyFlightVy += jellyFlightVx * shapeAngleShift;
                                 jellySpinSpeed = -jellySpinSpeed * 0.85 + (jellyFlightVy * 0.005);
                                 hitWall = true;
+                                wallSquishAmp = 1.0;
+                                wallSquishDirX = 1.0;
+                                wallSquishDirY = 0;
                                 sparkX = 25;
                             } else if (jellyCenterX >= maxCX) {
                                 jellyCenterX = maxCX;
                                 jellyFlightVx = -Math.abs(jellyFlightVx) * 0.95;
-                                jellyFlightVy += Math.abs(jellyFlightVx) * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 각도 변형
+                                jellyFlightVy += Math.abs(jellyFlightVx) * shapeAngleShift;
                                 jellySpinSpeed = -jellySpinSpeed * 0.85 - (jellyFlightVy * 0.005);
                                 hitWall = true;
+                                wallSquishAmp = 1.0;
+                                wallSquishDirX = -1.0;
+                                wallSquishDirY = 0;
                                 sparkX = width - 25;
                             }
 
-                            // 상하 벽 충돌 (캐릭터 귀/몸통 부딪힘 지점에 따른 실시간 반사각 물리!)
+                            // 상하 벽 충돌 (벽 밖 탈출 100% 차단 + 물리적 찌그러짐 후 반동 복원 연출)
                             if (jellyCenterY <= minCY) {
                                 jellyCenterY = minCY;
                                 jellyFlightVy = Math.abs(jellyFlightVy) * 0.95;
-                                jellyFlightVx += jellyFlightVy * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 수평 각도 변형
+                                jellyFlightVx += jellyFlightVy * shapeAngleShift;
                                 jellySpinSpeed = (jellyFlightVx > 0 ? 0.018 : -0.018);
                                 hitWall = true;
-                                sparkY = 25;
+                                wallSquishAmp = 1.0;
+                                wallSquishDirX = 0;
+                                wallSquishDirY = 1.0;
+                                sparkY = 152;
                             } else if (jellyCenterY >= maxCY) {
                                 jellyCenterY = maxCY;
                                 jellyFlightVy = -Math.abs(jellyFlightVy) * 0.95;
-                                jellyFlightVx += Math.abs(jellyFlightVy) * shapeAngleShift; // 캐릭터 부딪힘 위치에 따른 수평 각도 변형
+                                jellyFlightVx += Math.abs(jellyFlightVy) * shapeAngleShift;
                                 jellySpinSpeed = (jellyFlightVx > 0 ? -0.018 : 0.018);
                                 hitWall = true;
+                                wallSquishAmp = 1.0;
+                                wallSquishDirX = 0;
+                                wallSquishDirY = -1.0;
                                 sparkY = height - 25;
                             }
 
@@ -5153,9 +5165,22 @@
                                 respawnTrembleY = (Math.random() - 0.5) * trembleIntensity;
                             }
 
-                            // 4. 메쉬 좌표 갱신 (탄성 통통 튕김 + 부르르 떨림 + 원근감 크기 변화)
+                            // 4. 메쉬 좌표 갱신 (벽 찌그러짐 물리 + 탄성 통통 튕김 + 부르르 떨림 + 원근감 크기 변화)
                             let cosR = Math.cos(jellyRotation);
                             let sinR = Math.sin(jellyRotation);
+
+                            let squishScaleX = 1.0;
+                            let squishScaleY = 1.0;
+                            if (wallSquishAmp > 0.005) {
+                                wallSquishAmp *= 0.82; // 찌그러졌다가 펴지면서 반동 튕김 복원
+                                if (Math.abs(wallSquishDirX) > 0.5) {
+                                    squishScaleX = 1.0 - wallSquishAmp * 0.42; // 벽 충돌 시 수평 압축 찌그러짐
+                                    squishScaleY = 1.0 + wallSquishAmp * 0.32; // 수직 팽창
+                                } else if (Math.abs(wallSquishDirY) > 0.5) {
+                                    squishScaleX = 1.0 + wallSquishAmp * 0.32; // 수평 팽창
+                                    squishScaleY = 1.0 - wallSquishAmp * 0.42; // 수직 압축 찌그러짐
+                                }
+                            }
 
                             for (let i = 0; i < points.length; i++) {
                                 let p = points[i];
@@ -5163,8 +5188,8 @@
                                     let relOx = p.ox - centerOx;
                                     let relOy = p.oy - centerOy;
 
-                                    let rotX = (relOx * cosR - relOy * sinR) * flightScale * respawnScaleX;
-                                    let rotY = (relOx * sinR + relOy * cosR) * flightScale * respawnScaleY;
+                                    let rotX = (relOx * cosR - relOy * sinR) * flightScale * respawnScaleX * squishScaleX;
+                                    let rotY = (relOx * sinR + relOy * cosR) * flightScale * respawnScaleY * squishScaleY;
 
                                     p.x = centerOx + jellyCenterX + rotX + respawnTrembleX;
                                     p.y = centerOy + jellyCenterY + rotY + respawnTrembleY;
@@ -5647,16 +5672,16 @@
                     ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI * 2);
                     ctx.fill();
 
-                    // Bright neon cyan glowing border
-                    ctx.strokeStyle = '#00e5ff';
-                    ctx.lineWidth = 3.5;
+                    // 🌟 구멍 끝 경계선 (Sharp White Pocket Rim Border Line)
+                    ctx.strokeStyle = '#ffffff';
+                    ctx.lineWidth = 4.5;
                     ctx.beginPath();
                     ctx.arc(pk.x, pk.y, pk.r, 0, Math.PI * 2);
                     ctx.stroke();
 
-                    // Inner pocket accent
-                    ctx.strokeStyle = 'rgba(255, 255, 255, 0.4)';
-                    ctx.lineWidth = 1.5;
+                    // Bright neon cyan glowing border
+                    ctx.strokeStyle = '#00e5ff';
+                    ctx.lineWidth = 2.5;
                     ctx.beginPath();
                     ctx.arc(pk.x, pk.y, pk.r - 4, 0, Math.PI * 2);
                     ctx.stroke();
