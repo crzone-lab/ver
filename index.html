@@ -5198,10 +5198,8 @@
                             }
 
                             // 3. 당김/중앙 위치에서 멀어질수록 캐릭터 크기가 훨씬 많이 작아짐 (귀퉁이 구멍 쏙 입수 맞춤!)
-                            let maxDist = Math.hypot(width * 0.5, height * 0.5) || 1;
-                            let currentDist = Math.hypot(jellyCenterX, jellyCenterY);
                             // 중앙(0,0)은 scale 1.0, 4개 귀퉁이 구멍 근처로 갈수록 0.22까지 훨씬 더 앙증맞게 작아짐!
-                            let flightScale = Math.max(0.22, 1.0 - (currentDist / maxDist) * 0.78);
+                            let flightScale = currentFlightScale;
 
                             // 구멍 빨려들기 시 크기가 0으로 완전히 축소되며 쏙 사라짐!
                             if (isSuckingIntoPocket) {
