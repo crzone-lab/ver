@@ -5022,15 +5022,19 @@
                                 }
                             }
 
-                            // 🌟 시각적 4각 화면 벽면에 100% 정밀히 닿아 충돌하도록 실시간 flightScale 반영 정밀 바운더리!
-                            let maxDist = Math.hypot(width * 0.5, height * 0.5) || 1;
-                            let currentDist = Math.hypot(jellyCenterX, jellyCenterY);
-                            let currentFlightScale = Math.max(0.22, 1.0 - (currentDist / maxDist) * 0.78);
+                            // 🌟 4개 구멍(상단 2개, 하단 2개) 모두 중앙에서 거리에 따라 100% 동일한 비율로 대칭 축소!
+                            let tableCenterY = (activeTextureMode === 'billiards') ? (100 + (height - 10)) * 0.5 : centerOy;
+                            let tableCenterX = centerOx;
+                            let maxDist = Math.hypot(width * 0.5, (height - 100) * 0.5) || 1;
+                            let currentDist = Math.hypot(centerOx + jellyCenterX - tableCenterX, centerOy + jellyCenterY - tableCenterY);
+                            // 4개 귀퉁이 구멍 근처로 갈수록 상/하/좌/우 왜곡 없이 완벽히 균일하게 0.30까지 작아짐
+                            let currentFlightScale = Math.max(0.30, 1.0 - (currentDist / maxDist) * 0.70);
                             
-                            // 실시간 렌더링되는 캐릭터 외곽 반지름 (귀/몸통 패딩 포함 78px * flightScale)
-                            let dynamicCharRadius = 78 * currentFlightScale;
+                            // 실시간 렌더링되는 캐릭터 외곽 여유 반경 (토끼 귀 포함 전체 너비/높이 100% 반영: 135px * flightScale)
+                            // 이 반경을 벽면 제한에 사용하여 캐릭터가 단 1픽셀도 벽 밖/구멍 위로 잘려 넘어가지 않고 전체가 완전히 보인 채 닿음!
+                            let dynamicCharRadius = 135 * currentFlightScale;
                             
-                            // 좌측 벽: 10px 위치에서 정확히 닿음
+                            // 좌측 벽: 10px 위치에서 귀/몸통 끝이 정확히 닿음
                             let leftLimitX = 10;
                             let minCX = - (centerOx - leftLimitX - dynamicCharRadius);
                             
@@ -5038,7 +5042,7 @@
                             let rightLimitX = width - 10;
                             let maxCX = rightLimitX - centerOx - dynamicCharRadius;
                             
-                            // 상단 벽: 당구대는 빨간선(100px), 일반모드는 상단(10px)
+                            // 상단 벽: 당구대는 상단 구멍/스코어바 경계(100px)에서 토끼 귀 끝이 정확히 닿고 절대 위로 넘어가지 않음!
                             let tableTopLimitY = (activeTextureMode === 'billiards') ? 100 : 10;
                             let minCY = - (centerOy - tableTopLimitY - dynamicCharRadius);
                             
