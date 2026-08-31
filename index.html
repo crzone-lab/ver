@@ -4389,10 +4389,10 @@
         let respawnAnimProgress = 1.0;
 
         function getPocketPositions() {
-            let pR = 75; // 4 Corner Pockets matching Image 2 layout
+            let pR = 75; // 4 Corner Pockets
             let w = (typeof width === 'number' && width > 200) ? width : (window.innerWidth || 360);
             let h = (typeof height === 'number' && height > 200) ? height : (window.innerHeight || 640);
-            let topBarOffset = 152; // 🌟 상단 아이콘/탭과 겹치지 않도록 내려간 구멍 Y 위치
+            let topBarOffset = 100; // 🌟 상단 스코어바 바로 아래 당구대 상단 경계선 (y = 100px)
             return [
                 { id: 'tl', x: 0, y: topBarOffset, r: pR, name: '좌상단' },
                 { id: 'tr', x: w, y: topBarOffset, r: pR, name: '우상단' },
@@ -4955,11 +4955,14 @@
                                 }
                             }
 
-                            // 🌟 벽 충돌 바운더리 엄격 제한 (캐릭터 외곽이 화면 벽 밖으로 나가지 않도록 100% 원천 차단!)
-                            let maxCX = Math.max(10, width * 0.5 - 128);
+                            // 🌟 시각적 4각 화면 벽면에 정확히 닿아 충돌하도록 정밀 바운더리 설정!
+                            let charVisualRadius = 88; // 캐릭터 외곽 시각적 반지름
+                            let maxCX = Math.max(10, width * 0.5 - charVisualRadius);
                             let minCX = -maxCX;
-                            let minCY = -Math.max(10, centerOy - 152); // 상단 아이콘/탭 바 아래로 정밀 제한
-                            let maxCY = Math.max(10, height - centerOy - 128); // 하단 바운더리 내부 제한
+                            
+                            let tableTopLimitY = (activeTextureMode === 'billiards') ? 100 : 20; // 당구대는 빨간선(100px), 일반모드는 상단(20px)
+                            let minCY = -Math.max(10, centerOy - tableTopLimitY - charVisualRadius);
+                            let maxCY = Math.max(10, height - centerOy - charVisualRadius);
 
                             let hitWall = false;
                             let sparkX = centerOx + jellyCenterX;
@@ -4969,7 +4972,7 @@
                                 jellyFlightVx = 0;
                                 jellyFlightVy = 0;
                             } else {
-                            // 좌우 벽 충돌 (벽 밖 탈출 100% 차단 + 물리적 찌그러짐 후 반동 복원 연출)
+                            // 좌우 벽 충돌 (눈에 보이는 화면 벽면까지 100% 가서 닿은 후 극강 탄성 찌그러짐!)
                             let shapeAngleShift = Math.sin(jellyRotation * 2.0) * 0.28;
                             if (jellyCenterX <= minCX) {
                                 jellyCenterX = minCX;
@@ -4980,7 +4983,7 @@
                                 wallSquishAmp = 1.0;
                                 wallSquishDirX = 1.0;
                                 wallSquishDirY = 0;
-                                sparkX = 25;
+                                sparkX = 10;
                             } else if (jellyCenterX >= maxCX) {
                                 jellyCenterX = maxCX;
                                 jellyFlightVx = -Math.abs(jellyFlightVx) * 0.95;
@@ -4990,10 +4993,10 @@
                                 wallSquishAmp = 1.0;
                                 wallSquishDirX = -1.0;
                                 wallSquishDirY = 0;
-                                sparkX = width - 25;
+                                sparkX = width - 10;
                             }
 
-                            // 상하 벽 충돌 (벽 밖 탈출 100% 차단 + 물리적 찌그러짐 후 반동 복원 연출)
+                            // 상하 벽 충돌 (눈에 보이는 당구대 상단 빨간선/하단 벽면까지 100% 가서 닿은 후 극강 탄성 찌그러짐!)
                             if (jellyCenterY <= minCY) {
                                 jellyCenterY = minCY;
                                 jellyFlightVy = Math.abs(jellyFlightVy) * 0.95;
@@ -5003,7 +5006,7 @@
                                 wallSquishAmp = 1.0;
                                 wallSquishDirX = 0;
                                 wallSquishDirY = 1.0;
-                                sparkY = 152;
+                                sparkY = tableTopLimitY;
                             } else if (jellyCenterY >= maxCY) {
                                 jellyCenterY = maxCY;
                                 jellyFlightVy = -Math.abs(jellyFlightVy) * 0.95;
@@ -5013,7 +5016,7 @@
                                 wallSquishAmp = 1.0;
                                 wallSquishDirX = 0;
                                 wallSquishDirY = -1.0;
-                                sparkY = height - 25;
+                                sparkY = height - 10;
                             }
 
                             // 벽 충돌 시 퐁! 효과음, 바운스 횟수 증가 및 파티클 스파크 연출
@@ -5172,13 +5175,13 @@
                             let squishScaleX = 1.0;
                             let squishScaleY = 1.0;
                             if (wallSquishAmp > 0.005) {
-                                wallSquishAmp *= 0.82; // 찌그러졌다가 펴지면서 반동 튕김 복원
+                                wallSquishAmp *= 0.78; // 찌그러졌다가 탄성 반동으로 순간적 원복
                                 if (Math.abs(wallSquishDirX) > 0.5) {
-                                    squishScaleX = 1.0 - wallSquishAmp * 0.42; // 벽 충돌 시 수평 압축 찌그러짐
-                                    squishScaleY = 1.0 + wallSquishAmp * 0.32; // 수직 팽창
+                                    squishScaleX = 1.0 - wallSquishAmp * 0.60; // 벽면에 닿을 때 60% 극강 수평 압축 찌그러짐!
+                                    squishScaleY = 1.0 + wallSquishAmp * 0.45; // 수직 45% 팽창
                                 } else if (Math.abs(wallSquishDirY) > 0.5) {
-                                    squishScaleX = 1.0 + wallSquishAmp * 0.32; // 수평 팽창
-                                    squishScaleY = 1.0 - wallSquishAmp * 0.42; // 수직 압축 찌그러짐
+                                    squishScaleX = 1.0 + wallSquishAmp * 0.45; // 수평 45% 팽창
+                                    squishScaleY = 1.0 - wallSquishAmp * 0.60; // 벽면에 닿을 때 60% 극강 수직 압축 찌그러짐!
                                 }
                             }
 
@@ -5659,12 +5662,15 @@
 
             // 🎱 Render 4 Corner Pockets & Aiming Line in Billiards Mode (Lightweight GPU & High-Vis!)
             if (activeTextureMode === 'billiards') {
-                let topBarH = 60;
+                let topBarH = 100; // 🌟 스코어바 아래 당구대 상단 경계선 (y = 100px)
                 let pockets = getPocketPositions();
                 ctx.save();
+                // 1. 빨간선(y=100px) 위쪽 영역 100% 깔끔하게 짤림 (상단 구멍 빨간선 위 노출 차단!)
                 ctx.beginPath();
                 ctx.rect(0, topBarH, width, height - topBarH);
                 ctx.clip();
+
+                // 2. 4개 코너 포켓 홀 렌더링
                 for (let pk of pockets) {
                     // Deep dark hole center
                     ctx.fillStyle = '#0c071e';
@@ -5686,6 +5692,22 @@
                     ctx.arc(pk.x, pk.y, pk.r - 4, 0, Math.PI * 2);
                     ctx.stroke();
                 }
+
+                // 3. 🌟 당구다이 상단 테두리 가이드 선 (White & Cyan Cushion Guide Line at y = 100px)
+                ctx.strokeStyle = '#ffffff';
+                ctx.lineWidth = 3.5;
+                ctx.beginPath();
+                ctx.moveTo(0, topBarH);
+                ctx.lineTo(width, topBarH);
+                ctx.stroke();
+
+                ctx.strokeStyle = '#00e5ff';
+                ctx.lineWidth = 2.0;
+                ctx.beginPath();
+                ctx.moveTo(0, topBarH);
+                ctx.lineTo(width, topBarH);
+                ctx.stroke();
+
                 ctx.restore();
 
                 // Trajectory & Tension Gauge Line while dragging
