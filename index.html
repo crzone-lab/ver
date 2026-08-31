@@ -126,18 +126,18 @@
             display: block;
         }
 
-        /* Warm Yellow Top Bar UI Overlay matching Image 2 */
+        /* Seamless Transparent Top Bar UI Overlay matching screen background */
         .top-overlay-ui {
             position: absolute;
-            top: 0;
+            top: calc(env(safe-area-inset-top, 20px) + 10px) !important;
             left: 0;
             width: 100%;
-            height: 60px;
-            background: rgba(254, 249, 219, 0.95) !important;
-            backdrop-filter: blur(10px);
-            -webkit-backdrop-filter: blur(10px);
-            box-shadow: 0 2px 10px rgba(0,0,0,0.12);
-            padding: 0 12px;
+            height: 52px;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            -webkit-backdrop-filter: none !important;
+            box-shadow: none !important;
+            padding: 0 16px;
             box-sizing: border-box;
             display: flex;
             justify-content: space-between;
@@ -874,10 +874,12 @@
                 display: none !important; /* Hide mock notch on real devices */
             }
             .top-overlay-ui {
-                top: 14px !important;
+                top: calc(env(safe-area-inset-top, 20px) + 14px) !important;
+                background: transparent !important;
+                box-shadow: none !important;
             }
             .lobby-feel-selector {
-                top: 92px !important; /* Clear gap below top icons */
+                top: calc(env(safe-area-inset-top, 20px) + 74px) !important; /* Clear gap below top icons */
             }
             .lobby-screen {
                 padding: 140px 16px 16px 16px !important;
@@ -5043,9 +5045,9 @@
                                 }
                             } else {
                                 // 🌟 [탱글젤리 천천히 완만하게 센터 정면 정지 엔진]:
-                                // 1. 확 오지 않고 부드럽게 감속(0.90 감쇄)하여 천천히 원위치로 이동
-                                jellyCenterX *= 0.90;
-                                jellyCenterY *= 0.90;
+                                // 1. 확 오지 않고 부드럽게 감속(0.88 감쇄)하여 천천히 원위치로 이동
+                                jellyCenterX *= 0.88;
+                                jellyCenterY *= 0.88;
                                 if (currentMode === 'jelly') {
                                     jellyRotation = 0;
                                     jellySpinSpeed = 0;
@@ -5054,8 +5056,18 @@
                                 }
 
                                 let distToCenter = Math.hypot(jellyCenterX, jellyCenterY);
-                                if (distToCenter < 0.5) {
-                                    // 2. 비스듬함 없이 정중앙(0,0) 수직 정면 100% 완벽 정지!
+
+                                // 🌟 [정지 직전 3~4회 탄성 튕김 연출]: 가운데 도달 직전에 3~4회 탄성 튕김 진동
+                                if (distToCenter < 14 && distToCenter > 0.4) {
+                                    if (typeof centerElasticBouncing === 'undefined') centerElasticBouncing = 0;
+                                    centerElasticBouncing += 0.08;
+                                    let bounceOsc = Math.sin(centerElasticBouncing * Math.PI * 3.6) * Math.exp(-2.2 * centerElasticBouncing) * 8.0;
+                                    jellyCenterX += (Math.random() - 0.5) * bounceOsc;
+                                    jellyCenterY += (Math.random() - 0.5) * bounceOsc;
+                                }
+
+                                if (distToCenter < 0.45) {
+                                    if (typeof centerElasticBouncing !== 'undefined') centerElasticBouncing = 0;
                                     jellyCenterX = 0;
                                     jellyCenterY = 0;
                                     jellyFlightVx = 0;
