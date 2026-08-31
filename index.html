@@ -4642,11 +4642,11 @@
             playBilliardsScoreSound(soundTier);
 
             pocketScoreAnnouncements.push({
-                text: `🎉 SUCCESS! +${pts}점`,
+                text: `🎉 +${pts}점!`,
                 subtext: title,
                 color: soundTier === 4 ? '#ff007f' : soundTier === 3 ? '#ffb700' : soundTier === 2 ? '#00e5ff' : '#76ff03',
-                life: 2.2, // Extended display duration per user request!
-                scale: soundTier === 4 ? 2.0 : 1.5
+                life: 2.0,
+                scale: soundTier >= 3 ? 1.15 : 1.0
             });
 
             if (typeof largeShards !== 'undefined' && largeShards) {
@@ -5112,10 +5112,6 @@
                                 currentLaunchBounceCount++;
                                 playJellyWallBounceSound();
 
-                                if (activeTextureMode === 'billiards') {
-                                    let ptsHint = (currentLaunchBounceCount === 1) ? '5점 조준' : (currentLaunchBounceCount === 2) ? '10점 조준' : '30점 조준 🔥';
-                                    addFloatingBounceText(sparkX, sparkY, `[ ${currentLaunchBounceCount} BOUNCE! (${ptsHint}) ]`, currentLaunchBounceCount);
-                                }
                                 if (typeof largeShards !== 'undefined' && largeShards) {
                                     let sparkColor = `hsl(${activeHue}, 90%, 65%)`;
                                     for (let k = 0; k < 12; k++) {
@@ -5862,14 +5858,14 @@
                     ctx.textAlign = 'center';
 
                     ctx.fillStyle = sa.color;
-                    ctx.font = `900 ${Math.round(28 * sa.scale)}px "Outfit", sans-serif`;
+                    ctx.font = `900 ${Math.round(20 * (sa.scale || 1.0))}px "Outfit", sans-serif`;
                     ctx.shadowColor = '#000';
-                    ctx.shadowBlur = 12;
+                    ctx.shadowBlur = 10;
                     ctx.fillText(sa.text, width * 0.5, height * 0.42);
 
                     ctx.fillStyle = '#ffffff';
-                    ctx.font = 'bold 18px "Outfit", sans-serif';
-                    ctx.fillText(sa.subtext, width * 0.5, height * 0.42 + 32);
+                    ctx.font = 'bold 13px "Outfit", sans-serif';
+                    ctx.fillText(sa.subtext, width * 0.5, height * 0.42 + 24);
                     ctx.restore();
 
                     if (sa.life <= 0) pocketScoreAnnouncements.splice(i, 1);
