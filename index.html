@@ -4147,7 +4147,11 @@
         }
 
         function handleRecordToggle() {
-            stopAutopilot(); releaseGrab(true); releaseGrab(true);
+            try {
+                if (typeof stopAutopilot === 'function') stopAutopilot();
+                if (typeof releaseGrab === 'function') releaseGrab(true);
+            } catch(e){}
+
             if (isRecording) {
                 stopVideoRecording();
             } else {
@@ -4164,7 +4168,7 @@
         function triggerRecLoop() {
             isRecording = true;
             
-            // Update icon to stop symbol (⏹️)
+            // 1. UI 즉시 갱신 (정지 아이콘 & 상단 촬영중 인디케이터 활성화)
             const globalBtn = document.getElementById('global-rec-btn');
             if (globalBtn) { 
                 globalBtn.innerHTML = '<img src="stop.png" alt="중지" style="width: 32px; height: 32px; object-fit: contain;">'; 
@@ -4178,73 +4182,76 @@
             const timerEl = document.getElementById('rec-timer');
             if (timerEl) timerEl.innerText = '00:00';
 
-            // Start Canvas Stream Recording
-            if (canvas) {
-                recordedChunks = [];
-                let stream = null;
+            // 2. 캔버스 스트림 캡처 (모든 모바일/PC 브라우저 호환)
+            recordedChunks = [];
+            lastRecordedBlob = null;
+            let stream = null;
+
+            try {
+                const targetCanvas = document.getElementById('squishy-canvas');
+                if (targetCanvas) {
+                    if (typeof targetCanvas.captureStream === 'function') {
+                        stream = targetCanvas.captureStream(30);
+                    } else if (typeof targetCanvas.mozCaptureStream === 'function') {
+                        stream = targetCanvas.mozCaptureStream(30);
+                    }
+                }
+            } catch (err) {
+                console.warn("Canvas stream capture failed:", err);
+            }
+
+            if (stream && (window.MediaRecorder || typeof MediaRecorder !== 'undefined')) {
+                let mimeType = '';
+                const testTypes = [
+                    'video/webm;codecs=vp9,opus',
+                    'video/webm;codecs=vp8,opus',
+                    'video/webm',
+                    'video/mp4',
+                    'video/mp4;codecs=avc1',
+                    'video/quicktime'
+                ];
+
+                for (let t of testTypes) {
+                    if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) {
+                        mimeType = t;
+                        break;
+                    }
+                }
+
                 try {
-                    if (typeof canvas.captureStream === 'function') {
-                        stream = canvas.captureStream(30);
-                    }
-                } catch (e) {
-                    console.log("captureStream(30) fallback", e);
-                }
-
-                if (!stream && typeof canvas.captureStream === 'function') {
-                    try { stream = canvas.captureStream(); } catch(e2){}
-                }
-
-                if (stream && window.MediaRecorder) {
-                    let options = {};
-                    const codecs = [
-                        'video/webm;codecs=vp9',
-                        'video/webm;codecs=vp8',
-                        'video/webm',
-                        'video/mp4',
-                        'video/quicktime'
-                    ];
-                    for (const codec of codecs) {
-                        try {
-                            if (MediaRecorder.isTypeSupported(codec)) {
-                                options.mimeType = codec;
-                                break;
-                            }
-                        } catch(e) {}
-                    }
-
+                    mediaRecorder = mimeType ? new MediaRecorder(stream, { mimeType: mimeType }) : new MediaRecorder(stream);
+                } catch (e1) {
                     try {
-                        mediaRecorder = new MediaRecorder(stream, options);
+                        mediaRecorder = new MediaRecorder(stream);
                     } catch (e2) {
-                        try {
-                            mediaRecorder = new MediaRecorder(stream);
-                        } catch (e3) {
-                            console.error("MediaRecorder fallback failed:", e3);
-                            mediaRecorder = null;
-                        }
+                        console.error("MediaRecorder init failed:", e2);
+                        mediaRecorder = null;
                     }
+                }
 
-                    if (mediaRecorder) {
-                        mediaRecorder.ondataavailable = function(e) {
-                            if (e.data && e.data.size > 0) {
-                                recordedChunks.push(e.data);
-                            }
-                        };
-                        mediaRecorder.onstop = function() {
-                            if (recordedChunks.length > 0) {
-                                const type = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
-                                lastRecordedBlob = new Blob(recordedChunks, { type: type });
-                                const videoURL = URL.createObjectURL(lastRecordedBlob);
-                                const previewVideo = document.getElementById('result-video-preview');
-                                if (previewVideo) {
-                                    previewVideo.src = videoURL;
-                                }
-                            }
-                        };
-                        try {
-                            mediaRecorder.start(100); // 100ms timeslice for data capture
-                        } catch (startErr) {
-                            console.error("mediaRecorder.start error:", startErr);
+                if (mediaRecorder) {
+                    mediaRecorder.ondataavailable = function(e) {
+                        if (e.data && e.data.size > 0) {
+                            recordedChunks.push(e.data);
                         }
+                    };
+                    mediaRecorder.onstop = function() {
+                        if (recordedChunks.length > 0) {
+                            const actualType = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
+                            lastRecordedBlob = new Blob(recordedChunks, { type: actualType });
+                            const videoURL = URL.createObjectURL(lastRecordedBlob);
+                            const previewVideo = document.getElementById('result-video-preview');
+                            if (previewVideo) {
+                                previewVideo.src = videoURL;
+                                previewVideo.load();
+                                previewVideo.play().catch(()=>{});
+                            }
+                        }
+                    };
+                    try {
+                        mediaRecorder.start(100);
+                    } catch (startErr) {
+                        console.error("MediaRecorder.start error:", startErr);
                     }
                 }
             }
@@ -4256,7 +4263,7 @@
                 const timerEl = document.getElementById('rec-timer');
                 if (timerEl) timerEl.innerText = `00:${pad}${duration}`;
                 
-                // Max recording duration: 15 seconds
+                // 최대 녹화 시간: 15초
                 if (duration >= 15) {
                     stopVideoRecording();
                 }
@@ -4265,13 +4272,6 @@
 
         // ⏹️ 녹화 정지
         function stopVideoRecording() {
-            if (countdownInterval) {
-                clearInterval(countdownInterval);
-                countdownInterval = null;
-            }
-            const countdown = document.getElementById('countdown-overlay');
-            if (countdown) countdown.style.display = 'none';
-
             if (!isRecording) return;
             isRecording = false;
             
