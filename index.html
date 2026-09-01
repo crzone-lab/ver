@@ -2255,11 +2255,11 @@
         });
 
         
-        // Automatic Mobile Fullscreen Enforcer
+        // Automatic Mobile & iPad Fullscreen Enforcer with 1:1 Square Pixel Aspect Guarantee
         function enforceMobileFullscreen() {
             const frame = document.querySelector('.phone-frame');
             if (!frame) return;
-            if (window.innerWidth <= 768 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+            if (window.innerWidth <= 1024 || /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
                 frame.style.setProperty('width', '100vw', 'important');
                 frame.style.setProperty('height', '100vh', 'important');
                 frame.style.setProperty('height', '100dvh', 'important');
@@ -2280,6 +2280,20 @@
                 frame.style.removeProperty('position');
                 frame.style.removeProperty('top');
                 frame.style.removeProperty('left');
+            }
+
+            // Sync internal canvas resolution with bounding container while keeping high-res aspect ratio
+            const rect = frame.getBoundingClientRect();
+            if (rect.width > 50 && rect.height > 50) {
+                let targetH = 816;
+                let targetW = Math.round(targetH * (rect.width / rect.height));
+                if (width !== targetW || height !== targetH) {
+                    width = targetW;
+                    height = targetH;
+                    canvas.width = width;
+                    canvas.height = height;
+                    if (typeof initMesh === 'function') initMesh();
+                }
             }
         }
         window.addEventListener('resize', enforceMobileFullscreen);
@@ -2322,8 +2336,9 @@
                 }
             }
 
-            let maxW = canvasW * 0.78 * sizeScale;
-            let maxH = canvasH * 0.49 * sizeScale;
+            let baseDim = Math.min(canvasW, canvasH * 0.58);
+            let maxW = baseDim * 0.78 * sizeScale;
+            let maxH = baseDim * 0.78 * sizeScale;
 
             let meshW = maxW;
             let meshH = meshW / imgAspect;
