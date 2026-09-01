@@ -612,23 +612,25 @@
         /* Dynamic Toast Notification */
         .toast-notification {
             position: absolute;
+            z-index: 999999 !important;
+            position: fixed;
             top: 70px;
             left: 50%;
             transform: translateX(-50%) translateY(-20px);
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(20, 20, 30, 0.92);
+            border: 1.5px solid rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.6);
             color: #fff;
-            padding: 10px 20px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            backdrop-filter: blur(15px);
+            padding: 12px 24px;
+            border-radius: 24px;
+            font-size: 0.95rem;
+            font-weight: 800;
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
             opacity: 0;
             pointer-events: none;
             transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            z-index: 2000;
             white-space: nowrap;
-            box-shadow: 0 8px 32px rgba(0,0,0,0.2);
         }
         .toast-notification.active {
             opacity: 1;
@@ -4613,10 +4615,18 @@
             showNotification(i18n.t('notif-gallery-saved'));
         }
 
+        let toastTimer = null;
         function showNotification(msg) {
             console.log(msg);
-            // Top notification banner disabled per user request!
-            return;
+            const toast = document.getElementById('toast-el');
+            if (toast) {
+                toast.innerText = msg;
+                toast.classList.add('active');
+                if (toastTimer) clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => {
+                    toast.classList.remove('active');
+                }, 2500);
+            }
         }
 
         function drawWarpedTriangle(ctx, img, p0, p1, p2, imgW, imgH) {
@@ -5272,13 +5282,13 @@
                             let dynamicCharRadius = 78;
 
                             if (activeTextureMode === 'billiards') {
-                                // 🌟 [당구 모드 전용]: 4개 구멍(상단 2개, 하단 2개) 모두 중앙에서 거리에 따라 100% 동일한 비율로 대칭 축소 & 귀 잘림 방지 반경
+                                // 🌟 [당구 모드 전용]: 4개 구멍(상단 2개, 하단 2개) 모두 중앙에서 거리에 따라 100% 동일한 비율로 대칭 축소 & 벽면 밀착 반경
                                 let tableCenterY = (100 + (height - 10)) * 0.5;
                                 let tableCenterX = centerOx;
                                 let maxDist = Math.hypot(width * 0.5, (height - 100) * 0.5) || 1;
                                 let currentDist = Math.hypot(centerOx + jellyCenterX - tableCenterX, centerOy + jellyCenterY - tableCenterY);
                                 currentFlightScale = Math.max(0.30, 1.0 - (currentDist / maxDist) * 0.70);
-                                dynamicCharRadius = 135 * currentFlightScale;
+                                dynamicCharRadius = 88 * currentFlightScale; // 벽면까지 확실히 가서 닿도록 반경 정밀 보정
                             } else {
                                 // 🌟 [탱글젤리 기본 모드]: 원래의 부드럽고 천천히 이동하는 기본 크기/반경 100% 보존
                                 let maxDist = Math.hypot(width * 0.5, height * 0.5) || 1;
