@@ -2201,14 +2201,15 @@
         // --- BOTTOM 17 FRUIT RABBIT CAROUSEL SELECTOR ENGINE ---
         let carouselAutoScrollTimer = null;
         let isCarouselHovered = false;
+        let carouselScrollPos = 0;
 
         function renderBottomCarousel() {
             const track = document.getElementById('bottom-carousel-track');
             if (!track) return;
             track.innerHTML = '';
 
-            // Render duplicated set of all 17 fruit rabbit cards for 100% seamless infinite scroll loop
-            const fullList = [...lobbyCharacters, ...lobbyCharacters];
+            // Render 4 sets of characters for 100% smooth seamless infinite loop
+            const fullList = [...lobbyCharacters, ...lobbyCharacters, ...lobbyCharacters, ...lobbyCharacters];
 
             fullList.forEach((char, fullIdx) => {
                 const idx = fullIdx % lobbyCharacters.length;
@@ -2232,6 +2233,7 @@
                 track.appendChild(card);
             });
 
+            carouselScrollPos = track.scrollLeft;
             startBottomCarouselAutoScroll();
         }
 
@@ -2240,7 +2242,6 @@
             const activeCard = document.getElementById(`carousel-card-${idx}`);
             if (activeCard) {
                 activeCard.classList.add('active');
-                activeCard.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
             }
         }
 
@@ -2250,12 +2251,16 @@
 
             function step() {
                 if (!isCarouselHovered && track) {
-                    track.scrollLeft += 0.65; // Smooth continuous leftward scroll
-                    
-                    let halfWidth = track.scrollWidth / 2;
-                    if (track.scrollLeft >= halfWidth) {
-                        track.scrollLeft -= halfWidth; // Infinite seamless loop wrap-around
+                    carouselScrollPos += 0.75;
+                    let segmentWidth = track.scrollWidth / 4;
+                    if (segmentWidth > 50) {
+                        if (carouselScrollPos >= segmentWidth * 2) {
+                            carouselScrollPos -= segmentWidth;
+                        }
                     }
+                    track.scrollLeft = carouselScrollPos;
+                } else if (track) {
+                    carouselScrollPos = track.scrollLeft;
                 }
                 carouselAutoScrollTimer = requestAnimationFrame(step);
             }
@@ -2267,7 +2272,7 @@
             track.onmouseleave = () => { isCarouselHovered = false; };
             track.ontouchstart = () => { isCarouselHovered = true; };
             track.ontouchend = () => {
-                setTimeout(() => { isCarouselHovered = false; }, 2500);
+                setTimeout(() => { isCarouselHovered = false; }, 1500);
             };
         }
 
