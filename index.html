@@ -6190,11 +6190,7 @@
                 points[grabbedPointIndex].x = mx;
                 points[grabbedPointIndex].y = my;
                 let d = Math.hypot(touchX - touchStartX, touchY - touchStartY);
-                if (currentMode === 'slime' || activeTextureMode === 'slime') {
-                    playSlimePullSound(d);
-                } else {
-                    playGeneralStretchSound(d);
-                }
+                playGeneralStretchSound(d);
             }
         });
 
@@ -6389,11 +6385,7 @@
             if (grabbedPointIndex !== null && points[grabbedPointIndex]) {
                 let gPoint = points[grabbedPointIndex];
                 let d = Math.hypot(touchX - touchStartX, touchY - touchStartY);
-                if (currentMode === 'slime' || activeTextureMode === 'slime') {
-                    playSlimePullSound(d);
-                } else {
-                    playGeneralStretchSound(d);
-                }
+                playGeneralStretchSound(d);
                 gPoint.x = pos.x;
                 gPoint.y = pos.y;
             }
