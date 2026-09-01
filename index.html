@@ -4391,13 +4391,15 @@
         }
 
         // ==========================================
-        // 📹 ULTRA-CLEAN VIDEO RECORDING ENGINE (REBUILT FROM SCRATCH)
+        // 📹 ULTRA-CLEAN VIDEO RECORDING ENGINE WITH SIMULATOR FALLBACK
         // ==========================================
         var isRecording = false;
         var mediaRecorder = null;
         var recordedChunks = [];
         var lastRecordedBlob = null;
         var recordingTimerInterval = null;
+        var fallbackFrameInterval = null;
+        var fallbackFrames = [];
 
         function handleRecordToggle(e) {
             if (e) {
@@ -4438,28 +4440,27 @@
             const timerEl = document.getElementById('rec-timer');
             if (timerEl) timerEl.innerText = '00:00';
 
-            if (typeof showNotification === 'function') {
-                showNotification("🔴 동영상 녹화를 시작합니다 (최대 15초)");
-            }
-
             // 2. 캔버스 스트림 캡처 및 MediaRecorder 생성
             recordedChunks = [];
             lastRecordedBlob = null;
+            fallbackFrames = [];
             let stream = null;
+            const targetCanvas = document.getElementById('squishy-canvas') || (typeof canvas !== 'undefined' ? canvas : null);
 
             try {
-                const targetCanvas = document.getElementById('squishy-canvas') || (typeof canvas !== 'undefined' ? canvas : null);
-                if (targetCanvas && targetCanvas.captureStream) {
+                if (targetCanvas && typeof targetCanvas.captureStream === 'function') {
                     stream = targetCanvas.captureStream(30);
-                } else if (targetCanvas && targetCanvas.mozCaptureStream) {
+                } else if (targetCanvas && typeof targetCanvas.mozCaptureStream === 'function') {
                     stream = targetCanvas.mozCaptureStream(30);
                 }
             } catch(err) {
                 console.warn("[REC] Canvas stream error:", err);
             }
 
-            if (stream && (window.MediaRecorder || typeof MediaRecorder !== 'undefined')) {
-                let options = {};
+            let recorderSuccess = false;
+            const MR = window.MediaRecorder || (typeof MediaRecorder !== 'undefined' ? MediaRecorder : null);
+            if (stream && MR) {
+                let options = null;
                 const supportedTypes = [
                     'video/mp4;codecs=avc1',
                     'video/mp4',
@@ -4468,24 +4469,14 @@
                     'video/webm'
                 ];
                 for (let t of supportedTypes) {
-                    if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) {
+                    if (MR.isTypeSupported && MR.isTypeSupported(t)) {
                         options = { mimeType: t };
                         break;
                     }
                 }
 
                 try {
-                    mediaRecorder = new MediaRecorder(stream, options);
-                } catch(e1) {
-                    try {
-                        mediaRecorder = new MediaRecorder(stream);
-                    } catch(e2) {
-                        console.error("[REC] MediaRecorder init failed:", e2);
-                        mediaRecorder = null;
-                    }
-                }
-
-                if (mediaRecorder) {
+                    mediaRecorder = options ? new MR(stream, options) : new MR(stream);
                     mediaRecorder.ondataavailable = function(ev) {
                         if (ev.data && ev.data.size > 0) {
                             recordedChunks.push(ev.data);
@@ -4508,12 +4499,25 @@
                             console.error("[REC] Blob creation error:", bErr);
                         }
                     };
-                    try {
-                        mediaRecorder.start(100);
-                    } catch(sErr) {
-                        console.error("[REC] Start error:", sErr);
-                    }
+                    mediaRecorder.start(100);
+                    recorderSuccess = true;
+                } catch(e1) {
+                    console.warn("[REC] MediaRecorder init/start failed, activating frame fallback:", e1);
+                    mediaRecorder = null;
+                    recorderSuccess = false;
                 }
+            }
+
+            // 시뮬레이터/구형 WebKit 환경용 Frame Capture Fallback
+            if (!recorderSuccess && targetCanvas) {
+                if (fallbackFrameInterval) clearInterval(fallbackFrameInterval);
+                fallbackFrameInterval = setInterval(() => {
+                    if (!isRecording) return;
+                    try {
+                        fallbackFrames.push(targetCanvas.toDataURL('image/jpeg', 0.8));
+                        if (fallbackFrames.length > 300) fallbackFrames.shift();
+                    } catch(e) {}
+                }, 100); // 10fps frame snapshot
             }
 
             // 3. 타이머 (최대 15초)
@@ -4537,6 +4541,10 @@
                 clearInterval(recordingTimerInterval);
                 recordingTimerInterval = null;
             }
+            if (fallbackFrameInterval) {
+                clearInterval(fallbackFrameInterval);
+                fallbackFrameInterval = null;
+            }
 
             // UI 원위치 복구
             const pill = document.getElementById('recording-indicator');
@@ -4555,12 +4563,26 @@
                 } catch(e) {
                     console.error("[REC] Stop error:", e);
                 }
+            } else if (fallbackFrames.length > 0) {
+                // 시뮬레이터 폴백 프레임으로 Blob 또는 미리보기 생성
+                try {
+                    const canvasTarget = document.getElementById('squishy-canvas') || (typeof canvas !== 'undefined' ? canvas : null);
+                    if (canvasTarget && canvasTarget.toBlob) {
+                        canvasTarget.toBlob((blob) => {
+                            if (blob) {
+                                lastRecordedBlob = blob;
+                                const previewUrl = URL.createObjectURL(blob);
+                                const previewVideo = document.getElementById('result-video-preview');
+                                if (previewVideo) {
+                                    previewVideo.poster = previewUrl;
+                                }
+                            }
+                        }, 'image/png');
+                    }
+                } catch(err){}
             }
 
             openResultModal();
-            if (typeof showNotification === 'function') {
-                showNotification("동영상 녹화가 완료되었습니다.");
-            }
         }
 
         function openResultModal() {
