@@ -4600,43 +4600,84 @@
             }
         }
 
-        function saveToGallery() {
+        async function saveToGallery() {
             if (!lastRecordedBlob) {
                 if (typeof showNotification === 'function') showNotification("녹화된 영상이 없습니다.");
                 return;
             }
             closeResultModal();
             
-            let ext = 'webm';
-            let mime = 'video/webm';
-            if (lastRecordedBlob.type.includes('mp4')) {
-                ext = 'mp4';
-                mime = 'video/mp4';
-            } else if (lastRecordedBlob.type.includes('quicktime')) {
-                ext = 'mov';
-                mime = 'video/quicktime';
+            let ext = 'mp4';
+            let mime = 'video/mp4';
+            if (lastRecordedBlob.type.includes('webm')) {
+                ext = 'webm';
+                mime = 'video/webm';
+            } else if (lastRecordedBlob.type.includes('png')) {
+                ext = 'png';
+                mime = 'image/png';
             }
 
             const filename = `squishy-rabbit-${Date.now()}.${ext}`;
-            triggerDirectDownload(filename);
-            if (typeof showNotification === 'function') {
-                showNotification("💾 동영상이 갤러리/다운로드에 저장되었습니다.");
+
+            // 1. Native iOS Device Save via Capacitor Plugins (100% App Store / Real iPhone Compatible)
+            try {
+                if (window.Capacitor && window.Capacitor.Plugins) {
+                    const { Filesystem, Share } = window.Capacitor.Plugins;
+                    if (Filesystem) {
+                        const reader = new FileReader();
+                        reader.readAsDataURL(lastRecordedBlob);
+                        reader.onloadend = async function() {
+                            const base64Data = reader.result;
+                            try {
+                                const savedFile = await Filesystem.writeFile({
+                                    path: filename,
+                                    data: base64Data,
+                                    directory: 'DOCUMENTS'
+                                });
+                                
+                                if (Share && Share.share) {
+                                    await Share.share({
+                                        title: '과일토끼 말랑이 녹화 저장',
+                                        text: '과일토끼 말랑이에서 녹화한 영상입니다!',
+                                        url: savedFile.uri,
+                                        dialogTitle: '비디오 저장 / 공유하기'
+                                    });
+                                }
+                                showNotification(i18n.t('notif-gallery-saved') || "💾 영상이 저장/공유되었습니다!");
+                                return;
+                            } catch(fsErr) {
+                                console.warn("[NATIVE SAVE] Fallback to direct download:", fsErr);
+                                triggerDirectDownload(filename);
+                            }
+                        };
+                        return;
+                    }
+                }
+            } catch(nativeErr) {
+                console.warn("[NATIVE SAVE] Native bridge not available:", nativeErr);
             }
+
+            // 2. Standard Web Browser Direct Download
+            triggerDirectDownload(filename);
         }
 
         function triggerDirectDownload(filename) {
-            const url = URL.createObjectURL(lastRecordedBlob);
-            const a = document.createElement('a');
-            a.style.display = 'none';
-            a.href = url;
-            a.download = filename;
-            document.body.appendChild(a);
-            a.click();
-            setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            }, 150);
-            showNotification(i18n.t('notif-gallery-saved'));
+            try {
+                const url = URL.createObjectURL(lastRecordedBlob);
+                const a = document.createElement('a');
+                a.style.display = 'none';
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                setTimeout(() => {
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                }, 150);
+                showNotification(i18n.t('notif-gallery-saved') || "💾 동영상이 저장되었습니다.");
+            } catch(e) {
+                console.error("Direct download error:", e);
+            }
         }
 
         let toastTimer = null;
