@@ -5178,50 +5178,26 @@
                         // 🟢 [슬라임 릴리즈 2단계 완전 분리 물리 엔진]:
                         // 1단계 (0~1.6초 원위치 복구 구간): 당겼다 놨을 때 튕김/떨림 없이 100% 매끄럽게 원위치 95% 이상 완전히 복구!
                         // 2단계 (1.6초~9.5초 도달 직후 구간): 원위치에 거의 다 돌아온 직후에 비로소 12회 튕기고 부르르 떨며, 덜컹거림 없이 실키하게 정지!
-                        if (releaseTime <= 600) {
-                            let returnEnv = Math.exp(-1.8 * tSec); // 🌟 복구 이동 구간 (전혀 떨리지 않고 원위치까지 95% 이상 슬라이딩)
+                        if (releaseTime <= 900) {
+                            let returnEnv = Math.exp(-0.18 * tSec); // 🌟 극강의 슬로우 복구 (~8초에 걸쳐 아주아주 천천히 끈적하게 복귀)
                             
-                            let bounceOsc = 0;
-                            let trembleX = 0;
-                            let trembleY = 0;
+                            // 🌟 복구되면서 탄성으로 꿀렁이는 큰 출렁임 동작 (Big Viscous Slime Slosh/Wobble)
+                            let wobbleDecay = Math.exp(-0.25 * tSec);
+                            let bounceOsc = Math.sin(tSec * 4.5) * wobbleDecay * 0.48; // 동작을 훨씬 크게 출렁이도록 진폭 대폭 강화 (0.48)
+                            
+                            // 부르르 떨리는 젤리 액체 슬라임 잔여 파동
+                            let trembleAmp = wobbleDecay * 5.0 * Math.sin(tSec * 9.0);
+                            let trembleX = Math.sin(tSec * 16.0) * trembleAmp;
+                            let trembleY = Math.cos(tSec * 16.0) * trembleAmp;
 
                             // 🎵 [슬라임 원위치 복구 구간 효과음]: 손을 놓은 직후 1회만 고품질 슬라임 리스폰 오디오 출력
                             if (tSec <= 0.05 && releaseTime === 1) {
                                 playSlimeReleaseSound();
                             }
-                            // 🌟 원위치에 95% 이상 거의 완전히 돌아왔을 때(tSec > 1.6s) 비로소 12회 튕김 & 부르르 떨림 시작!
-                            else if (tSec > 1.6) {
-                                let arriveTime = tSec - 1.6;
-                                let arrivalDecay = Math.exp(-0.35 * arriveTime); // 12회에 걸쳐 진폭이 자연스럽게 줄어드는 감쇄 포용선
-                                
-                                // 🌟 [마지막 덜컹거림 100% 방지]: 6.0초부터 스무스스텝(Smoothstep) 감쇄로 잔여 오프셋을 0.000px로 완벽 보간
-                                let finishDamping = 1.0;
-                                if (tSec > 6.0) {
-                                    let fProgress = Math.min(1.0, (tSec - 6.0) / 3.0); // 6.0s ~ 9.0s 구간
-                                    finishDamping = 1.0 - (fProgress * fProgress * (3 - 2 * fProgress)); // 1.0 -> 0.0 스무스스텝
-                                }
-
-                                // 🌟 12회 (75.4 rad / 2π = 12.0 cycle) 동안 진동 속도(주파수)가 정지할 때까지 자연스럽게 감속
-                                let bouncePhase = 75.4 * (1.0 - Math.exp(-0.28 * arriveTime));
-                                bounceOsc = Math.sin(bouncePhase) * arrivalDecay * finishDamping * 0.38;
-
-                                // 🌟 부르르 떨림 속도(주파수)가 정지할 때까지 12회 동안 서서히 감속하며 부드럽게 소멸
-                                let tremblePhase = 150.0 * (1.0 - Math.exp(-0.24 * arriveTime));
-                                let trembleAmp = arrivalDecay * finishDamping * 4.2 * (1.0 - Math.exp(-3.0 * arriveTime));
-                                trembleX = Math.sin(tremblePhase) * trembleAmp;
-                                trembleY = Math.cos(tremblePhase) * trembleAmp;
-
-                                // 🎵 [슬라임 12회 튕김 효과음 1:1 완벽 박자 동기화]: 튕김 주기(Peak)에 100% 실시간 박자 연동!
-                                let currSin = Math.sin(bouncePhase);
-                                let prevSin = Math.sin(75.4 * (1.0 - Math.exp(-0.28 * Math.max(0, arriveTime - 0.016))));
-
-                                if ((prevSin <= 0 && currSin > 0) || (prevSin >= 0 && currSin < 0) || (releaseTime % 16 === 0)) {
-                                    if (arrivalDecay * finishDamping > 0.015) {
-                                        playSlimeBounceMovementSound((arrivalDecay * finishDamping) * 25.0);
-                                        playJellyWallBounceSound();
-                                        triggerHaptic(Math.max(15, Math.round(28 * arrivalDecay * finishDamping)));
-                                    }
-                                }
+                            // 출렁이는 피크 순간마다 은은한 슬라임 꿀렁 효과음 출력 (정지하면 자연 소멸)
+                            else if (releaseTime % 36 === 0 && wobbleDecay > 0.12) {
+                                playSlimeBounceMovementSound(wobbleDecay * 20.0);
+                                triggerHaptic(Math.max(10, Math.round(20 * wobbleDecay)));
                             }
 
                             for (let i = 0; i < points.length; i++) {
