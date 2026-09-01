@@ -2764,13 +2764,108 @@
             }
         }
 
+        // 🔊 [100% AUDIBLE DUAL SLIME SFX ENGINE]: WebAudio + Pre-baked HTML5 Audio WAV Data URIs
+        let cachedSlimePullWavUri = null;
+        let cachedSlimeReleaseWavUri = null;
+        let cachedSlimeBounceWavUri = null;
+
+        function createWavDataUri(generatorFn, durationSec = 0.12) {
+            try {
+                let sampleRate = 44100;
+                let numSamples = Math.floor(sampleRate * durationSec);
+                let buffer = new ArrayBuffer(44 + numSamples * 2);
+                let view = new DataView(buffer);
+
+                function writeString(offset, string) {
+                    for (let i = 0; i < string.length; i++) view.setUint8(offset + i, string.charCodeAt(i));
+                }
+                writeString(0, 'RIFF');
+                view.setUint32(4, 36 + numSamples * 2, true);
+                writeString(8, 'WAVE');
+                writeString(12, 'fmt ');
+                view.setUint32(16, 16, true);
+                view.setUint16(20, 1, true);
+                view.setUint16(22, 1, true);
+                view.setUint32(24, sampleRate, true);
+                view.setUint32(28, sampleRate * 2, true);
+                view.setUint16(32, 2, true);
+                view.setUint16(34, 16, true);
+                writeString(36, 'data');
+                view.setUint32(40, numSamples * 2, true);
+
+                for (let i = 0; i < numSamples; i++) {
+                    let t = i / sampleRate;
+                    let sample = generatorFn(t, durationSec);
+                    let sample16 = Math.max(-32768, Math.min(32767, Math.floor(sample * 32767)));
+                    view.setInt16(44 + i * 2, sample16, true);
+                }
+
+                let bytes = new Uint8Array(buffer);
+                let binary = '';
+                for (let i = 0; i < bytes.byteLength; i++) binary += String.fromCharCode(bytes[i]);
+                return 'data:audio/wav;base64,' + btoa(binary);
+            } catch (e) {
+                return '';
+            }
+        }
+
+        function getSlimePullWavUri() {
+            if (!cachedSlimePullWavUri) {
+                cachedSlimePullWavUri = createWavDataUri((t, dur) => {
+                    let freq = 180 + (t / dur) * 220;
+                    let wave = Math.sin(2 * Math.PI * freq * t);
+                    let squish = Math.sin(2 * Math.PI * (freq * 1.5) * t) * 0.3;
+                    let env = Math.sin((t / dur) * Math.PI);
+                    return (wave + squish) * env * 0.7;
+                }, 0.09);
+            }
+            return cachedSlimePullWavUri;
+        }
+
+        function getSlimeReleaseWavUri() {
+            if (!cachedSlimeReleaseWavUri) {
+                cachedSlimeReleaseWavUri = createWavDataUri((t, dur) => {
+                    let freq = 340 * Math.exp(-t * 14) + 90;
+                    let wave = Math.sin(2 * Math.PI * freq * t);
+                    let squelch = Math.sin(2 * Math.PI * (freq * 2.1) * t) * 0.25;
+                    let env = Math.exp(-t * 16);
+                    return (wave + squelch) * env * 0.85;
+                }, 0.14);
+            }
+            return cachedSlimeReleaseWavUri;
+        }
+
+        function getSlimeBounceWavUri() {
+            if (!cachedSlimeBounceWavUri) {
+                cachedSlimeBounceWavUri = createWavDataUri((t, dur) => {
+                    let freq = 220 * Math.exp(-t * 18) + 70;
+                    let wave = Math.sin(2 * Math.PI * freq * t);
+                    let env = Math.exp(-t * 22);
+                    return wave * env * 0.75;
+                }, 0.10);
+            }
+            return cachedSlimeBounceWavUri;
+        }
+
         // 🎵 모든 캐릭터 드래그/당김 시 재생되는 쫀득한 스트레치 효과음
         function playGeneralStretchSound(dragDist) {
             if (!isSoundEnabled) return;
             let nowTime = Date.now();
-            if (nowTime - lastStretchSoundTime < 60) return;
+            if (nowTime - lastStretchSoundTime < 65) return;
             lastStretchSoundTime = nowTime;
 
+            // 1. Dual Engine Layer A: WAV Data URI
+            try {
+                let wavUri = getSlimePullWavUri();
+                if (wavUri) {
+                    let a = new Audio(wavUri);
+                    a.volume = 0.85;
+                    let p = a.play();
+                    if (p && typeof p.catch === 'function') p.catch(e => {});
+                }
+            } catch(e) {}
+
+            // 2. Dual Engine Layer B: WebAudio
             try {
                 let ctx = getAudioContextSafe();
                 if (!ctx) return;
@@ -2781,17 +2876,17 @@
                 let gain = ctx.createGain();
 
                 osc.type = 'sine';
-                let baseFreq = 180 + norm * 260; // 180Hz -> 440Hz
+                let baseFreq = 200 + norm * 260;
                 osc.frequency.setValueAtTime(baseFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(baseFreq + 60, now + 0.10);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq + 80, now + 0.08);
 
-                gain.gain.setValueAtTime(0.35, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
+                gain.gain.setValueAtTime(0.40, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
                 osc.connect(gain);
                 gain.connect(ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.10);
+                osc.stop(now + 0.08);
             } catch(e) {}
         }
 
@@ -2803,6 +2898,19 @@
         // 🎵 슬라임 모드 특화 놨을 때 스냅 효과음 (Release & Snap)
         function playSlimeReleaseSound() {
             if (!isSoundEnabled) return;
+
+            // 1. Dual Engine Layer A: WAV Data URI
+            try {
+                let wavUri = getSlimeReleaseWavUri();
+                if (wavUri) {
+                    let a = new Audio(wavUri);
+                    a.volume = 0.95;
+                    let p = a.play();
+                    if (p && typeof p.catch === 'function') p.catch(e => {});
+                }
+            } catch(e) {}
+
+            // 2. Dual Engine Layer B: WebAudio
             try {
                 let ctx = getAudioContextSafe();
                 if (!ctx) return;
@@ -2812,10 +2920,10 @@
                 let gain = ctx.createGain();
 
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(360, now);
-                osc.frequency.exponentialRampToValueAtTime(120, now + 0.14);
+                osc.frequency.setValueAtTime(380, now);
+                osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
 
-                gain.gain.setValueAtTime(0.45, now);
+                gain.gain.setValueAtTime(0.55, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                 osc.connect(gain);
@@ -2829,8 +2937,21 @@
         function playSlimeBounceMovementSound(intensity) {
             if (!isSoundEnabled) return;
             let nowTime = Date.now();
-            if (nowTime - lastSlimeBounceSoundTime < 70) return;
+            if (nowTime - lastSlimeBounceSoundTime < 65) return;
             lastSlimeBounceSoundTime = nowTime;
+
+            // 1. Dual Engine Layer A: WAV Data URI
+            try {
+                let wavUri = getSlimeBounceWavUri();
+                if (wavUri) {
+                    let a = new Audio(wavUri);
+                    a.volume = 0.75;
+                    let p = a.play();
+                    if (p && typeof p.catch === 'function') p.catch(e => {});
+                }
+            } catch(e) {}
+
+            // 2. Dual Engine Layer B: WebAudio
             try {
                 let ctx = getAudioContextSafe();
                 if (!ctx) return;
@@ -2840,11 +2961,11 @@
                 let gain = ctx.createGain();
 
                 osc.type = 'sine';
-                let startF = 200 + Math.min(120, (intensity || 1.0) * 6);
+                let startF = 220 + Math.min(130, (intensity || 1.0) * 7);
                 osc.frequency.setValueAtTime(startF, now);
-                osc.frequency.exponentialRampToValueAtTime(startF * 0.55, now + 0.09);
+                osc.frequency.exponentialRampToValueAtTime(startF * 0.50, now + 0.09);
 
-                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.setValueAtTime(0.45, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
                 osc.connect(gain);
@@ -6142,7 +6263,20 @@
         // audioCtx declared at top level
 
         function playSquishSound(isRelease = false) {
-            if (!isSoundEnabled) return; // Disable all interaction sound effects outside of playground
+            if (!isSoundEnabled) return;
+
+            // Dual Engine Layer A: WAV Data URI
+            try {
+                let wavUri = isRelease ? getSlimeReleaseWavUri() : getSlimePullWavUri();
+                if (wavUri) {
+                    let a = new Audio(wavUri);
+                    a.volume = 0.85;
+                    let p = a.play();
+                    if (p && typeof p.catch === 'function') p.catch(e => {});
+                }
+            } catch(e) {}
+
+            // Dual Engine Layer B: WebAudio
             try {
                 let ctx = getAudioContextSafe();
                 if (!ctx) return;
@@ -6159,7 +6293,7 @@
                     osc.type = 'triangle';
                     osc.frequency.setValueAtTime(160, now);
                     osc.frequency.exponentialRampToValueAtTime(580, now + 0.12);
-                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.setValueAtTime(0.45, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
                     osc.start(now);
                     osc.stop(now + 0.12);
@@ -6168,14 +6302,12 @@
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(140, now);
                     osc.frequency.linearRampToValueAtTime(220, now + 0.15);
-                    gain.gain.setValueAtTime(0.30, now);
+                    gain.gain.setValueAtTime(0.40, now);
                     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                     osc.start(now);
                     osc.stop(now + 0.15);
                 }
-            } catch (e) {
-                console.log("AudioContext blocked or not supported:", e);
-            }
+            } catch (e) {}
         }
 
                 // isSoundEnabled declared at top level
