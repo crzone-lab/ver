@@ -2796,7 +2796,7 @@
         function playSlimePullSound(dragDist) {
             if (!isSoundEnabled) return;
             let nowTime = Date.now();
-            if (nowTime - lastSlimePullSoundTime < 65) return;
+            if (nowTime - lastSlimePullSoundTime < 60) return;
             lastSlimePullSoundTime = nowTime;
 
             try {
@@ -2805,24 +2805,22 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
-                let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.75;
-                if (sliderGain <= 0.001) return;
+                let masterNode = getMasterSFXGain() || audioCtx.destination;
 
                 let norm = Math.min(1.0, (dragDist || 0) / 130);
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
 
                 osc.type = 'triangle';
-                let f = 160 + norm * 360;
+                let f = 150 + norm * 350;
                 osc.frequency.setValueAtTime(f, now);
                 osc.frequency.exponentialRampToValueAtTime(f * 1.35, now + 0.09);
 
-                gain.gain.setValueAtTime(0.42 * sliderGain, now);
+                gain.gain.setValueAtTime(0.50, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(masterNode);
                 osc.start(now);
                 osc.stop(now + 0.09);
             } catch(e) {}
@@ -2837,21 +2835,19 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
-                let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.75;
-                if (sliderGain <= 0.001) return;
+                let masterNode = getMasterSFXGain() || audioCtx.destination;
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(380, now);
-                osc.frequency.exponentialRampToValueAtTime(90, now + 0.14);
+                osc.frequency.setValueAtTime(360, now);
+                osc.frequency.exponentialRampToValueAtTime(80, now + 0.14);
 
-                gain.gain.setValueAtTime(0.38 * sliderGain, now);
+                gain.gain.setValueAtTime(0.60, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(masterNode);
                 osc.start(now);
                 osc.stop(now + 0.14);
             } catch(e) {}
@@ -2862,7 +2858,7 @@
         function playSlimeBounceMovementSound(intensity) {
             if (!isSoundEnabled) return;
             let nowTime = Date.now();
-            if (nowTime - lastSlimeBounceSoundTime < 95) return;
+            if (nowTime - lastSlimeBounceSoundTime < 80) return;
             lastSlimeBounceSoundTime = nowTime;
             try {
                 ensureAudioUnlocked();
@@ -2870,22 +2866,20 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
-                let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.75;
-                if (sliderGain <= 0.001) return;
+                let masterNode = getMasterSFXGain() || audioCtx.destination;
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
                 osc.type = 'sine';
-                let startF = 190 + Math.min(120, (intensity || 1.0) * 8);
+                let startF = 180 + Math.min(130, (intensity || 1.0) * 8);
                 osc.frequency.setValueAtTime(startF, now);
-                osc.frequency.exponentialRampToValueAtTime(startF * 0.65, now + 0.08);
+                osc.frequency.exponentialRampToValueAtTime(startF * 0.60, now + 0.08);
 
-                gain.gain.setValueAtTime(0.28 * sliderGain, now);
+                gain.gain.setValueAtTime(0.40, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(masterNode);
                 osc.start(now);
                 osc.stop(now + 0.08);
             } catch(e) {}
