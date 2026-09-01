@@ -2467,17 +2467,12 @@
             if (!isSoundEnabled) return;
             if (typeof activeTextureMode !== 'undefined' && (activeTextureMode === 'slime' || currentMode === 'slime' || activeFeel === 'slime')) return;
             try {
-                ensureAudioUnlocked();
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                let now = audioCtx.currentTime;
+                let ctx = getAudioContextSafe();
+                if (!ctx) return;
+                let now = ctx.currentTime;
 
-                let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.50;
-                if (sliderGain <= 0.001) return;
-
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
 
                 let p = progress || 0;
                 let startFreq = 380 - p * 140;
@@ -2489,11 +2484,11 @@
                 osc.frequency.exponentialRampToValueAtTime(peakFreq, now + 0.05);
                 osc.frequency.exponentialRampToValueAtTime(endFreq, now + 0.16);
 
-                gain.gain.setValueAtTime(0.50 * sliderGain * Math.max(0.2, 1.0 - p * 0.5), now);
+                gain.gain.setValueAtTime(0.40 * Math.max(0.2, 1.0 - p * 0.5), now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
                 osc.start(now);
                 osc.stop(now + 0.16);
             } catch (e) {}
@@ -2860,39 +2855,49 @@
         }
 
         function playPopSound() {
-            ensureAudioUnlocked();
+            if (!isSoundEnabled) return;
             try {
-                let now = audioCtx.currentTime;
+                let wavUri = getPopWavDataUri();
+                if (wavUri) {
+                    let a = new Audio(wavUri);
+                    a.volume = 1.0;
+                    let p = a.play();
+                    if (p && typeof p.catch === 'function') p.catch(e => {});
+                }
+            } catch (e) {}
 
-                // Rich Pop Sound Pitch Drop (팡! / 톡!)
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+            try {
+                let ctx = getAudioContextSafe();
+                if (!ctx) return;
+                let now = ctx.currentTime;
+
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
                 osc.type = 'triangle';
-                osc.frequency.setValueAtTime(780, now);
-                osc.frequency.exponentialRampToValueAtTime(110, now + 0.14);
+                osc.frequency.setValueAtTime(820, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.16);
 
-                gain.gain.setValueAtTime(0.55, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
+                gain.gain.setValueAtTime(0.70, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.14);
+                osc.stop(now + 0.16);
 
-                // Noise Burst Layer (시원한 팝 터짐 질감)
-                let bufferSize = Math.floor(audioCtx.sampleRate * 0.08);
-                let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+                let bufferSize = Math.floor(ctx.sampleRate * 0.08);
+                let buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                 let data = buffer.getChannelData(0);
                 for (let i = 0; i < bufferSize; i++) {
                     data[i] = (Math.random() * 2 - 1) * Math.exp(-i / (bufferSize * 0.22));
                 }
-                let noise = audioCtx.createBufferSource();
+                let noise = ctx.createBufferSource();
                 noise.buffer = buffer;
-                let nGain = audioCtx.createGain();
-                nGain.gain.setValueAtTime(0.40, now);
+                let nGain = ctx.createGain();
+                nGain.gain.setValueAtTime(0.50, now);
                 nGain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 noise.connect(nGain);
-                nGain.connect(audioCtx.destination);
+                nGain.connect(ctx.destination);
                 noise.start(now);
             } catch (e) {}
         }
@@ -2920,21 +2925,22 @@
         // 🟢 [RESTORED]: 풍선 팽창 소리
         function playInflateTone(progressRatio) {
             if (!isSoundEnabled) return;
-            let masterNode = getMasterSFXGain();
-            if (!masterNode || !audioCtx) return;
             try {
-                let now = audioCtx.currentTime;
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+                let ctx = getAudioContextSafe();
+                if (!ctx) return;
+                let now = ctx.currentTime;
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
                 osc.type = 'sine';
-                let startFreq = 200 + (progressRatio || 0) * 300;
+                let startFreq = 220 + (progressRatio || 0) * 320;
                 osc.frequency.setValueAtTime(startFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(startFreq + 40, now + 0.06);
-                gain.gain.setValueAtTime(0.10, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
-                osc.connect(masterNode);
+                osc.frequency.exponentialRampToValueAtTime(startFreq + 40, now + 0.08);
+                gain.gain.setValueAtTime(0.20, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.06);
+                osc.stop(now + 0.08);
             } catch (e) {}
         }
 
@@ -5674,8 +5680,8 @@
                     }
 
                     // 3D 둥근 광택 하이라이트 투영
-                    ctx.save();
                     if (mainRBF && mainRBF.currentRadius > 1.5 && !mainRBF.isPopped) {
+                        ctx.save();
                         let hlGrad = ctx.createRadialGradient(
                             mainRBF.x - mainRBF.currentRadius * 0.25, 
                             mainRBF.y - mainRBF.currentRadius * 0.30, 
@@ -5692,6 +5698,7 @@
                         ctx.beginPath();
                         ctx.arc(mainRBF.x, mainRBF.y, mainRBF.currentRadius * 0.95, 0, Math.PI * 2);
                         ctx.fill();
+                        ctx.restore();
                     }
 
                     // 터진 젤리 구멍(Torn Rupture Hole) 테두리 및 찢어진 지점 렌더링
@@ -6047,37 +6054,14 @@
             }
             let meshW = maxX - minX;
             let meshH = maxY - minY;
-            if (meshW <= 0 || meshH <= 0) return false;
+            if (meshW <= 0 || meshH <= 0) return true;
 
-            // 1. Normalized UV coordinates inside image bounding box
-            let u = (mx - minX) / meshW;
-            let v = (my - minY) / meshH;
-
-            // 2. Outside bounding box -> 100% false
-            if (u < 0 || u > 1 || v < 0 || v > 1) return false;
-
-            // 3. Pixel-exact Alpha Channel Lookup
-            if (!characterAlphaData) {
-                updateCharacterAlphaMap(jellyImage);
-            }
-
-            if (characterAlphaData && characterAlphaW > 0 && characterAlphaH > 0) {
-                let px = Math.floor(u * characterAlphaW);
-                let py = Math.floor(v * characterAlphaH);
-                px = Math.max(0, Math.min(characterAlphaW - 1, px));
-                py = Math.max(0, Math.min(characterAlphaH - 1, py));
-                let alphaIndex = (py * characterAlphaW + px) * 4 + 3;
-                let alphaVal = characterAlphaData[alphaIndex];
-                return alphaVal > 15; // 알파값 15 초과(색상이 있는 실제 캐릭터 픽셀)일 때만 터치 인정, 투명 배경은 100% 차단!
-            }
-
-            // Fallback for CORS
             let centerX = (minX + maxX) / 2;
             let centerY = (minY + maxY) / 2;
-            let rx = meshW * 0.42;
-            let ry = meshH * 0.42;
+            let rx = meshW * 0.52;
+            let ry = meshH * 0.52;
             let normDist = Math.pow((mx - centerX) / rx, 2) + Math.pow((my - centerY) / ry, 2);
-            return normDist <= 1.0;
+            return normDist <= 1.15;
         }
 
         // Register mouse deforms with dynamic coordinate scaling and point grab lock
@@ -6101,20 +6085,14 @@
                 }
             }
 
-            let onChar = isClickOnCharacter(mx, my) || (minDist < width * 0.42);
+            let onChar = isClickOnCharacter(mx, my) || (minDist < width * 0.45);
 
             if (activeTextureMode === 'bubble' || currentMode === 'bubble') {
                 grabbedPointIndex = null;
-                if (onChar) {
-                    activateNearbyControlPoints(mx, my);
-                    playInflateTone(0.1);
-                    triggerHaptic(18);
-                    isTouching = true;
-                } else {
-                    activeRBFs = [];
-                    isTouching = false;
-                    return;
-                }
+                activateNearbyControlPoints(mx, my);
+                playInflateTone(0.1);
+                triggerHaptic(18);
+                isTouching = true;
             } else if (onChar) {
                 grabbedPointIndex = closestIdx;
                 playSquishSound(false);
@@ -6302,20 +6280,14 @@
                     closestIdx = i;
                 }
             }
-            let onChar = isClickOnCharacter(pos.x, pos.y) || (minDist < width * 0.42);
+            let onChar = isClickOnCharacter(pos.x, pos.y) || (minDist < width * 0.45);
 
             if (activeTextureMode === 'bubble' || currentMode === 'bubble') {
                 grabbedPointIndex = null;
-                if (onChar) {
-                    activateNearbyControlPoints(pos.x, pos.y);
-                    playInflateTone(0.1);
-                    triggerHaptic(18);
-                    isTouching = true;
-                } else {
-                    activeRBFs = [];
-                    isTouching = false;
-                    return;
-                }
+                activateNearbyControlPoints(pos.x, pos.y);
+                playInflateTone(0.1);
+                triggerHaptic(18);
+                isTouching = true;
             } else if (onChar) {
                 grabbedPointIndex = closestIdx;
                 playSquishSound(false);
