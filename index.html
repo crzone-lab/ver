@@ -1436,7 +1436,7 @@
             </div>
 
             <div style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 4px; pointer-events: none; min-width: 0;">
-                <img id="main-logo-img" src="logo_font.png" alt="Logo" style="height: 74px; max-width: 220px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)); transition: transform 0.2s ease; pointer-events: none;">
+                <img id="main-logo-img" src="logo_font.png" alt="Logo" style="height: 64px; max-width: 200px; margin-top: 14px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)); transition: transform 0.2s ease; pointer-events: none;">
             </div>
             
             <div style="display: flex; gap: 6px; pointer-events: auto; align-items: center;">
@@ -1542,7 +1542,7 @@
             <div style="pointer-events: auto !important;" class="feel-pill active" id="pill-jelly" onclick="selectFeelPill('jelly')" ontouchstart="selectFeelPill('jelly')" data-i18n="pill-jelly">탱글젤리</div>
             <div style="pointer-events: auto !important;" class="feel-pill" id="pill-slime" onclick="selectFeelPill('slime')" ontouchstart="selectFeelPill('slime')" data-i18n="pill-slime">슬라임</div>
             <div style="pointer-events: auto !important;" class="feel-pill" id="pill-bubble" onclick="selectFeelPill('bubble')" ontouchstart="selectFeelPill('bubble')" data-i18n="pill-bubble">🫧 젤리팝</div>
-            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-billiards" onclick="selectFeelPill('billiards')" ontouchstart="selectFeelPill('billiards')">🎱 젤리당구</div>
+            <div style="pointer-events: auto !important;" class="feel-pill" id="pill-billiards" onclick="selectFeelPill('billiards')" ontouchstart="selectFeelPill('billiards')" data-i18n="pill-billiards">🎱 젤리당구</div>
         </div>
     </div>
 
@@ -1591,6 +1591,7 @@
                     "pill-mochi": "쫀득모찌",
                     "pill-slime": "슬라임",
                     "pill-bubble": "🫧 젤리팝",
+                    "pill-billiards": "🎱 젤리당구",
                     "btn-exit": "게임나가기",
                     "btn-setting": "설정",
                     "btn-auto": "오토파일럿 테스트",
@@ -1674,6 +1675,8 @@
                     "pill-jelly": "Tangle Jelly",
                     "pill-mochi": "Chewy Mochi",
                     "pill-slime": "Slime",
+                    "pill-bubble": "🫧 Jelly Pop",
+                    "pill-billiards": "🎱 Billiards",
                     "btn-exit": "Exit Game",
                     "btn-setting": "Settings",
                     "btn-auto": "Autopilot Test",
@@ -1757,6 +1760,8 @@
                     "pill-jelly": "ぷるぷるゼリー",
                     "pill-mochi": "もっちり餅",
                     "pill-slime": "スライム",
+                    "pill-bubble": "🫧 ゼリーポップ",
+                    "pill-billiards": "🎱 ビリヤード",
                     "btn-exit": "ゲーム終了",
                     "btn-setting": "設定",
                     "btn-auto": "オートパイロット",
@@ -1836,6 +1841,8 @@
                     "pill-jelly": "Q弹果冻",
                     "pill-mochi": "软糯麻薯",
                     "pill-slime": "史莱姆",
+                    "pill-bubble": "🫧 泡泡果冻",
+                    "pill-billiards": "🎱 果冻台球",
                     "btn-exit": "退出游戏",
                     "btn-setting": "设置",
                     "btn-auto": "自动测试",
@@ -4649,12 +4656,17 @@
             let u2 = ((p2.ox - minOx) / meshWidth) * imgW;
             let v2 = ((p2.oy - minOy) / meshHeight) * imgH;
 
-            let x0 = p0.x;
-            let y0 = p0.y;
-            let x1 = p1.x;
-            let y1 = p1.y;
-            let x2 = p2.x;
-            let y2 = p2.y;
+            // 🌟 1px Sub-pixel Dilation (삼각형 이음새에 가느다란 틈새/선이 보이지 않도록 중심 방향 0.5px 미세 확장)
+            let cx = (p0.x + p1.x + p2.x) / 3;
+            let cy = (p0.y + p1.y + p2.y) / 3;
+            let expand = 0.6; // 0.6px anti-alias seam sealing
+
+            let x0 = p0.x + Math.sign(p0.x - cx) * expand;
+            let y0 = p0.y + Math.sign(p0.y - cy) * expand;
+            let x1 = p1.x + Math.sign(p1.x - cx) * expand;
+            let y1 = p1.y + Math.sign(p1.y - cy) * expand;
+            let x2 = p2.x + Math.sign(p2.x - cx) * expand;
+            let y2 = p2.y + Math.sign(p2.y - cy) * expand;
 
             ctx.save();
             ctx.beginPath();
@@ -4670,12 +4682,12 @@
                 denom = denom < 0 ? -0.0001 : 0.0001;
             }
 
-            let a = (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1)) / denom;
-            let b = (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1)) / denom;
-            let c = (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0)) / denom;
-            let d = (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0)) / denom;
-            let e = x0 - a * u0 - c * v0;
-            let f = y0 - b * u0 - d * v0;
+            let a = (p0.x * (v1 - v2) + p1.x * (v2 - v0) + p2.x * (v0 - v1)) / denom;
+            let b = (p0.y * (v1 - v2) + p1.y * (v2 - v0) + p2.y * (v0 - v1)) / denom;
+            let c = (p0.x * (u2 - u1) + p1.x * (u0 - u2) + p2.x * (u1 - u0)) / denom;
+            let d = (p0.y * (u2 - u1) + p1.y * (u0 - u2) + p2.y * (u1 - u0)) / denom;
+            let e = p0.x - a * u0 - c * v0;
+            let f = p0.y - b * u0 - d * v0;
 
             ctx.transform(a, b, c, d, e, f);
             ctx.drawImage(img, 0, 0);
