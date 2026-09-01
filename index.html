@@ -5122,19 +5122,18 @@
                                         jellyCruiseSpeed = 11.4 + extra * 4.0;
                                     }
                                 } else {
-                                    // 일반 젤리 모드
-                                    let speedMultiplier = 1.0;
+                                    // 🌟 [탱글젤리 기본 모드]: 원래의 부드럽고 아주 천천히 떠다니는 슬로우 글라이딩 속도 (0.5 ~ 1.9px/frame)
                                     if (dragDist < 30) {
                                         jellyTargetBounces = (dragDist < 12) ? 0 : 1;
-                                        jellyCruiseSpeed = (0.9 + (dragDist / 30.0) * 0.8) * speedMultiplier;
-                                    } else if (dragDist < 85) {
-                                        let norm = (dragDist - 30) / 55;
-                                        jellyTargetBounces = 3;
-                                        jellyCruiseSpeed = (1.7 + norm * 1.2) * speedMultiplier;
+                                        jellyCruiseSpeed = 0.5 + (dragDist / 30.0) * 0.4;
+                                    } else if (dragDist < 90) {
+                                        let norm = (dragDist - 30) / 60;
+                                        jellyTargetBounces = 3; // 3회 튕김
+                                        jellyCruiseSpeed = 0.9 + norm * 0.5; // 천천히 이동 (0.9 ~ 1.4)
                                     } else {
-                                        let norm = Math.min(1.0, (dragDist - 85) / 95);
-                                        jellyTargetBounces = 4;
-                                        jellyCruiseSpeed = (2.9 + norm * 2.0) * speedMultiplier;
+                                        let norm = Math.min(1.0, (dragDist - 90) / 100);
+                                        jellyTargetBounces = 4; // 4회 튕김
+                                        jellyCruiseSpeed = 1.4 + norm * 0.5; // 천천히 여유롭게 이동 (1.4 ~ 1.9)
                                     }
                                 }
 
@@ -5724,11 +5723,11 @@
 
                     if (mainRBF && !mainPopped) {
                         if (isTouching) {
-                            // 누르고 있는 동안 경쾌하게 팽창 (+1.1px per frame)
-                            mainRBF.currentRadius += 1.1;
+                            // 누르고 있는 동안 천천히 부드럽게 팽창 (+0.35px per frame)
+                            mainRBF.currentRadius += 0.35;
 
-                            // 팽창하면서 상승하는 톤 효과음 출력 (20프레임마다)
-                            if (Math.floor(mainRBF.currentRadius) % 15 === 0) {
+                            // 팽창하면서 상승하는 톤 효과음 출력 (천천히 부풀어오름에 맞춘 주기)
+                            if (Math.floor(mainRBF.currentRadius * 2) % 10 === 0) {
                                 playInflateTone(mainRBF.currentRadius / (mainRBF.burstThreshold || 90));
                             }
 
