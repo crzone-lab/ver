@@ -2755,140 +2755,107 @@
         let lastSlimePullSoundTime = 0;
         let lastSlimeBounceSoundTime = 0;
 
+        function getAudioContextSafe() {
+            try {
+                if (!audioCtx) {
+                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                }
+                if (audioCtx && audioCtx.state === 'suspended') {
+                    audioCtx.resume();
+                }
+                return audioCtx;
+            } catch (e) {
+                return null;
+            }
+        }
+
         // 🎵 모든 캐릭터 드래그/당김 시 재생되는 쫀득한 스트레치 효과음
         function playGeneralStretchSound(dragDist) {
             if (!isSoundEnabled) return;
             let nowTime = Date.now();
-            if (nowTime - lastStretchSoundTime < 70) return;
+            if (nowTime - lastStretchSoundTime < 60) return;
             lastStretchSoundTime = nowTime;
 
             try {
-                ensureAudioUnlocked();
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                let now = audioCtx.currentTime;
+                let ctx = getAudioContextSafe();
+                if (!ctx) return;
+                let now = ctx.currentTime;
 
-                let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.70;
-                if (sliderGain <= 0.001) return;
-
-                let norm = Math.min(1.0, (dragDist || 0) / 120);
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+                let norm = Math.min(1.0, Math.max(0.1, (dragDist || 0) / 120));
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
 
                 osc.type = 'sine';
-                let baseFreq = 160 + norm * 280; // 160Hz -> 440Hz
+                let baseFreq = 180 + norm * 260; // 180Hz -> 440Hz
                 osc.frequency.setValueAtTime(baseFreq, now);
-                osc.frequency.exponentialRampToValueAtTime(baseFreq + 50, now + 0.09);
+                osc.frequency.exponentialRampToValueAtTime(baseFreq + 60, now + 0.10);
 
-                gain.gain.setValueAtTime(0.35 * sliderGain, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.10);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.09);
+                osc.stop(now + 0.10);
             } catch(e) {}
         }
 
         // 🎵 슬라임 모드 특화 당김 스트레치 효과음 (Pull & Stretch)
         function playSlimePullSound(dragDist) {
-            if (!isSoundEnabled) return;
-            let nowTime = Date.now();
-            if (nowTime - lastSlimePullSoundTime < 60) return;
-            lastSlimePullSoundTime = nowTime;
-
-            try {
-                ensureAudioUnlocked();
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                let now = audioCtx.currentTime;
-
-                let sfxEl = document.getElementById('sfx-volume');
-                let vol = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
-                if (isNaN(vol) || vol <= 0.001) vol = 0.85;
-
-                let norm = Math.min(1.0, (dragDist || 0) / 120);
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
-
-                osc.type = 'sine';
-                let f = 160 + norm * 340;
-                osc.frequency.setValueAtTime(f, now);
-                osc.frequency.exponentialRampToValueAtTime(f + 60, now + 0.09);
-
-                gain.gain.setValueAtTime(0.40 * vol, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
-
-                osc.connect(gain);
-                gain.connect(audioCtx.destination);
-                osc.start(now);
-                osc.stop(now + 0.09);
-            } catch(e) {}
+            playGeneralStretchSound(dragDist);
         }
 
         // 🎵 슬라임 모드 특화 놨을 때 스냅 효과음 (Release & Snap)
         function playSlimeReleaseSound() {
             if (!isSoundEnabled) return;
             try {
-                ensureAudioUnlocked();
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                let now = audioCtx.currentTime;
+                let ctx = getAudioContextSafe();
+                if (!ctx) return;
+                let now = ctx.currentTime;
 
-                let sfxEl = document.getElementById('sfx-volume');
-                let vol = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
-                if (isNaN(vol) || vol <= 0.001) vol = 0.85;
-
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
 
                 osc.type = 'sine';
-                osc.frequency.setValueAtTime(320, now);
-                osc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
+                osc.frequency.setValueAtTime(360, now);
+                osc.frequency.exponentialRampToValueAtTime(120, now + 0.14);
 
-                gain.gain.setValueAtTime(0.50 * vol, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
+                gain.gain.setValueAtTime(0.45, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.12);
+                osc.stop(now + 0.14);
             } catch(e) {}
         }
 
         // 🎵 슬라임 모드 복원 후 부르르 떨릴 때 잔여 탄성 효과음 (Wobble & Tremble)
-        let lastSlimeTrembleSoundTime = 0;
         function playSlimeBounceMovementSound(intensity) {
             if (!isSoundEnabled) return;
             let nowTime = Date.now();
-            if (nowTime - lastSlimeBounceSoundTime < 80) return;
+            if (nowTime - lastSlimeBounceSoundTime < 70) return;
             lastSlimeBounceSoundTime = nowTime;
             try {
-                ensureAudioUnlocked();
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
-                let now = audioCtx.currentTime;
+                let ctx = getAudioContextSafe();
+                if (!ctx) return;
+                let now = ctx.currentTime;
 
-                let sfxEl = document.getElementById('sfx-volume');
-                let vol = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
-                if (isNaN(vol) || vol <= 0.001) vol = 0.85;
-
-                let osc = audioCtx.createOscillator();
-                let gain = audioCtx.createGain();
+                let osc = ctx.createOscillator();
+                let gain = ctx.createGain();
 
                 osc.type = 'sine';
-                let startF = 180 + Math.min(130, (intensity || 1.0) * 8);
+                let startF = 200 + Math.min(120, (intensity || 1.0) * 6);
                 osc.frequency.setValueAtTime(startF, now);
-                osc.frequency.exponentialRampToValueAtTime(startF * 0.60, now + 0.08);
+                osc.frequency.exponentialRampToValueAtTime(startF * 0.55, now + 0.09);
 
-                gain.gain.setValueAtTime(0.40 * vol, now);
-                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+                gain.gain.setValueAtTime(0.35, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
                 osc.start(now);
-                osc.stop(now + 0.08);
+                osc.stop(now + 0.09);
             } catch(e) {}
         }
 
@@ -6199,35 +6166,34 @@
         function playSquishSound(isRelease = false) {
             if (!isSoundEnabled) return; // Disable all interaction sound effects outside of playground
             try {
-                ensureAudioUnlocked();
-                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (audioCtx.state === 'suspended') audioCtx.resume();
+                let ctx = getAudioContextSafe();
+                if (!ctx) return;
 
-                const osc = audioCtx.createOscillator();
-                const gain = audioCtx.createGain();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
                 osc.connect(gain);
-                gain.connect(audioCtx.destination);
+                gain.connect(ctx.destination);
 
-                const now = audioCtx.currentTime;
+                const now = ctx.currentTime;
 
                 if (isRelease) {
                     // Popping spring-back release sound (quick pitch sweep up)
                     osc.type = 'triangle';
-                    osc.frequency.setValueAtTime(140, now);
-                    osc.frequency.exponentialRampToValueAtTime(550, now + 0.12);
-                    gain.gain.setValueAtTime(0.12, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.12);
+                    osc.frequency.setValueAtTime(160, now);
+                    osc.frequency.exponentialRampToValueAtTime(580, now + 0.12);
+                    gain.gain.setValueAtTime(0.35, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
                     osc.start(now);
                     osc.stop(now + 0.12);
                 } else {
                     // Soft rubber squishy grab sound (downward sweep)
                     osc.type = 'sine';
-                    osc.frequency.setValueAtTime(90, now);
-                    osc.frequency.linearRampToValueAtTime(140, now + 0.18);
-                    gain.gain.setValueAtTime(0.08, now);
-                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.18);
+                    osc.frequency.setValueAtTime(140, now);
+                    osc.frequency.linearRampToValueAtTime(220, now + 0.15);
+                    gain.gain.setValueAtTime(0.30, now);
+                    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
                     osc.start(now);
-                    osc.stop(now + 0.18);
+                    osc.stop(now + 0.15);
                 }
             } catch (e) {
                 console.log("AudioContext blocked or not supported:", e);
