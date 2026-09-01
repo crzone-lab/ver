@@ -1436,7 +1436,7 @@
             </div>
 
             <div style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 4px; pointer-events: none; min-width: 0;">
-                <img id="main-logo-img" src="logo_font.png" alt="Logo" style="height: 64px; max-width: 200px; margin-top: 14px; object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.25)); transition: transform 0.2s ease; pointer-events: none;">
+                <img id="main-logo-img" src="logo_font.png" alt="Logo" style="height: 50px; max-width: 170px; margin-top: 4px; object-fit: contain; filter: drop-shadow(0 3px 8px rgba(0,0,0,0.25)); transition: transform 0.2s ease; pointer-events: none;">
             </div>
             
             <div style="display: flex; gap: 6px; pointer-events: auto; align-items: center;">
@@ -4456,17 +4456,19 @@
 
             try {
                 const targetCanvas = document.getElementById('squishy-canvas') || (typeof canvas !== 'undefined' ? canvas : null);
-                if (targetCanvas && targetCanvas.captureStream) {
+                if (targetCanvas && typeof targetCanvas.captureStream === 'function') {
                     stream = targetCanvas.captureStream(30);
-                } else if (targetCanvas && targetCanvas.mozCaptureStream) {
+                } else if (targetCanvas && typeof targetCanvas.mozCaptureStream === 'function') {
                     stream = targetCanvas.mozCaptureStream(30);
                 }
             } catch(err) {
                 console.warn("[REC] Canvas stream error:", err);
             }
 
-            if (stream && (window.MediaRecorder || typeof MediaRecorder !== 'undefined')) {
-                let options = {};
+            let recorderInitialized = false;
+            if (stream && (typeof MediaRecorder !== 'undefined' || window.MediaRecorder)) {
+                const MR = window.MediaRecorder || MediaRecorder;
+                let options = null;
                 const supportedTypes = [
                     'video/mp4;codecs=avc1',
                     'video/mp4',
@@ -4475,17 +4477,19 @@
                     'video/webm'
                 ];
                 for (let t of supportedTypes) {
-                    if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) {
+                    if (MR.isTypeSupported && MR.isTypeSupported(t)) {
                         options = { mimeType: t };
                         break;
                     }
                 }
 
                 try {
-                    mediaRecorder = new MediaRecorder(stream, options);
+                    mediaRecorder = options ? new MR(stream, options) : new MR(stream);
+                    recorderInitialized = true;
                 } catch(e1) {
                     try {
-                        mediaRecorder = new MediaRecorder(stream);
+                        mediaRecorder = new MR(stream);
+                        recorderInitialized = true;
                     } catch(e2) {
                         console.error("[REC] MediaRecorder init failed:", e2);
                         mediaRecorder = null;
@@ -4519,8 +4523,18 @@
                         mediaRecorder.start(100);
                     } catch(sErr) {
                         console.error("[REC] Start error:", sErr);
+                        try {
+                            mediaRecorder.start();
+                        } catch(sErr2) {
+                            console.error("[REC] Start retry error:", sErr2);
+                            recorderInitialized = false;
+                        }
                     }
                 }
+            }
+
+            if (!recorderInitialized) {
+                console.warn("[REC] MediaRecorder or canvas captureStream not supported in this iOS WebKit environment. Falling back to animated frame capture.");
             }
 
             // 3. 타이머 (최대 15초)
