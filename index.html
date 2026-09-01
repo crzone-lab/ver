@@ -2731,8 +2731,7 @@
 
         function playReleaseSound() {
             if (!isSoundEnabled) return;
-            if (typeof activeTextureMode !== 'undefined' && (activeTextureMode === 'slime' || currentMode === 'slime' || activeFeel === 'slime')) return;
-            let masterNode = getMasterSFXGain();
+            let masterNode = getMasterSFXGain() || (audioCtx ? audioCtx.destination : null);
             if (!masterNode || !audioCtx) return;
             try {
                 let now = audioCtx.currentTime;
@@ -2741,7 +2740,7 @@
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(220, now);
                 osc.frequency.exponentialRampToValueAtTime(120, now + 0.08);
-                gain.gain.setValueAtTime(0.12, now);
+                gain.gain.setValueAtTime(0.20, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
                 osc.connect(masterNode);
                 osc.start(now);
@@ -2805,7 +2804,9 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
-                let masterNode = getMasterSFXGain() || audioCtx.destination;
+                let sfxEl = document.getElementById('sfx-volume');
+                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (sliderGain <= 0.001) sliderGain = 0.85;
 
                 let norm = Math.min(1.0, (dragDist || 0) / 130);
                 let osc = audioCtx.createOscillator();
@@ -2816,11 +2817,11 @@
                 osc.frequency.setValueAtTime(f, now);
                 osc.frequency.exponentialRampToValueAtTime(f * 1.35, now + 0.09);
 
-                gain.gain.setValueAtTime(0.50, now);
+                gain.gain.setValueAtTime(0.50 * sliderGain, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
                 osc.connect(gain);
-                gain.connect(masterNode);
+                gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.09);
             } catch(e) {}
@@ -2835,7 +2836,9 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
-                let masterNode = getMasterSFXGain() || audioCtx.destination;
+                let sfxEl = document.getElementById('sfx-volume');
+                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (sliderGain <= 0.001) sliderGain = 0.85;
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
@@ -2843,11 +2846,11 @@
                 osc.frequency.setValueAtTime(360, now);
                 osc.frequency.exponentialRampToValueAtTime(80, now + 0.14);
 
-                gain.gain.setValueAtTime(0.60, now);
+                gain.gain.setValueAtTime(0.60 * sliderGain, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.14);
 
                 osc.connect(gain);
-                gain.connect(masterNode);
+                gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.14);
             } catch(e) {}
@@ -2866,7 +2869,9 @@
                 if (audioCtx.state === 'suspended') audioCtx.resume();
                 let now = audioCtx.currentTime;
 
-                let masterNode = getMasterSFXGain() || audioCtx.destination;
+                let sfxEl = document.getElementById('sfx-volume');
+                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (sliderGain <= 0.001) sliderGain = 0.85;
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
@@ -2875,11 +2880,11 @@
                 osc.frequency.setValueAtTime(startF, now);
                 osc.frequency.exponentialRampToValueAtTime(startF * 0.60, now + 0.08);
 
-                gain.gain.setValueAtTime(0.40, now);
+                gain.gain.setValueAtTime(0.40 * sliderGain, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
                 osc.connect(gain);
-                gain.connect(masterNode);
+                gain.connect(audioCtx.destination);
                 osc.start(now);
                 osc.stop(now + 0.08);
             } catch(e) {}
@@ -6195,14 +6200,10 @@
 
         function playSquishSound(isRelease = false) {
             if (!isSoundEnabled) return; // Disable all interaction sound effects outside of playground
-            if (typeof activeTextureMode !== 'undefined' && (activeTextureMode === 'slime' || currentMode === 'slime' || activeFeel === 'slime')) return;
             try {
-                if (!audioCtx) {
-                    audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                }
-                if (audioCtx.state === 'suspended') {
-                    audioCtx.resume();
-                }
+                ensureAudioUnlocked();
+                if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (audioCtx.state === 'suspended') audioCtx.resume();
 
                 const osc = audioCtx.createOscillator();
                 const gain = audioCtx.createGain();
