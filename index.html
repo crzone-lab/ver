@@ -4147,7 +4147,6 @@
         }
 
         function handleRecordToggle() {
-            console.log("handleRecordToggle triggered!");
             try {
                 if (typeof stopAutopilot === 'function') stopAutopilot();
                 if (typeof releaseGrab === 'function') releaseGrab(true);
@@ -4172,12 +4171,16 @@
             // 1. UI 즉시 갱신 (정지 아이콘 & 상단 촬영중 인디케이터 활성화)
             const globalBtn = document.getElementById('global-rec-btn');
             if (globalBtn) { 
-                globalBtn.innerHTML = '<img src="stop.png" alt="중지" style="width: 32px; height: 32px; object-fit: contain;">'; 
+                globalBtn.innerHTML = '<img src="stop.png" alt="중지" style="width: 32px; height: 32px; object-fit: contain; pointer-events: none;">'; 
                 globalBtn.title = '녹화 중지'; 
             }
 
             const pill = document.getElementById('recording-indicator');
             if (pill) pill.style.display = 'flex';
+
+            if (typeof showNotification === 'function') {
+                showNotification("🔴 동영상 녹화를 시작합니다 (최대 15초)");
+            }
 
             let duration = 0;
             const timerEl = document.getElementById('rec-timer');
@@ -4204,11 +4207,11 @@
             if (stream && (window.MediaRecorder || typeof MediaRecorder !== 'undefined')) {
                 let mimeType = '';
                 const testTypes = [
+                    'video/mp4;codecs=avc1',
+                    'video/mp4',
                     'video/webm;codecs=vp9,opus',
                     'video/webm;codecs=vp8,opus',
                     'video/webm',
-                    'video/mp4',
-                    'video/mp4;codecs=avc1',
                     'video/quicktime'
                 ];
 
@@ -4238,7 +4241,7 @@
                     };
                     mediaRecorder.onstop = function() {
                         if (recordedChunks.length > 0) {
-                            const actualType = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : 'video/webm';
+                            const actualType = (mediaRecorder && mediaRecorder.mimeType) ? mediaRecorder.mimeType : (mimeType || 'video/mp4');
                             lastRecordedBlob = new Blob(recordedChunks, { type: actualType });
                             const videoURL = URL.createObjectURL(lastRecordedBlob);
                             const previewVideo = document.getElementById('result-video-preview');
