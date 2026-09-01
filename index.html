@@ -887,6 +887,9 @@
                 background: transparent !important;
                 box-shadow: none !important;
             }
+            #billiards-hud {
+                top: calc(env(safe-area-inset-top, 24px) + 28px) !important;
+            }
             .lobby-feel-selector {
                 top: calc(env(safe-area-inset-top, 24px) + 74px) !important; /* Narrow gap right below top icons */
             }
@@ -7060,7 +7063,7 @@
                 if (pBilliards) pBilliards.classList.add("active");
                 if (bHud) bHud.style.display = "flex";
                 if (globalResetBtn) globalResetBtn.style.display = "flex";
-                if (mainLogo) mainLogo.style.display = "block";
+                if (mainLogo) mainLogo.style.display = "none"; // 🌟 Hide logo in billiards mode so score HUD is clean and non-overlapping!
                 if (feelUI) feelUI.style.display = "none";
                 if (bottomCarousel) bottomCarousel.style.display = "none";
                 stiffness = 50; damping = 8;
