@@ -1411,17 +1411,17 @@
 
         <!-- 4. Unified Global Top Bar Overlay (Promoted to z-index: 30000 above all screens) -->
         <div class="top-overlay-ui" style="z-index: 30000; pointer-events: none; display: none;">
-            <div style="display: flex; gap: 4px;">
-                <div class="action-circle-btn" style="pointer-events: auto;" id="global-home-exit-btn" onclick="exitGame()" title="Exit Game" data-i18n-title="btn-exit" style="display: flex; align-items: center; justify-content: center;">
-                    <img src="out.png" alt="Exit" style="width: 32px; height: 32px; object-fit: contain;">
-                </div>
-                <div class="action-circle-btn" style="pointer-events: auto;" id="settings-toggle-btn" onclick="stopAutopilot(); releaseGrab(true); releaseGrab(true); toggleAdvancedSettings()" title="Settings" data-i18n-title="btn-setting" style="display: flex; align-items: center; justify-content: center;">
-                    <img src="setting.png" alt="Settings" style="width: 32px; height: 32px; object-fit: contain;">
-                </div>
-                <!-- 되돌아가기/리셋 버튼: 원형 바탕 없이 reset.png 아이콘 사용 (설정 아이콘과 동일 32px 크기) -->
-                <div style="pointer-events: auto; display: flex; align-items: center; justify-content: center; cursor: pointer;" id="top-reset-btn" onclick="resetGameOrBilliards()" title="리셋 / 되돌아가기">
-                    <img src="reset.png" alt="Reset" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); transition: transform 0.2s ease;">
-                </div>
+            <div style="display: flex; gap: 6px; pointer-events: auto; align-items: center;">
+                <button type="button" class="action-circle-btn" id="global-home-exit-btn" onclick="exitGame()" title="Exit Game" data-i18n-title="btn-exit">
+                    <img src="out.png" alt="Exit" style="width: 32px; height: 32px; object-fit: contain; pointer-events: none;">
+                </button>
+                <button type="button" class="action-circle-btn" id="settings-toggle-btn" onclick="stopAutopilot(); releaseGrab(true); releaseGrab(true); toggleAdvancedSettings()" title="Settings" data-i18n-title="btn-setting">
+                    <img src="setting.png" alt="Settings" style="width: 32px; height: 32px; object-fit: contain; pointer-events: none;">
+                </button>
+                <!-- 되돌아가기/리셋 버튼 -->
+                <button type="button" class="action-circle-btn" id="top-reset-btn" onclick="resetGameOrBilliards()" title="리셋 / 되돌아가기">
+                    <img src="reset.png" alt="Reset" style="width: 32px; height: 32px; object-fit: contain; filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25)); transition: transform 0.2s ease; pointer-events: none;">
+                </button>
             </div>
 
             <div style="flex: 1; display: flex; justify-content: center; align-items: center; padding: 0 4px; pointer-events: none; min-width: 0;">
@@ -2582,6 +2582,9 @@
 
         function resetGameOrBilliards() {
             triggerHaptic(20);
+            if (typeof showNotification === 'function') {
+                showNotification("🔄 캐릭터 위치 및 상태가 리셋되었습니다");
+            }
             if (typeof resetBilliardsGame === 'function' && (activeTextureMode === 'billiards' || currentMode === 'billiards')) {
                 resetBilliardsGame();
             } else {
