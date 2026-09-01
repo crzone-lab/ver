@@ -857,8 +857,8 @@
             color: rgba(255,255,255,0.7);
         }
 
-        /* 📱 Responsive Mobile Overrides (True Fullscreen ONLY on Touch Mobile Devices) */
-        @media (max-width: 768px) and (pointer: coarse) {
+        /* 📱 Responsive Mobile & iPad/Tablet Overrides (True Fullscreen ONLY on Touch Devices) */
+        @media (pointer: coarse), (max-width: 1024px) and (hover: none) {
             body {
                 background: #000;
                 padding: 0;
