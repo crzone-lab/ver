@@ -5091,19 +5091,19 @@
                                 jellyReturnSpringPhase = false;
                                 jellySpringProgress = 0;
                                 
-                                let dragDist = Math.hypot(maxDragX, maxDragY);
-                                // 당기는 힘과 거리에 비례하는 편안하고 쫀득한 샷 속도 튜닝 (짧게는 살살, 길게는 적당히 빠르게)
+                                // 당기는 힘과 거리에 비례하는 시원하고 쫀득한 샷 속도 튜닝 (당구 모드는 더욱 경쾌하고 빠르게!)
+                                let speedMultiplier = (currentMode === 'billiards' || activeTextureMode === 'billiards') ? 3.2 : 1.0;
                                 if (dragDist < 30) {
                                     jellyTargetBounces = (dragDist < 12) ? 0 : 1;
-                                    jellyCruiseSpeed = 0.6 + (dragDist / 30.0) * 0.4; // 살짝 당김: 0.6 ~ 1.0 (근거리 톡 치기)
+                                    jellyCruiseSpeed = (0.9 + (dragDist / 30.0) * 0.8) * speedMultiplier; // 살짝 당김
                                 } else if (dragDist < 85) {
                                     let norm = (dragDist - 30) / 55;
                                     jellyTargetBounces = 3;
-                                    jellyCruiseSpeed = 1.0 + norm * 0.5; // 중간 당김: 1.0 ~ 1.5 (자연스러운 샷)
+                                    jellyCruiseSpeed = (1.7 + norm * 1.2) * speedMultiplier; // 중간 당김
                                 } else {
                                     let norm = Math.min(1.0, (dragDist - 85) / 95);
                                     jellyTargetBounces = 4;
-                                    jellyCruiseSpeed = 1.5 + norm * 0.7; // 길게 당김: 1.5 ~ 2.2 (과하지 않고 안정적으로 조금 빠른 샷)
+                                    jellyCruiseSpeed = (2.9 + norm * 2.0) * speedMultiplier; // 길게 당김: 빠르고 경쾌한 당구 샷!
                                 }
 
                                 // 발사 방향 및 계산된 순항 속도 적용 (기울어짐 없이 똑바로 이동)
