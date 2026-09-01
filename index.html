@@ -4617,6 +4617,10 @@
         let toastTimer = null;
         function showNotification(msg) {
             console.log(msg);
+            // 🌟 사용자 요청: 오토파일럿, 캐릭터 선택 등 모든 잡다한 안내는 완전 차단하고 오직 '녹화 저장 완료' 안내만 표시!
+            if (!msg || (!msg.includes('저장') && !msg.includes('saved') && !msg.includes('Save'))) {
+                return;
+            }
             const toast = document.getElementById('toast-el');
             if (toast) {
                 toast.innerText = msg;
