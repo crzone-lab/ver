@@ -2791,8 +2791,7 @@
             } catch(e) {}
         }
 
-        // 🎵 슬라임 모드 특화 찰진 슬라임 당김 효과음 (Squishy viscous stretch)
-        // 🎵 슬라임 모드 특화 찰진 슬라임 당김 효과음 (Squishy viscous stretch)
+        // 🎵 슬라임 모드 특화 당김 스트레치 효과음 (Pull & Stretch)
         function playSlimePullSound(dragDist) {
             if (!isSoundEnabled) return;
             let nowTime = Date.now();
@@ -2806,8 +2805,8 @@
                 let now = audioCtx.currentTime;
 
                 let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
-                if (sliderGain <= 0.001) sliderGain = 0.85;
+                let vol = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (isNaN(vol) || vol <= 0.001) vol = 0.85;
 
                 let norm = Math.min(1.0, (dragDist || 0) / 120);
                 let osc = audioCtx.createOscillator();
@@ -2818,7 +2817,7 @@
                 osc.frequency.setValueAtTime(f, now);
                 osc.frequency.exponentialRampToValueAtTime(f + 60, now + 0.09);
 
-                gain.gain.setValueAtTime(0.40 * sliderGain, now);
+                gain.gain.setValueAtTime(0.40 * vol, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
 
                 osc.connect(gain);
@@ -2828,7 +2827,7 @@
             } catch(e) {}
         }
 
-        // 🎵 슬라임 모드 특화 찰진 놨을 때 뾱/철퍽 효과음 (Gooey squelch snap release)
+        // 🎵 슬라임 모드 특화 놨을 때 스냅 효과음 (Release & Snap)
         function playSlimeReleaseSound() {
             if (!isSoundEnabled) return;
             try {
@@ -2838,16 +2837,17 @@
                 let now = audioCtx.currentTime;
 
                 let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
-                if (sliderGain <= 0.001) sliderGain = 0.85;
+                let vol = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (isNaN(vol) || vol <= 0.001) vol = 0.85;
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
+
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(320, now);
                 osc.frequency.exponentialRampToValueAtTime(110, now + 0.12);
 
-                gain.gain.setValueAtTime(0.50 * sliderGain, now);
+                gain.gain.setValueAtTime(0.50 * vol, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.12);
 
                 osc.connect(gain);
@@ -2857,7 +2857,7 @@
             } catch(e) {}
         }
 
-        // 🎵 슬라임 모드 복원 후 부르르 떨릴 때 잔여 탄성 효과음 (Viscous wobble/tremble sound)
+        // 🎵 슬라임 모드 복원 후 부르르 떨릴 때 잔여 탄성 효과음 (Wobble & Tremble)
         let lastSlimeTrembleSoundTime = 0;
         function playSlimeBounceMovementSound(intensity) {
             if (!isSoundEnabled) return;
@@ -2871,17 +2871,18 @@
                 let now = audioCtx.currentTime;
 
                 let sfxEl = document.getElementById('sfx-volume');
-                let sliderGain = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
-                if (sliderGain <= 0.001) sliderGain = 0.85;
+                let vol = sfxEl ? (parseFloat(sfxEl.value) / 100) : 0.85;
+                if (isNaN(vol) || vol <= 0.001) vol = 0.85;
 
                 let osc = audioCtx.createOscillator();
                 let gain = audioCtx.createGain();
+
                 osc.type = 'sine';
                 let startF = 180 + Math.min(130, (intensity || 1.0) * 8);
                 osc.frequency.setValueAtTime(startF, now);
                 osc.frequency.exponentialRampToValueAtTime(startF * 0.60, now + 0.08);
 
-                gain.gain.setValueAtTime(0.40 * sliderGain, now);
+                gain.gain.setValueAtTime(0.40 * vol, now);
                 gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
 
                 osc.connect(gain);
