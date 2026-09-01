@@ -5091,6 +5091,7 @@
                                 jellyReturnSpringPhase = false;
                                 jellySpringProgress = 0;
                                 
+                                let dragDist = Math.hypot(maxDragX, maxDragY);
                                 // 당기는 힘과 거리에 비례하는 시원하고 쫀득한 샷 속도 튜닝 (당구 모드는 더욱 경쾌하고 빠르게!)
                                 let speedMultiplier = (currentMode === 'billiards' || activeTextureMode === 'billiards') ? 3.2 : 1.0;
                                 if (dragDist < 30) {
