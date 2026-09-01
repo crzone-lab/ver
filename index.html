@@ -4737,12 +4737,24 @@
             let u2 = ((p2.ox - minOx) / meshWidth) * imgW;
             let v2 = ((p2.oy - minOy) / meshHeight) * imgH;
 
-            let x0 = p0.x;
-            let y0 = p0.y;
-            let x1 = p1.x;
-            let y1 = p1.y;
-            let x2 = p2.x;
-            let y2 = p2.y;
+            // Subtle sub-pixel centroid expansion (0.45px) to eliminate triangular grid seam lines completely
+            let cx = (p0.x + p1.x + p2.x) / 3;
+            let cy = (p0.y + p1.y + p2.y) / 3;
+
+            let d0x = p0.x - cx, d0y = p0.y - cy;
+            let l0 = Math.hypot(d0x, d0y) || 1;
+            let x0 = p0.x + (d0x / l0) * 0.45;
+            let y0 = p0.y + (d0y / l0) * 0.45;
+
+            let d1x = p1.x - cx, d1y = p1.y - cy;
+            let l1 = Math.hypot(d1x, d1y) || 1;
+            let x1 = p1.x + (d1x / l1) * 0.45;
+            let y1 = p1.y + (d1y / l1) * 0.45;
+
+            let d2x = p2.x - cx, d2y = p2.y - cy;
+            let l2 = Math.hypot(d2x, d2y) || 1;
+            let x2 = p2.x + (d2x / l2) * 0.45;
+            let y2 = p2.y + (d2y / l2) * 0.45;
 
             ctx.save();
             ctx.beginPath();
@@ -4758,12 +4770,12 @@
                 denom = denom < 0 ? -0.0001 : 0.0001;
             }
 
-            let a = (x0 * (v1 - v2) + x1 * (v2 - v0) + x2 * (v0 - v1)) / denom;
-            let b = (y0 * (v1 - v2) + y1 * (v2 - v0) + y2 * (v0 - v1)) / denom;
-            let c = (x0 * (u2 - u1) + x1 * (u0 - u2) + x2 * (u1 - u0)) / denom;
-            let d = (y0 * (u2 - u1) + y1 * (u0 - u2) + y2 * (u1 - u0)) / denom;
-            let e = x0 - a * u0 - c * v0;
-            let f = y0 - b * u0 - d * v0;
+            let a = (p0.x * (v1 - v2) + p1.x * (v2 - v0) + p2.x * (v0 - v1)) / denom;
+            let b = (p0.y * (v1 - v2) + p1.y * (v2 - v0) + p2.y * (v0 - v1)) / denom;
+            let c = (p0.x * (u2 - u1) + p1.x * (u0 - u2) + p2.x * (u1 - u0)) / denom;
+            let d = (p0.y * (u2 - u1) + p1.y * (u0 - u2) + p2.y * (u1 - u0)) / denom;
+            let e = p0.x - a * u0 - c * v0;
+            let f = p0.y - b * u0 - d * v0;
 
             ctx.transform(a, b, c, d, e, f);
             ctx.drawImage(img, 0, 0);
