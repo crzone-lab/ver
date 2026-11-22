@@ -1,0 +1,73 @@
+const copy={zh:{nav1:'认识猪鼻羊',nav2:'角色故事',nav3:'创意好物',nav4:'合作联系',headline:'有一点不同，<br>有很多很多爱。',intro:'一只长着粉红猪鼻子的小羊，带着柔软的心，把小小的勇气和温暖送给你。',explore:'探索可爱好物',meet:'软软的小羊，<br>独一无二的自己。',about:'Zhubiyang 猪鼻羊是 CRZONE 为中国市场打造的角色。蓬松的白色羊毛、粉红色猪鼻子，还有一颗想靠近你的心，让每一个不同都变得可爱。',trait1:'一眼记住的粉红猪鼻子',trait1p:'小小的猪鼻子，是猪鼻羊最特别的标志。',trait2:'害羞，也很勇敢',trait2p:'平时喜欢躲在角落，却会为了朋友鼓起勇气。',trait3:'闻得到心情的温柔',trait3p:'在故事中，它能通过气味隐约感知他人的情绪。',storytitle:'原来，我的不同，<br>也可以闪闪发光。',storyp:'猪鼻羊曾经想藏起自己的鼻子。直到它发现，这份与众不同能帮助朋友、守护村庄。它开始慢慢相信自己，也学会珍惜自己的独特。这是一个关于接纳、友谊和成长的故事。',secret:'藏在鼻子里的星星秘密 ＋',secretp:'传说，猪鼻羊的鼻子里藏着“星之心”的一部分。要唤醒这份守护生命的力量，它首先需要学会相信自己。',goodstitle:'把温柔，带进日常。',goodsp:'从收藏摆件到生活小物，探索猪鼻羊的商品设计。以下为设计展示，非在线销售。',zoom:'点击图片，查看大图 ↗',more:'查看更多设计 ＋',contacttitle:'让可爱，<br>遇见更多可能。',contactp:'欢迎咨询角色授权、商品开发与品牌合作。一起为猪鼻羊创造新的故事。',contactnote:'CRZONE · 角色授权 / 商品开发 / 品牌合作',name:'姓名 *',company:'公司 / 品牌',email:'电子邮箱 *',message:'合作想法 *',send:'用邮件联系',mailnote:'点击后将打开您的邮件应用。请在邮件应用中确认并发送；本页面不会直接提交或保存您的信息。',top:'回到顶部 ↑',concept:'商品设计展示。生产、销售及授权条件请与 CRZONE 联系确认。',inquire:'咨询此设计',all:'全部设计',toy:'玩偶与摆件',fashion:'时尚与配饰',paper:'文具与记录',digital:'数码与家电',life:'化妆品',count:'款设计',status:'已请求打开邮件应用。如未打开，请直接发送邮件至 crzone@kakao.com。'},ko:{nav1:'캐릭터',nav2:'스토리',nav3:'상품 디자인',nav4:'협업 문의',headline:'조금 특별해서,<br>더 많이 사랑스러워.',intro:'분홍 돼지코를 가진 작은 양. 부드러운 마음에 작은 용기를 담아, 당신의 하루에 따뜻함을 전해요.',explore:'사랑스러운 상품 만나기',meet:'포근한 작은 양,<br>세상에 하나뿐인 나.',about:'쥬비양은 CRZONE이 중국 시장을 겨냥해 만든 캐릭터입니다. 하얗고 포근한 양털, 분홍 돼지코, 그리고 누군가에게 다가가고 싶은 마음. 쥬비양과 함께라면 다름도 사랑스러워집니다.',trait1:'한눈에 기억되는 분홍 돼지코',trait1p:'작고 동그란 돼지코는 쥬비양만의 특별한 상징이에요.',trait2:'수줍지만 용감한 마음',trait2p:'평소에는 조용하지만 친구를 위해서는 용기를 내요.',trait3:'마음의 냄새를 알아채는 다정함',trait3p:'이야기 속 쥬비양은 냄새로 다른 이의 감정을 희미하게 느껴요.',storytitle:'나의 다름도,<br>반짝일 수 있구나.',storyp:'쥬비양은 한때 자신의 돼지코를 숨기고 싶었어요. 하지만 그 특별함으로 친구를 돕고 마을을 지키면서, 조금씩 자신을 믿게 됩니다. 있는 그대로의 나를 받아들이며 자라는, 우정과 용기에 관한 이야기예요.',secret:'돼지코에 숨겨진 별의 비밀 ＋',secretp:'쥬비양의 코에는 전설 속 ‘별의 심장’ 일부가 깃들어 있다고 해요. 생명을 지키는 그 힘을 깨우려면, 먼저 자신을 믿는 마음이 필요합니다.',goodstitle:'일상에 포근함을 더해요.',goodsp:'소장하고 싶은 아트토이부터 매일 쓰는 생활 소품까지. 판매가 아닌 상품 디자인을 소개하는 공간입니다.',zoom:'이미지를 누르면 크게 볼 수 있어요 ↗',more:'디자인 더 보기 ＋',contacttitle:'사랑스러움의<br>다음 이야기를 함께.',contactp:'캐릭터 라이선싱, 상품 개발, 브랜드 협업을 문의해 주세요. 쥬비양의 새로운 이야기를 함께 만들어요.',contactnote:'CRZONE · 캐릭터 라이선싱 / 상품 개발 / 브랜드 협업',name:'이름 *',company:'회사 / 브랜드',email:'이메일 *',message:'문의 내용 *',send:'이메일로 문의하기',mailnote:'버튼을 누르면 메일 앱이 열립니다. 메일 앱에서 확인 후 직접 발송해 주세요. 이 페이지는 정보를 직접 전송하거나 저장하지 않습니다.',top:'맨 위로 ↑',concept:'상품 디자인 시안입니다. 생산·판매 및 라이선스 조건은 CRZONE에 문의해 주세요.',inquire:'이 디자인 문의하기',all:'전체 디자인',toy:'인형·아트토이',fashion:'패션잡화',paper:'문구·다이어리',digital:'디지털·가전',life:'화장품',count:'개 디자인',status:'메일 앱 열기를 요청했습니다. 열리지 않으면 crzone@kakao.com으로 직접 보내 주세요.'}};
+Object.assign(copy.zh,{navReels:'短视频',reelsTitle:'小小的瞬间，大大的可爱。',reelsIntro:'在这里，遇见会动的猪鼻羊。',reelsSoon:'猪鼻羊的短视频，敬请期待。',reelsEmpty:'新的视频将在这里与你见面。也可以先到 CRZONE 的 Instagram 看看品牌动态。',brandReels:'前往 Zhubiyang Instagram 短视频',followTitle:'在社交平台，继续相遇。',followIntro:'CRZONE 现有社交账号，点击直接前往。',kakaoChannel:'CRZONE 咨询频道',chatButton:'KakaoTalk 一对一咨询',chatFloat:'在线咨询',chatHours:'通过 KakaoTalk 联系我们。回复时间以客服实际在线情况为准。',reelsFail:'视频暂时无法加载，请稍后重试。',videoFail:'视频无法播放。',videoDownload:'打开视频文件'});
+Object.assign(copy.ko,{navReels:'릴스',reelsTitle:'작은 순간도, 사랑스럽게.',reelsIntro:'움직이는 쥬비양의 이야기를 만나보세요.',reelsSoon:'쥬비양 릴스를 준비하고 있어요.',reelsEmpty:'새로운 영상이 이곳에 올라올 예정입니다. 먼저 쥬비양 인스타그램에서 브랜드 소식을 만나보세요.',brandReels:'쥬비양 인스타그램 릴스 바로가기',followTitle:'SNS에서도 만나요.',followIntro:'CRZONE에서 사용하는 기존 SNS 계정으로 바로 연결됩니다.',kakaoChannel:'CRZONE 상담 채널',chatButton:'카카오톡 1:1 채팅 상담',chatFloat:'실시간 상담',chatHours:'카카오톡에서 상담합니다. 답변 시간은 실제 상담 가능 여부에 따라 달라집니다.',reelsFail:'영상을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.',videoFail:'영상을 재생할 수 없습니다.',videoDownload:'영상 파일 열기'});
+Object.assign(copy,{
+en:{nav1:'Character',nav2:'Story',nav3:'Designs',nav4:'Contact',headline:'A little different.<br>A lot of love.',intro:'A little sheep with a pink pig nose and a soft heart, bringing a little courage and warmth to your day.',explore:'Explore the collection',meet:'A soft little sheep.<br>One of a kind.',about:'Zhubiyang is a character created by CRZONE for the Chinese market. Fluffy white wool, a pink pig nose, and a heart that longs to connect make every difference lovable.',trait1:'An unforgettable pink pig nose',trait1p:'A small, round pig nose is Zhubiyang’s special signature.',trait2:'A shy but courageous heart',trait2p:'Usually quiet, Zhubiyang finds courage when friends need help.',trait3:'A gentle sense for feelings',trait3p:'In the story, Zhubiyang can faintly sense others’ emotions through scent.',storytitle:'What makes me different<br>can shine, too.',storyp:'Zhubiyang once wanted to hide that unusual nose. But helping friends and protecting the village reveals the gift within it. Little by little, Zhubiyang learns to believe in being unique. A story of acceptance, friendship, and growing up.',secret:'The star hidden in a little nose ＋',secretp:'Legend says a piece of the “Heart of the Star” rests inside Zhubiyang’s nose. To awaken its power to protect life, Zhubiyang must first learn to believe in itself.',goodstitle:'A softer side of everyday life.',goodsp:'From collectible figures to everyday accessories. These are product design concepts, not an online shop.',zoom:'Select an image for a closer look ↗',more:'See more designs ＋',contacttitle:'Let’s make something<br>lovely together.',contactp:'Get in touch about character licensing, product development, and brand collaborations. Let’s create Zhubiyang’s next story.',contactnote:'CRZONE · Character licensing / Product development / Brand collaborations',name:'Name *',company:'Company / Brand',email:'Email *',message:'Your idea *',send:'Contact by email',mailnote:'This opens your email app. Review and send the message there. This page does not submit or store your information.',top:'Back to top ↑',concept:'Product design concept. Contact CRZONE to confirm production, sales, and licensing terms.',inquire:'Ask about this design',all:'All designs',toy:'Plush & figures',fashion:'Fashion & accessories',paper:'Stationery',digital:'Tech & appliances',life:'Cosmetics',count:'designs',status:'We requested your email app to open. If it does not open, email crzone@kakao.com directly.',navReels:'Reels',reelsTitle:'Little moments. Lots of charm.',reelsIntro:'Meet Zhubiyang in motion.',reelsSoon:'Zhubiyang videos are on the way.',reelsEmpty:'New videos will appear here. In the meantime, visit Zhubiyang’s Instagram for brand updates.',brandReels:'Visit Zhubiyang Instagram Reels',followTitle:'Let’s meet on social.',followIntro:'Go directly to CRZONE’s existing social accounts.',kakaoChannel:'CRZONE contact channel',chatButton:'Chat on KakaoTalk',chatFloat:'Chat with us',chatHours:'Contact us through KakaoTalk. Replies depend on staff availability.',reelsFail:'Videos could not be loaded. Please try again later.',videoFail:'This video cannot be played.',videoDownload:'Open video file'},
+ja:{nav1:'キャラクター',nav2:'ストーリー',nav3:'グッズ',nav4:'お問い合わせ',headline:'ちょっと特別。<br>だから、愛おしい。',intro:'ピンクのブタの鼻を持つ、小さな羊。やわらかな心に勇気をのせて、あなたの毎日にぬくもりを届けます。',explore:'グッズデザインを見る',meet:'ふわふわの小さな羊。<br>世界にひとりの自分。',about:'Zhubiyangは、CRZONEが中国市場に向けて生み出したキャラクターです。ふわふわの白い毛、ピンクのブタの鼻、誰かとつながりたい心。その違いが、愛おしさになります。',trait1:'忘れられないピンクの鼻',trait1p:'小さく丸いブタの鼻は、Zhubiyangだけの特別なしるし。',trait2:'恥ずかしがり屋だけど勇敢',trait2p:'普段はおとなしくても、友だちのためなら勇気を出します。',trait3:'気持ちを感じるやさしさ',trait3p:'物語の中では、においから相手の感情をかすかに感じ取れます。',storytitle:'自分だけの違いも、<br>きらきら輝ける。',storyp:'自分の鼻を隠したかったZhubiyang。でも、その特別な力で友だちを助け、村を守るうちに、少しずつ自分を信じられるようになります。ありのままの自分を受け入れて成長する、友情と勇気の物語です。',secret:'鼻に隠された星のひみつ ＋',secretp:'Zhubiyangの鼻には、伝説の「星の心」のかけらが宿っているといわれています。命を守る力を目覚めさせるには、まず自分を信じる心が必要なのです。',goodstitle:'毎日に、ぬくもりを。',goodsp:'集めたくなるフィギュアから毎日使う小物まで。こちらは商品デザインの紹介で、オンライン販売ではありません。',zoom:'画像を選ぶと拡大できます ↗',more:'もっと見る ＋',contacttitle:'愛おしさの続きを、<br>一緒につくりませんか。',contactp:'キャラクターライセンス、商品開発、ブランドコラボレーションについて、お気軽にお問い合わせください。',contactnote:'CRZONE · キャラクターライセンス / 商品開発 / ブランドコラボレーション',name:'お名前 *',company:'会社名 / ブランド',email:'メールアドレス *',message:'お問い合わせ内容 *',send:'メールで問い合わせる',mailnote:'メールアプリが開きます。内容を確認して送信してください。このページから情報が送信・保存されることはありません。',top:'ページ上部へ ↑',concept:'商品デザイン案です。製造・販売およびライセンス条件はCRZONEにお問い合わせください。',inquire:'このデザインについて問い合わせる',all:'すべて',toy:'ぬいぐるみ・フィギュア',fashion:'ファッション・雑貨',paper:'文具・手帳',digital:'デジタル・家電',life:'化粧品',count:'点のデザイン',status:'メールアプリの起動をリクエストしました。開かない場合はcrzone@kakao.comに直接ご連絡ください。',navReels:'リール',reelsTitle:'小さな瞬間に、たくさんのかわいさ。',reelsIntro:'動くZhubiyangの物語に出会いましょう。',reelsSoon:'Zhubiyangの動画を準備中です。',reelsEmpty:'新しい動画はここでご紹介します。それまではZhubiyangのInstagramでブランドの情報をお楽しみください。',brandReels:'ZhubiyangのInstagramリールへ',followTitle:'SNSでも会いましょう。',followIntro:'CRZONEの既存のSNSアカウントへ直接移動します。',kakaoChannel:'CRZONE お問い合わせチャンネル',chatButton:'KakaoTalkでチャット相談',chatFloat:'チャット相談',chatHours:'KakaoTalkでお問い合わせいただけます。返信は担当者の対応状況によります。',reelsFail:'動画を読み込めませんでした。しばらくしてから再度お試しください。',videoFail:'この動画を再生できません。',videoDownload:'動画ファイルを開く'},
+vi:{nav1:'Nhân vật',nav2:'Câu chuyện',nav3:'Thiết kế',nav4:'Liên hệ',headline:'Khác biệt một chút.<br>Đáng yêu thật nhiều.',intro:'Một chú cừu nhỏ với chiếc mũi heo hồng và trái tim dịu dàng, mang chút can đảm và ấm áp đến mỗi ngày của bạn.',explore:'Khám phá bộ sưu tập',meet:'Chú cừu nhỏ mềm mại.<br>Độc đáo theo cách riêng.',about:'Zhubiyang là nhân vật do CRZONE sáng tạo hướng đến thị trường Trung Quốc. Bộ lông trắng bồng bềnh, chiếc mũi heo hồng và trái tim mong được kết nối khiến mọi khác biệt trở nên đáng yêu.',trait1:'Chiếc mũi heo hồng khó quên',trait1p:'Chiếc mũi heo tròn nhỏ là dấu ấn đặc biệt của Zhubiyang.',trait2:'Nhút nhát nhưng dũng cảm',trait2p:'Thường ngày trầm lặng, nhưng luôn lấy hết can đảm để giúp bạn bè.',trait3:'Dịu dàng cảm nhận cảm xúc',trait3p:'Trong câu chuyện, Zhubiyang có thể cảm nhận phần nào cảm xúc của người khác qua mùi hương.',storytitle:'Sự khác biệt của mình<br>cũng có thể tỏa sáng.',storyp:'Zhubiyang từng muốn giấu chiếc mũi của mình. Nhưng khi dùng khả năng đặc biệt ấy để giúp bạn bè và bảo vệ ngôi làng, chú dần tin vào bản thân. Đây là câu chuyện về sự chấp nhận, tình bạn và hành trình trưởng thành.',secret:'Bí mật ngôi sao trong chiếc mũi ＋',secretp:'Truyền thuyết kể rằng một phần “Trái tim Ngôi sao” nằm trong chiếc mũi của Zhubiyang. Để đánh thức sức mạnh bảo vệ sự sống, chú cần học cách tin vào bản thân trước tiên.',goodstitle:'Thêm dịu dàng cho mỗi ngày.',goodsp:'Từ mô hình sưu tầm đến những món đồ dùng hằng ngày. Đây là các mẫu thiết kế sản phẩm, không phải cửa hàng trực tuyến.',zoom:'Chọn ảnh để xem rõ hơn ↗',more:'Xem thêm thiết kế ＋',contacttitle:'Cùng tạo nên<br>những điều đáng yêu.',contactp:'Liên hệ về cấp phép nhân vật, phát triển sản phẩm và hợp tác thương hiệu. Cùng viết tiếp câu chuyện của Zhubiyang.',contactnote:'CRZONE · Cấp phép nhân vật / Phát triển sản phẩm / Hợp tác thương hiệu',name:'Họ tên *',company:'Công ty / Thương hiệu',email:'Email *',message:'Nội dung liên hệ *',send:'Liên hệ qua email',mailnote:'Ứng dụng email sẽ mở ra. Hãy kiểm tra và gửi thư trong ứng dụng. Trang này không gửi hoặc lưu thông tin của bạn.',top:'Về đầu trang ↑',concept:'Mẫu thiết kế sản phẩm. Vui lòng liên hệ CRZONE để xác nhận điều kiện sản xuất, bán hàng và cấp phép.',inquire:'Hỏi về thiết kế này',all:'Tất cả',toy:'Thú bông & mô hình',fashion:'Thời trang & phụ kiện',paper:'Văn phòng phẩm',digital:'Công nghệ & gia dụng',life:'Mỹ phẩm',count:'thiết kế',status:'Đã yêu cầu mở ứng dụng email. Nếu ứng dụng không mở, hãy gửi thư trực tiếp đến crzone@kakao.com.',navReels:'Reels',reelsTitle:'Khoảnh khắc nhỏ, đáng yêu thật nhiều.',reelsIntro:'Gặp Zhubiyang qua những thước phim.',reelsSoon:'Video Zhubiyang sắp ra mắt.',reelsEmpty:'Các video mới sẽ xuất hiện tại đây. Trong lúc chờ đợi, hãy ghé Instagram của Zhubiyang để xem tin thương hiệu.',brandReels:'Xem Reels trên Instagram CRZONE',followTitle:'Hẹn gặp trên mạng xã hội.',followIntro:'Truy cập trực tiếp các tài khoản mạng xã hội hiện có của CRZONE.',kakaoChannel:'Kênh liên hệ CRZONE',chatButton:'Trò chuyện qua KakaoTalk',chatFloat:'Trò chuyện',chatHours:'Liên hệ qua KakaoTalk. Thời gian phản hồi tùy thuộc vào nhân viên hỗ trợ.',reelsFail:'Không tải được video. Vui lòng thử lại sau.',videoFail:'Không thể phát video này.',videoDownload:'Mở tệp video'}
+});
+const extra={ko:['언어 선택','협업 문의','문의 상품: ','불러오지 못했습니다. 새로고침해 주세요.','닫기','메인 메뉴','상품 분류'],en:['Choose language','Collaboration inquiry','Design inquiry: ','Could not load. Please refresh.','Close','Main navigation','Product categories'],ja:['言語を選択','コラボレーションのお問い合わせ','お問い合わせデザイン：','読み込めませんでした。再読み込みしてください。','閉じる','メインメニュー','商品カテゴリー'],zh:['选择语言','合作咨询','我想咨询：','加载失败，请刷新页面。','关闭','主菜单','商品分类'],vi:['Chọn ngôn ngữ','Liên hệ hợp tác','Hỏi về thiết kế: ','Không tải được. Vui lòng tải lại trang.','Đóng','Menu chính','Danh mục sản phẩm']};
+for(const [locale,values] of Object.entries(extra))['languageLabel','subject','productPrefix','loadFail','closeLabel','navigationLabel','categoriesLabel'].forEach((key,i)=>copy[locale][key]=values[i]);
+
+Object.assign(copy.ko,{chatButton:'실시간 채팅 상담',chatHours:'이 홈페이지 안에서 문의하고 답장을 확인할 수 있습니다. 답변은 상담 가능 시간에 도착합니다.'});
+Object.assign(copy.en,{chatButton:'Chat with our team',chatHours:'Send messages and receive replies here. Replies depend on staff availability.'});
+Object.assign(copy.ja,{chatButton:'チャットで相談',chatHours:'このサイトでメッセージを送受信できます。返信は担当者の対応時間によります。'});
+Object.assign(copy.zh,{chatButton:'在线聊天咨询',chatHours:'直接在本网站发送消息并查看回复。回复时间取决于客服的在线情况。'});
+Object.assign(copy.vi,{chatButton:'Trò chuyện trực tuyến',chatHours:'Gửi tin nhắn và nhận phản hồi ngay tại đây. Phản hồi tùy giờ hỗ trợ.'});
+const posesNavMap = { ko: '응용동작', en: 'Poses', ja: 'ポーズ', zh: '角色动作', vi: 'Tư thế' };
+for (const [k, v] of Object.entries(posesNavMap)) {
+  if (copy[k]) copy[k].posesNav = v;
+}
+
+
+const allExtras = {
+  posesTitle: {
+    ko: '쥬비양의 모든 순간',
+    en: 'Every side of Zhubiyang',
+    ja: 'Zhubiyangのいろんな表情',
+    zh: '猪鼻羊的每个可爱瞬间',
+    vi: 'Muôn khoảnh khắc Zhubiyang'
+  },
+  posesNav: {
+    ko: '응용동작',
+    en: 'Poses',
+    ja: 'ポーズ',
+    zh: '角色动作',
+    vi: 'Tư thế'
+  },
+  posesLink: {
+    ko: '어플리케이션',
+    en: 'Applications',
+    ja: 'アプリケーション',
+    zh: '角色应用',
+    vi: 'Ứng dụng nhân vật'
+  },
+  storyLink: {
+    ko: '이야기 더 보기',
+    en: 'Read the full story',
+    ja: '物語をもっと読む',
+    zh: '阅读完整故事',
+    vi: 'Đọc toàn bộ câu chuyện'
+  },
+  home: {
+    ko: '홈으로',
+    en: 'Home',
+    ja: 'ホーム',
+    zh: '首页',
+    vi: 'Trang chủ'
+  },
+  adminLink: {
+    ko: '⚙ 설정 / Admin',
+    en: '⚙ Settings / Admin',
+    ja: '⚙ 設定 / Admin',
+    zh: '⚙ 设置 / Admin',
+    vi: '⚙ Cài đặt / Admin'
+  }
+};
+for (const [key, map] of Object.entries(allExtras)) {
+  for (const [l, v] of Object.entries(map)) {
+    if (copy[l]) copy[l][key] = v;
+  }
+}
+if (typeof window !== 'undefined') { window.copy = copy; }
+if (typeof module !== 'undefined') { module.exports = { copy }; }
