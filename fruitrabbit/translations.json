@@ -1,0 +1,1316 @@
+{
+  "친구들": {
+    "en": "Friends",
+    "ja": "仲間たち",
+    "zh": "伙伴们",
+    "vi": "Bạn bè"
+  },
+  "우리 이야기": {
+    "en": "Our story",
+    "ja": "私たちの物語",
+    "zh": "我们的故事",
+    "vi": "Câu chuyện của chúng tôi"
+  },
+  "상품 컬렉션": {
+    "en": "Collection",
+    "ja": "商品コレクション",
+    "zh": "商品系列",
+    "vi": "Bộ sưu tập sản phẩm"
+  },
+  "릴스": {
+    "en": "Reels",
+    "ja": "ショート動画",
+    "zh": "短视频",
+    "vi": "Reels"
+  },
+  "문의하기": {
+    "en": "Contact",
+    "ja": "お問い合わせ",
+    "zh": "联系我们",
+    "vi": "Liên hệ"
+  },
+  "과일처럼 다채롭게, 토끼처럼 사랑스럽게.": {
+    "en": "As colorful as fruit, as lovable as bunnies.",
+    "ja": "フルーツみたいにカラフル。うさぎみたいに愛らしく。",
+    "zh": "像水果一样缤纷，像兔子一样可爱。",
+    "vi": "Rực rỡ như trái cây, đáng yêu như những chú thỏ."
+  },
+  "과일토끼와 함께하는 작고 달콤한 순간들.": {
+    "en": "Sweet little moments with Fruit Rabbit.",
+    "ja": "フルーツラビットと、毎日に小さな幸せを。",
+    "zh": "和水果兔一起，发现日常的小甜蜜。",
+    "vi": "Cùng Fruit Rabbit tận hưởng những khoảnh khắc nhỏ đầy ngọt ngào."
+  },
+  "우리, 친구할래?": {
+    "en": "Let's be friends",
+    "ja": "お友だちになろう",
+    "zh": "我们做朋友吧",
+    "vi": "Mình làm bạn nhé?"
+  },
+  "귀에 담은 과일, 마음에 담은 행복": {
+    "en": "Fruit in our ears, joy in our hearts",
+    "ja": "耳にはフルーツ、心には幸せ",
+    "zh": "耳朵里的水果，心里的幸福",
+    "vi": "Trái cây trên tai, niềm vui trong tim"
+  },
+  "너의 마음에 쏙,": {
+    "en": "A friend to love,",
+    "ja": "あなたの心にぴったりの、",
+    "zh": "走进你的心，",
+    "vi": "Chạm đến trái tim bạn,"
+  },
+  "어떤 토끼가 들어올까?": {
+    "en": "which rabbit is yours?",
+    "ja": "うさぎはどの子？",
+    "zh": "你喜欢哪只兔子？",
+    "vi": "bạn sẽ thích chú thỏ nào?"
+  },
+  "귀마다 다른 과일, 저마다 다른 매력.": {
+    "en": "Different fruit ears. A charm of their own.",
+    "ja": "耳のフルーツも、魅力もそれぞれ。",
+    "zh": "不同的水果耳朵，各有各的魅力。",
+    "vi": "Mỗi đôi tai một loại trái cây, mỗi người bạn một nét riêng."
+  },
+  "네 친구를 눌러 조금 더 가까이 만나보세요.": {
+    "en": "Tap a friend to get to know them.",
+    "ja": "気になる仲間をタップして、もっと知ってみよう。",
+    "zh": "点击伙伴，进一步了解它们。",
+    "vi": "Chạm vào bốn người bạn để tìm hiểu thêm."
+  },
+  "딸기토끼": {
+    "en": "Strawberry Rabbit",
+    "ja": "いちごラビット",
+    "zh": "草莓兔",
+    "vi": "Thỏ Dâu Tây"
+  },
+  "수박토끼": {
+    "en": "Watermelon Rabbit",
+    "ja": "すいかラビット",
+    "zh": "西瓜兔",
+    "vi": "Thỏ Dưa Hấu"
+  },
+  "레몬토끼": {
+    "en": "Lemon Rabbit",
+    "ja": "レモンラビット",
+    "zh": "柠檬兔",
+    "vi": "Thỏ Chanh"
+  },
+  "키위토끼": {
+    "en": "Kiwi Rabbit",
+    "ja": "キウイラビット",
+    "zh": "猕猴桃兔",
+    "vi": "Thỏ Kiwi"
+  },
+  "달에서 시작된": {
+    "en": "From the moon,",
+    "ja": "月から始まった、",
+    "zh": "从月球开始的，",
+    "vi": "Khởi đầu từ Mặt Trăng,"
+  },
+  "조금 특별한 인연.": {
+    "en": "a very special bond.",
+    "ja": "ちょっと特別な出会い。",
+    "zh": "一段特别缘分。",
+    "vi": "một tình bạn đặc biệt."
+  },
+  "신비로운 얼음사과나무를 돌보며 달나라에 살던 과일토끼들. 어느 날, 유성 충돌로 지구에 떨어진 친구들은 낯선 숲에서 새로운 이웃을 만나게 됩니다.": {
+    "en": "Fruit Rabbits once lived on the moon, caring for a magical ice-apple tree. A meteor strike brings them to Earth, where they meet new neighbors in an unfamiliar forest.",
+    "ja": "不思議な氷りんごの木を育てながら、月に暮らしていたフルーツラビット。ある日、隕石の衝突で地球へ落ちてきた仲間たちは、見知らぬ森で新しい隣人に出会います。",
+    "zh": "水果兔曾住在月球上，照料神奇的冰苹果树。一天，陨石撞击让它们落到地球，在陌生的森林里遇见了新邻居。",
+    "vi": "Những chú thỏ Fruit Rabbit từng sống trên Mặt Trăng và chăm sóc cây táo băng kỳ diệu. Một ngày nọ, một thiên thạch khiến các bạn rơi xuống Trái Đất và gặp những người bạn mới trong khu rừng xa lạ."
+  },
+  "함께 집을 짓고 과일나무를 심으며 태어난": {
+    "en": "Building homes and planting fruit trees together gave life to",
+    "ja": "一緒に家を建て、果樹を植えて生まれた",
+    "zh": "一起建造家园、种下果树，诞生了",
+    "vi": "Cùng xây nhà và trồng cây ăn quả, các bạn tạo nên"
+  },
+  "고향인 달을 그리워하는 마음과 지구의 친구들을 사랑하는 마음 사이에서, 과일토끼의 진짜 모험이 시작됩니다.": {
+    "en": "Between longing for their moon home and loving their Earth friends, the real adventure begins.",
+    "ja": "故郷の月を恋しく思う気持ちと、地球の仲間を愛する気持ち。その間で、本当の冒険が始まります。",
+    "zh": "一边思念月球故乡，一边深爱地球上的朋友，水果兔真正的冒险开始了。",
+    "vi": "Giữa nỗi nhớ Mặt Trăng và tình yêu dành cho những người bạn trên Trái Đất, cuộc phiêu lưu thật sự của Fruit Rabbit bắt đầu."
+  },
+  "과일토끼 이야기 더 읽기": {
+    "en": "Read the Fruit Rabbit story",
+    "ja": "物語をもっと読む",
+    "zh": "阅读水果兔的故事",
+    "vi": "Đọc thêm câu chuyện Fruit Rabbit"
+  },
+  "좋아하는 마음을,": {
+    "en": "Things you love,",
+    "ja": "大好きな気持ちを、",
+    "zh": "把喜欢，",
+    "vi": "Mang điều bạn yêu thích"
+  },
+  "일상 곳곳에.": {
+    "en": "in every little moment.",
+    "ja": "日常のあちこちに。",
+    "zh": "带进日常。",
+    "vi": "vào từng ngày."
+  },
+  "가방 속 작은 소품부터 달콤한 간식까지.": {
+    "en": "From little accessories to sweet treats.",
+    "ja": "バッグの中の小物から、甘いおやつまで。",
+    "zh": "从随身小物到甜蜜零食。",
+    "vi": "Từ phụ kiện nhỏ trong túi đến những món ăn ngọt ngào."
+  },
+  "과일토끼의 색으로 채우는 나의 하루.": {
+    "en": "Fill your day with Fruit Rabbit color.",
+    "ja": "フルーツラビットの色で彩る一日。",
+    "zh": "用水果兔的色彩点亮每一天。",
+    "vi": "Tô màu ngày của bạn cùng Fruit Rabbit."
+  },
+  "전체 보기": {
+    "en": "View all",
+    "ja": "すべて",
+    "zh": "全部",
+    "vi": "Xem tất cả"
+  },
+  "리빙·가전": {
+    "en": "Home & appliances",
+    "ja": "生活・家電",
+    "zh": "家居·电器",
+    "vi": "Đồ gia dụng"
+  },
+  "패션": {
+    "en": "Fashion",
+    "ja": "ファッション",
+    "zh": "时尚",
+    "vi": "Thời trang"
+  },
+  "소품": {
+    "en": "Accessories",
+    "ja": "小物",
+    "zh": "配件",
+    "vi": "Phụ kiện"
+  },
+  "푸드·스위츠": {
+    "en": "Food & sweets",
+    "ja": "フード・スイーツ",
+    "zh": "食品·甜点",
+    "vi": "Đồ ăn · Bánh kẹo"
+  },
+  "상품 제작 및 협업에 관한 자세한 내용은 CRZONE에 문의해 주세요.": {
+    "en": "Contact CRZONE for product development and collaborations.",
+    "ja": "商品制作・コラボレーションについてはCRZONEへお問い合わせください。",
+    "zh": "商品开发与合作详情，请联系CRZONE。",
+    "vi": "Vui lòng liên hệ CRZONE để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "짧아서 더 즐거운,": {
+    "en": "Little clips,",
+    "ja": "短くて楽しい、",
+    "zh": "短短的，",
+    "vi": "Những khoảnh khắc ngắn vui vẻ,"
+  },
+  "과일토끼의 하루.": {
+    "en": "big smiles.",
+    "ja": "フルーツラビットの一日。",
+    "zh": "快乐日常。",
+    "vi": "một ngày của Fruit Rabbit."
+  },
+  "인스타그램 바로가기 ↗": {
+    "en": "Instagram ↗",
+    "ja": "Instagramへ ↗",
+    "zh": "前往Instagram ↗",
+    "vi": "Đến Instagram ↗"
+  },
+  "인스타그램 열기 ↗": {
+    "en": "Open Instagram ↗",
+    "ja": "Instagramを開く ↗",
+    "zh": "打开Instagram ↗",
+    "vi": "Mở Instagram ↗"
+  },
+  "페이스북 바로가기 ↗": {
+    "en": "Facebook ↗",
+    "ja": "Facebookへ ↗",
+    "zh": "前往Facebook ↗",
+    "vi": "Đến Facebook ↗"
+  },
+  "페이스북 열기 ↗": {
+    "en": "Open Facebook ↗",
+    "ja": "Facebookを開く ↗",
+    "zh": "打开Facebook ↗",
+    "vi": "Mở Facebook ↗"
+  },
+  "열리지 않으면 아래 주소를 길게 눌러 복사한 뒤 Safari에서 열어 주세요.": {
+    "en": "If it doesn't open, copy the address below and open it in Safari.",
+    "ja": "開かない場合は下のアドレスをコピーし、Safariで開いてください。",
+    "zh": "若无法打开，请复制下方地址并在Safari中打开。",
+    "vi": "Nếu không mở được, hãy nhấn giữ địa chỉ bên dưới để sao chép rồi mở trong Safari."
+  },
+  "귀여움은": {
+    "en": "More friends,",
+    "ja": "一緒なら、",
+    "zh": "可爱，",
+    "vi": "Niềm vui đáng yêu"
+  },
+  "함께할수록 커지니까.": {
+    "en": "more joy.",
+    "ja": "かわいさも広がる。",
+    "zh": "因陪伴而加倍。",
+    "vi": "lớn lên khi cùng chia sẻ."
+  },
+  "과일 귀를 가진 강아지, 고양이, 곰 친구들까지.": {
+    "en": "Meet dogs, cats and bears with fruity ears.",
+    "ja": "フルーツの耳を持つ、いぬ・ねこ・くまの仲間たちも。",
+    "zh": "还有拥有水果耳朵的狗狗、猫咪和小熊伙伴。",
+    "vi": "Cùng những người bạn chó, mèo và gấu có đôi tai trái cây."
+  },
+  "더 넓어지는 과일토끼의 세계를 만나보세요.": {
+    "en": "Explore the growing world of Fruit Rabbit.",
+    "ja": "広がるフルーツラビットの世界へ。",
+    "zh": "探索不断扩展的水果兔世界。",
+    "vi": "Khám phá thế giới ngày càng rộng lớn của Fruit Rabbit."
+  },
+  "우리 함께,": {
+    "en": "Let's make it,",
+    "ja": "一緒に、",
+    "zh": "让我们一起，",
+    "vi": "Cùng nhau,"
+  },
+  "더 다채롭게.": {
+    "en": "more colorful.",
+    "ja": "もっと彩り豊かに。",
+    "zh": "创造更多色彩。",
+    "vi": "thêm sắc màu."
+  },
+  "상품 제작 · 브랜드 협업 · 캐릭터 라이선싱": {
+    "en": "Products · Brand collaborations · Character licensing",
+    "ja": "商品制作・ブランドコラボ・キャラクターライセンス",
+    "zh": "商品开发 · 品牌合作 · 角色授权",
+    "vi": "Sản xuất sản phẩm · Hợp tác thương hiệu · Cấp phép nhân vật"
+  },
+  "과일토끼와 함께할 새로운 이야기를 기다립니다.": {
+    "en": "We look forward to creating new stories with you.",
+    "ja": "一緒に生まれる新しい物語をお待ちしています。",
+    "zh": "期待与你一起开启水果兔的新故事。",
+    "vi": "Chúng tôi chờ đón những câu chuyện mới cùng Fruit Rabbit."
+  },
+  "문의 남기기 ↗": {
+    "en": "Send an inquiry ↗",
+    "ja": "お問い合わせを送る ↗",
+    "zh": "提交咨询 ↗",
+    "vi": "Gửi lời nhắn ↗"
+  },
+  "이메일 주소 복사": {
+    "en": "Copy email address",
+    "ja": "メールアドレスをコピー",
+    "zh": "复制邮箱地址",
+    "vi": "Sao chép địa chỉ email"
+  },
+  "홈페이지에서 문의하기 ↗": {
+    "en": "Contact us here ↗",
+    "ja": "サイトからお問い合わせ ↗",
+    "zh": "在线咨询 ↗",
+    "vi": "Liên hệ trên trang web ↗"
+  },
+  "작고 달콤한 순간을 만드는 친구들.": {
+    "en": "Friends who make little moments sweeter.",
+    "ja": "小さくて甘いひとときを届ける仲間たち。",
+    "zh": "让小小瞬间更甜蜜的伙伴们。",
+    "vi": "Những người bạn mang đến khoảnh khắc nhỏ ngọt ngào."
+  },
+  "관리자": {
+    "en": "Admin",
+    "ja": "管理者",
+    "zh": "管理后台",
+    "vi": "Quản trị viên"
+  },
+  "✦ 실시간 채팅": {
+    "en": "✦ Live chat",
+    "ja": "✦ チャット相談",
+    "zh": "✦ 在线聊天",
+    "vi": "✦ Trò chuyện trực tiếp"
+  },
+  "과일토끼 · CRZONE": {
+    "en": "Fruit Rabbit · CRZONE",
+    "ja": "フルーツラビット · CRZONE",
+    "zh": "水果兔 · CRZONE",
+    "vi": "Fruit Rabbit · CRZONE"
+  },
+  "상담 연결 중": {
+    "en": "Connecting to chat",
+    "ja": "チャットに接続中",
+    "zh": "正在连接聊天",
+    "vi": "Đang kết nối tư vấn"
+  },
+  "메시지": {
+    "en": "Message",
+    "ja": "メッセージ",
+    "zh": "消息",
+    "vi": "Tin nhắn"
+  },
+  "보내기": {
+    "en": "Send",
+    "ja": "送信",
+    "zh": "发送",
+    "vi": "Gửi"
+  },
+  "나": {
+    "en": "You",
+    "ja": "あなた",
+    "zh": "你",
+    "vi": "Tôi"
+  },
+  "● 상담 가능 · 메시지를 보내 주세요": {
+    "en": "● Online · Send us a message",
+    "ja": "● 対応可能 · メッセージをどうぞ",
+    "zh": "● 在线 · 请发送消息",
+    "vi": "● Sẵn sàng tư vấn · Hãy gửi tin nhắn"
+  },
+  "답변 대기 · 관리자가 확인 후 답장합니다": {
+    "en": "Awaiting reply · We'll reply when available",
+    "ja": "返信待ち · 確認後にお返事します",
+    "zh": "等待回复 · 管理员查看后回复",
+    "vi": "Đang chờ trả lời · Quản trị viên sẽ phản hồi sau khi xem"
+  },
+  "안녕하세요! 상품·라이선싱 등 궁금한 내용을 남겨 주세요. 개인정보와 결제정보는 적지 마세요. 대화는 이 브라우저에서 다시 확인할 수 있습니다.": {
+    "en": "Hello! Ask us about products or licensing. Please don't share sensitive or payment details. You can revisit this chat in this browser.",
+    "ja": "こんにちは！商品やライセンスについてお気軽にどうぞ。個人情報や決済情報は書かないでください。このブラウザで会話を再確認できます。",
+    "zh": "你好！欢迎咨询商品或授权。请勿填写敏感个人信息或支付信息。可在此浏览器中重新查看对话。",
+    "vi": "Xin chào! Hãy để lại câu hỏi về sản phẩm hoặc cấp phép. Vui lòng không gửi thông tin cá nhân nhạy cảm hay thông tin thanh toán. Bạn có thể xem lại cuộc trò chuyện trong trình duyệt này."
+  },
+  "궁금한 내용을 적어 주세요": {
+    "en": "Type your question",
+    "ja": "ご質問を入力してください",
+    "zh": "请输入你的问题",
+    "vi": "Nhập câu hỏi của bạn"
+  },
+  "상품 컬렉션 만나기 ↗": {
+    "en": "Explore the collection ↗",
+    "ja": "コレクションを見る ↗",
+    "zh": "查看商品系列 ↗",
+    "vi": "Khám phá bộ sưu tập ↗"
+  },
+  "이 상품 문의하기 ↗": {
+    "en": "Ask about this product ↗",
+    "ja": "この商品について相談 ↗",
+    "zh": "咨询此商品 ↗",
+    "vi": "Hỏi về sản phẩm này ↗"
+  },
+  "컬렉션을 불러오는 중입니다.": {
+    "en": "Loading the collection…",
+    "ja": "コレクションを読み込み中…",
+    "zh": "正在加载商品系列…",
+    "vi": "Đang tải bộ sưu tập."
+  },
+  "이 분류의 상품을 준비하고 있습니다.": {
+    "en": "More products are on the way.",
+    "ja": "このカテゴリーの商品を準備中です。",
+    "zh": "此分类的商品正在准备中。",
+    "vi": "Sản phẩm trong danh mục này đang được chuẩn bị."
+  },
+  "과일토끼의 다음 이야기는?": {
+    "en": "What's next for Fruit Rabbit?",
+    "ja": "次はどんな物語？",
+    "zh": "水果兔的下一个故事是什么？",
+    "vi": "Câu chuyện tiếp theo của Fruit Rabbit là gì?"
+  },
+  "인스타그램에서 새로운 순간을 만나보세요.": {
+    "en": "Discover new moments on Instagram.",
+    "ja": "Instagramで新しい瞬間を見つけよう。",
+    "zh": "在Instagram发现新的快乐瞬间。",
+    "vi": "Khám phá những khoảnh khắc mới trên Instagram."
+  },
+  "어떤 이야기를 함께할까요?": {
+    "en": "What shall we create together?",
+    "ja": "一緒にどんな物語を作ろう？",
+    "zh": "我们一起创造什么故事？",
+    "vi": "Chúng ta sẽ cùng tạo câu chuyện nào?"
+  },
+  "남겨주신 내용을 확인한 뒤 입력하신 이메일로 연락드리겠습니다.": {
+    "en": "We'll review your inquiry and reply by email.",
+    "ja": "内容を確認後、ご入力のメールへご連絡します。",
+    "zh": "查看咨询后，我们会通过你填写的邮箱联系你。",
+    "vi": "Sau khi xem nội dung, chúng tôi sẽ liên hệ qua email bạn cung cấp."
+  },
+  "이름 *": {
+    "en": "Name *",
+    "ja": "お名前 *",
+    "zh": "姓名 *",
+    "vi": "Tên *"
+  },
+  "이메일 *": {
+    "en": "Email *",
+    "ja": "メール *",
+    "zh": "邮箱 *",
+    "vi": "Email *"
+  },
+  "회사 / 브랜드": {
+    "en": "Company / brand",
+    "ja": "会社・ブランド",
+    "zh": "公司 / 品牌",
+    "vi": "Công ty / Thương hiệu"
+  },
+  "문의 제목 *": {
+    "en": "Subject *",
+    "ja": "件名 *",
+    "zh": "咨询主题 *",
+    "vi": "Tiêu đề *"
+  },
+  "문의 내용 *": {
+    "en": "Message *",
+    "ja": "内容 *",
+    "zh": "咨询内容 *",
+    "vi": "Nội dung *"
+  },
+  "문의 접수하기 ↗": {
+    "en": "Submit inquiry ↗",
+    "ja": "お問い合わせを送信 ↗",
+    "zh": "提交咨询 ↗",
+    "vi": "Gửi yêu cầu ↗"
+  },
+  "이메일 앱으로 보내기 ↗": {
+    "en": "Open email app ↗",
+    "ja": "メールアプリで送る ↗",
+    "zh": "通过邮件应用发送 ↗",
+    "vi": "Gửi bằng ứng dụng email ↗"
+  },
+  "접수 중입니다…": {
+    "en": "Submitting…",
+    "ja": "送信中…",
+    "zh": "正在提交…",
+    "vi": "Đang gửi…"
+  },
+  "문의가 접수되었습니다.": {
+    "en": "Your inquiry has been received.",
+    "ja": "お問い合わせを受け付けました。",
+    "zh": "已收到你的咨询。",
+    "vi": "Đã nhận yêu cầu của bạn."
+  },
+  "CRZONE에서 내용을 확인한 뒤 입력하신 이메일로 연락드리겠습니다.": {
+    "en": "CRZONE will review your inquiry and reply by email.",
+    "ja": "CRZONEが確認後、メールでご連絡します。",
+    "zh": "CRZONE查看后会通过邮箱回复你。",
+    "vi": "CRZONE sẽ xem nội dung và liên hệ qua email bạn cung cấp."
+  },
+  "확인": {
+    "en": "Done",
+    "ja": "確認",
+    "zh": "确认",
+    "vi": "Xác nhận"
+  },
+  "상품 제작 · 라이선싱 문의": {
+    "en": "Product development & licensing inquiry",
+    "ja": "商品制作・ライセンスの相談",
+    "zh": "商品开发与授权咨询",
+    "vi": "Yêu cầu sản xuất · Cấp phép"
+  },
+  "이메일 주소를 복사했습니다.": {
+    "en": "Email address copied.",
+    "ja": "メールアドレスをコピーしました。",
+    "zh": "已复制邮箱地址。",
+    "vi": "Đã sao chép địa chỉ email."
+  },
+  "복사 완료 ✓": {
+    "en": "Copied ✓",
+    "ja": "コピー完了 ✓",
+    "zh": "已复制 ✓",
+    "vi": "Đã sao chép ✓"
+  },
+  "상품을 불러오지 못했습니다.": {
+    "en": "Couldn't load products.",
+    "ja": "商品を読み込めませんでした。",
+    "zh": "无法加载商品。",
+    "vi": "Không thể tải sản phẩm."
+  },
+  "다시 시도": {
+    "en": "Try again",
+    "ja": "再試行",
+    "zh": "重试",
+    "vi": "Thử lại"
+  },
+  "잠시 후 다시 방문해 주세요.": {
+    "en": "Please try again shortly.",
+    "ja": "しばらくしてから再度お試しください。",
+    "zh": "请稍后重试。",
+    "vi": "Vui lòng quay lại sau."
+  },
+  "팝업 닫기": {
+    "en": "Close popup",
+    "ja": "ポップアップを閉じる",
+    "zh": "关闭弹窗",
+    "vi": "Đóng cửa sổ"
+  },
+  "채팅 닫기": {
+    "en": "Close chat",
+    "ja": "チャットを閉じる",
+    "zh": "关闭聊天",
+    "vi": "Đóng trò chuyện"
+  },
+  "메뉴 열기": {
+    "en": "Open menu",
+    "ja": "メニューを開く",
+    "zh": "打开菜单",
+    "vi": "Mở menu"
+  },
+  "메뉴 닫기": {
+    "en": "Close menu",
+    "ja": "メニューを閉じる",
+    "zh": "关闭菜单",
+    "vi": "Đóng menu"
+  },
+  "과일토끼 홈": {
+    "en": "Fruit Rabbit home",
+    "ja": "フルーツラビット ホーム",
+    "zh": "水果兔首页",
+    "vi": "Trang chủ Fruit Rabbit"
+  },
+  "맨 위로": {
+    "en": "Back to top",
+    "ja": "ページ上部へ",
+    "zh": "返回顶部",
+    "vi": "Về đầu trang"
+  },
+  "문의 응대를 위한 이름·이메일·문의 내용 수집에 동의합니다. 수집 정보는 문의 처리 목적으로만 사용합니다. 삭제 요청: crzone@kakao.com.": {
+    "en": "I consent to the collection of my name, email and message to respond to this inquiry. Used only for handling the inquiry. Deletion requests: crzone@kakao.com.",
+    "ja": "お問い合わせへの対応のため、氏名・メール・内容の収集に同意します。お問い合わせ処理にのみ使用します。削除依頼：crzone@kakao.com。",
+    "zh": "我同意收集姓名、邮箱和咨询内容用于处理本次咨询。信息仅用于咨询处理。删除请求：crzone@kakao.com。",
+    "vi": "Tôi đồng ý cung cấp tên, email và nội dung để xử lý yêu cầu. Thông tin chỉ được dùng cho mục đích này. Yêu cầu xóa: crzone@kakao.com."
+  },
+  "관심 상품, 협업 분야, 일정 등을 자유롭게 적어 주세요.": {
+    "en": "Tell us about products, collaborations or your timeline.",
+    "ja": "気になる商品、協業分野、日程などをお書きください。",
+    "zh": "请填写感兴趣的商品、合作方向或时间安排。",
+    "vi": "Hãy chia sẻ sản phẩm quan tâm, lĩnh vực hợp tác và thời gian dự kiến."
+  },
+  "▶ Instagram에서 재생": {
+    "en": "▶ Watch on Instagram",
+    "ja": "▶ Instagramで再生",
+    "zh": "▶ 在Instagram观看",
+    "vi": "▶ Phát trên Instagram"
+  },
+  "딸기 핸드 그라인더": {
+    "en": "Strawberry Hand Grinder",
+    "ja": "いちごハンドミル",
+    "zh": "草莓手摇磨豆机",
+    "vi": "Máy xay cà phê tay Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 핸드 그라인더. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Hand Grinder, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごハンドミル。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓手摇磨豆机。商品开发和合作详情请联系我们。",
+    "vi": "Máy xay cà phê tay Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "초콜릿 아이스크림": {
+    "en": "Chocolate Ice Cream",
+    "ja": "チョコアイス",
+    "zh": "巧克力冰淇淋",
+    "vi": "Kem sô cô la"
+  },
+  "과일토끼의 색과 매력을 담은 초콜릿 아이스크림. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Chocolate Ice Cream, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたチョコアイス。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的巧克力冰淇淋。商品开发和合作详情请联系我们。",
+    "vi": "Kem sô cô la mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "레몬토끼 티셔츠": {
+    "en": "Lemon Rabbit T-shirt",
+    "ja": "レモンラビットTシャツ",
+    "zh": "柠檬兔T恤",
+    "vi": "Áo thun Thỏ Chanh"
+  },
+  "과일토끼의 색과 매력을 담은 레몬토끼 티셔츠. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Lemon Rabbit T-shirt, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたレモンラビットTシャツ。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的柠檬兔T恤。商品开发和合作详情请联系我们。",
+    "vi": "Áo thun Thỏ Chanh mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 커피머신": {
+    "en": "Strawberry Coffee Machine",
+    "ja": "いちごコーヒーマシン",
+    "zh": "草莓咖啡机",
+    "vi": "Máy pha cà phê Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 커피머신. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Coffee Machine, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごコーヒーマシン。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓咖啡机。商品开发和合作详情请联系我们。",
+    "vi": "Máy pha cà phê Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "수박 스틱 껌": {
+    "en": "Watermelon Stick Gum",
+    "ja": "すいかスティックガム",
+    "zh": "西瓜条形口香糖",
+    "vi": "Kẹo cao su thanh Dưa Hấu"
+  },
+  "과일토끼의 색과 매력을 담은 수박 스틱 껌. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Watermelon Stick Gum, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたすいかスティックガム。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的西瓜条形口香糖。商品开发和合作详情请联系我们。",
+    "vi": "Kẹo cao su thanh Dưa Hấu mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 젤리": {
+    "en": "Strawberry Jelly",
+    "ja": "いちごゼリー",
+    "zh": "草莓软糖",
+    "vi": "Kẹo dẻo Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 젤리. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Jelly, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごゼリー。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓软糖。商品开发和合作详情请联系我们。",
+    "vi": "Kẹo dẻo Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 헤어드라이어": {
+    "en": "Strawberry Hair Dryer",
+    "ja": "いちごヘアドライヤー",
+    "zh": "草莓吹风机",
+    "vi": "Máy sấy tóc Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 헤어드라이어. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Hair Dryer, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごヘアドライヤー。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓吹风机。商品开发和合作详情请联系我们。",
+    "vi": "Máy sấy tóc Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 치즈": {
+    "en": "Strawberry Cheese",
+    "ja": "いちごチーズ",
+    "zh": "草莓奶酪",
+    "vi": "Phô mai Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 치즈. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Cheese, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごチーズ。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓奶酪。商品开发和合作详情请联系我们。",
+    "vi": "Phô mai Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 가습기": {
+    "en": "Strawberry Humidifier",
+    "ja": "いちご加湿器",
+    "zh": "草莓加湿器",
+    "vi": "Máy tạo ẩm Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 가습기. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Humidifier, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちご加湿器。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓加湿器。商品开发和合作详情请联系我们。",
+    "vi": "Máy tạo ẩm Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기토끼 티셔츠": {
+    "en": "Strawberry Rabbit T-shirt",
+    "ja": "いちごラビットTシャツ",
+    "zh": "草莓兔T恤",
+    "vi": "Áo thun Thỏ Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기토끼 티셔츠. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Rabbit T-shirt, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごラビットTシャツ。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓兔T恤。商品开发和合作详情请联系我们。",
+    "vi": "Áo thun Thỏ Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 텀블러": {
+    "en": "Strawberry Tumbler",
+    "ja": "いちごタンブラー",
+    "zh": "草莓随行杯",
+    "vi": "Bình giữ nhiệt Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 텀블러. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Tumbler, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごタンブラー。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓随行杯。商品开发和合作详情请联系我们。",
+    "vi": "Bình giữ nhiệt Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 우유": {
+    "en": "Strawberry Milk",
+    "ja": "いちごミルク",
+    "zh": "草莓牛奶",
+    "vi": "Sữa Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 우유. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Milk, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごミルク。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓牛奶。商品开发和合作详情请联系我们。",
+    "vi": "Sữa Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "수박 톡톡 껌": {
+    "en": "Watermelon Pop Gum",
+    "ja": "すいかポップガム",
+    "zh": "西瓜泡泡口香糖",
+    "vi": "Kẹo cao su Dưa Hấu"
+  },
+  "과일토끼의 색과 매력을 담은 수박 톡톡 껌. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Watermelon Pop Gum, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたすいかポップガム。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的西瓜泡泡口香糖。商品开发和合作详情请联系我们。",
+    "vi": "Kẹo cao su Dưa Hấu mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 캔디": {
+    "en": "Strawberry Candy",
+    "ja": "いちごキャンディ",
+    "zh": "草莓糖果",
+    "vi": "Kẹo Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 캔디. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Candy, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごキャンディ。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓糖果。商品开发和合作详情请联系我们。",
+    "vi": "Kẹo Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 휴대폰 케이스": {
+    "en": "Strawberry Phone Case",
+    "ja": "いちごスマホケース",
+    "zh": "草莓手机壳",
+    "vi": "Ốp điện thoại Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 휴대폰 케이스. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Phone Case, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごスマホケース。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓手机壳。商品开发和合作详情请联系我们。",
+    "vi": "Ốp điện thoại Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "수박 요구르트": {
+    "en": "Watermelon Yogurt",
+    "ja": "すいかヨーグルト",
+    "zh": "西瓜酸奶",
+    "vi": "Sữa chua Dưa Hấu"
+  },
+  "과일토끼의 색과 매력을 담은 수박 요구르트. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Watermelon Yogurt, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたすいかヨーグルト。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的西瓜酸奶。商品开发和合作详情请联系我们。",
+    "vi": "Sữa chua Dưa Hấu mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 라면": {
+    "en": "Strawberry Ramen",
+    "ja": "いちごラーメン",
+    "zh": "草莓拉面",
+    "vi": "Mì Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 라면. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Ramen, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごラーメン。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓拉面。商品开发和合作详情请联系我们。",
+    "vi": "Mì Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 웨하스": {
+    "en": "Strawberry Wafers",
+    "ja": "いちごウエハース",
+    "zh": "草莓威化饼",
+    "vi": "Bánh xốp Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 웨하스. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Wafers, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごウエハース。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓威化饼。商品开发和合作详情请联系我们。",
+    "vi": "Bánh xốp Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 초콜릿": {
+    "en": "Strawberry Chocolate",
+    "ja": "いちごチョコレート",
+    "zh": "草莓巧克力",
+    "vi": "Sô cô la Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 초콜릿. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Chocolate, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごチョコレート。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓巧克力。商品开发和合作详情请联系我们。",
+    "vi": "Sô cô la Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기 아이스크림": {
+    "en": "Strawberry Ice Cream",
+    "ja": "いちごアイス",
+    "zh": "草莓冰淇淋",
+    "vi": "Kem Dâu Tây"
+  },
+  "과일토끼의 색과 매력을 담은 딸기 아이스크림. 상품 제작 및 협업에 관한 자세한 사항은 문의해 주세요.": {
+    "en": "Strawberry Ice Cream, featuring Fruit Rabbit colors and charm. Contact us for product development and collaboration details.",
+    "ja": "フルーツラビットの彩りと魅力を取り入れたいちごアイス。商品制作や協業の詳細はお問い合わせください。",
+    "zh": "融入水果兔色彩与魅力的草莓冰淇淋。商品开发和合作详情请联系我们。",
+    "vi": "Kem Dâu Tây mang sắc màu và nét đáng yêu của Fruit Rabbit. Vui lòng liên hệ để biết thêm về sản xuất sản phẩm và hợp tác."
+  },
+  "딸기의 씨앗 무늬가 담긴 두 귀와 초록 꼭지, 커다란 분홍빛 볼이 매력인 친구예요. 하트를 건네는 작은 손짓만으로도 마음이 달콤해져요.": {
+    "en": "Strawberry Rabbit has seed-patterned ears, a green stem and rosy cheeks. A little heart from this friend makes the day sweeter.",
+    "ja": "いちごの種模様の耳と緑のヘタ、大きなピンクのほっぺが魅力。小さな手でハートを届けてくれます。",
+    "zh": "草莓种子图案的耳朵、绿色果蒂和粉红脸颊是它的魅力。小手送出的爱心让日常更甜蜜。",
+    "vi": "Người bạn có đôi tai mang hạt dâu, cuống xanh và má hồng lớn. Một cử chỉ trao trái tim nhỏ cũng đủ khiến lòng bạn ngọt ngào."
+  },
+  "빨간 과육과 초록 껍질을 닮은 귀, 발그레한 볼을 가진 수박토끼. 손에 든 작은 수박 조각과 장난스러운 표정이 눈길을 사로잡아요.": {
+    "en": "Watermelon Rabbit has ears like red flesh and green rind, with rosy cheeks. A slice of watermelon and a playful expression catch your eye.",
+    "ja": "赤い果肉と緑の皮を思わせる耳、ほんのり赤いほっぺ。小さなすいかと楽しげな表情が目を引きます。",
+    "zh": "耳朵像红色果肉和绿色果皮，脸颊红扑扑的。手里的西瓜片和调皮表情格外可爱。",
+    "vi": "Thỏ Dưa Hấu có đôi tai như thịt đỏ và vỏ xanh của dưa hấu cùng đôi má hồng. Miếng dưa nhỏ trên tay và vẻ tinh nghịch thật đáng yêu."
+  },
+  "노란 레몬 단면이 담긴 귀와 연노란 볼을 가진 친구예요. 작은 확성기를 들고 전하는 레몬토끼의 인사처럼, 오늘도 상큼한 순간을 만나보세요.": {
+    "en": "Lemon Rabbit has lemon-slice ears and pale yellow cheeks. A little megaphone announces a fresh, cheerful moment.",
+    "ja": "レモンの断面を描いた耳と、淡い黄色のほっぺ。小さなメガホンで、さわやかなひとときを届けます。",
+    "zh": "柠檬切面图案的耳朵和淡黄色脸颊，配上小喇叭，为你送来清新的问候。",
+    "vi": "Người bạn có đôi tai hình lát chanh vàng và má vàng nhạt. Cùng đón những khoảnh khắc tươi vui như lời chào qua chiếc loa nhỏ của Thỏ Chanh."
+  },
+  "연두빛 귀 속 하얀 과육과 작은 씨앗, 초록빛 볼이 키위토끼의 특징이에요. 선글라스와 스케이트보드가 어울리는 유쾌한 모습을 만나보세요.": {
+    "en": "Kiwi Rabbit has green ears with a white center and little seeds, plus green cheeks. Sunglasses and a skateboard bring a playful touch.",
+    "ja": "緑の耳には白い果肉と小さな種、ほっぺも緑色。サングラスとスケートボードが似合う、楽しい姿です。",
+    "zh": "绿色耳朵里有白色果心和小种子，脸颊也是绿色。墨镜与滑板让它格外活泼。",
+    "vi": "Thỏ Kiwi có đôi tai xanh nhạt với thịt trắng và những hạt nhỏ, cùng đôi má xanh. Kính râm và ván trượt tạo nên vẻ vui nhộn."
+  },
+  "아주 오래전, 달나라에는 과일 무늬의 귀를 가진 과일토끼들이 살고 있었습니다. 토끼들은 달의 중심에 있는 신비로운 얼음사과나무를 돌보며 평화롭게 지냈습니다. 차갑고 투명한 얼음사과를 한 입 먹으면 마음이 따뜻해지고, 지친 몸에 다시 힘이 생겼습니다.": {
+    "en": "Long ago, Fruit Rabbits lived on the moon and cared for a magical ice-apple tree at its center. Its cool, clear fruit warmed their hearts and restored their energy.",
+    "ja": "昔、月にはフルーツの模様の耳を持つうさぎたちが暮らし、中心にある不思議な氷りんごの木を育てていました。冷たく透明な実を食べると、心が温まり元気が戻りました。",
+    "zh": "很久以前，月球上住着耳朵带水果图案的兔子。它们照料月球中心神奇的冰苹果树。吃一口冰凉透明的果实，心会变温暖，身体也会恢复活力。",
+    "vi": "Ngày xưa, những chú thỏ có đôi tai mang hoa văn trái cây sống trên Mặt Trăng. Các bạn chăm sóc cây táo băng kỳ diệu ở trung tâm Mặt Trăng. Một miếng táo băng trong suốt lạnh mát làm ấm trái tim và tiếp thêm sức lực."
+  },
+  "그러던 어느 날, 하늘에서 거대한 유성이 내려왔습니다. 강력한 충격으로 우주에 튕겨 나간 토끼들은 별 사이를 떠돌다 파란 행성, 지구에 도착했습니다. 한 토끼의 품에는 얼음사과 하나가 꼭 안겨 있었지요.": {
+    "en": "One day a huge meteor struck. The rabbits were thrown into space, drifted among the stars and landed on Earth. One held an ice apple tightly.",
+    "ja": "ある日、巨大な隕石が落ちてきました。衝撃で宇宙へ飛ばされたうさぎたちは、星の間を漂い、地球にたどり着きました。一羽は氷りんごを大切に抱えていました。",
+    "zh": "一天，一颗巨大的陨石落下。猛烈的冲击把兔子们抛向宇宙。它们漂流在星辰之间，最后来到地球。一只兔子怀里紧紧抱着一颗冰苹果。",
+    "vi": "Một ngày nọ, thiên thạch khổng lồ rơi xuống. Cú va chạm mạnh hất các chú thỏ vào vũ trụ. Sau khi trôi giữa những vì sao, các bạn đến hành tinh xanh, Trái Đất. Một chú thỏ vẫn ôm chặt một quả táo băng."
+  },
+  "처음에는 두렵고 외로웠지만, 토끼들은 숲속 동물들을 만나 조금씩 지구 생활에 적응했습니다. 함께 집을 짓고 과일나무를 심으며, 작은 정착지는 어느새 알록달록한 Fruit Village로 자랐습니다.": {
+    "en": "At first they were frightened and lonely. Meeting forest animals helped them settle in. Together they built homes and planted trees, creating colorful Fruit Village.",
+    "ja": "最初は怖くて寂しかったけれど、森の動物たちと出会い、少しずつ地球に慣れていきました。一緒に家を建て、果樹を植え、小さな集落は彩り豊かなFruit Villageへ育ちました。",
+    "zh": "起初它们害怕又孤单。遇见森林里的动物后，逐渐适应了地球生活。大家一起建房、种果树，小小的聚落成为缤纷的Fruit Village。",
+    "vi": "Ban đầu sợ hãi và cô đơn, các chú thỏ dần quen cuộc sống trên Trái Đất nhờ những người bạn trong rừng. Cùng xây nhà và trồng cây ăn quả, nơi ở nhỏ trở thành Fruit Village rực rỡ."
+  },
+  "밤이 되면 토끼들은 말없이 달을 바라보았습니다. 고향이 그리웠기 때문입니다. 친구들은 세상에서 가장 길고 튼튼한 로프를 만들었고, 거위들이 로프를 물고 달까지 날아갔습니다. 지구의 동물들이 힘을 합쳐 당기자, 달이 조금씩 움직이기 시작했습니다.": {
+    "en": "At night the rabbits gazed at the moon, missing home. Their friends made a strong, long rope. Geese carried it to the moon, and the animals pulled together until the moon began to move.",
+    "ja": "夜になると、うさぎたちは故郷を思って月を見つめました。仲間たちは長く丈夫なロープを作り、ガチョウが月へ運びました。動物たちが一緒に引くと、月が少しずつ動き始めました。",
+    "zh": "夜晚，兔子们思念故乡，默默望着月亮。朋友们做出又长又结实的绳子，鹅把绳子带到月球。地球的动物们一起拉，月亮开始缓缓移动。",
+    "vi": "Mỗi đêm, các chú thỏ lặng nhìn Mặt Trăng vì nhớ quê nhà. Bạn bè làm một sợi dây thật dài và chắc. Những chú ngỗng mang dây bay tới Mặt Trăng. Khi các con vật trên Trái Đất cùng kéo, Mặt Trăng bắt đầu dịch chuyển."
+  },
+  "하지만 달이 가까워지자 바다가 크게 출렁이고 지구 곳곳에 이상한 변화가 나타났습니다. 과일토끼들은 선택해야 합니다. 그리운 고향을 지구로 데려올 것인가, 새롭게 사랑하게 된 지구를 지킬 것인가?": {
+    "en": "As the moon approached, the seas surged and strange changes spread across Earth. The rabbits had to choose: bring their beloved home closer, or protect the Earth they had come to love?",
+    "ja": "月が近づくと海が大きく揺れ、地球に異変が起こりました。うさぎたちは選ばなければなりません。懐かしい故郷を近づけるか、新しく愛する地球を守るか。",
+    "zh": "但月亮靠近后，海水剧烈翻涌，地球各地出现异常。兔子们必须选择：把思念的故乡带近，还是守护深爱的地球？",
+    "vi": "Nhưng khi Mặt Trăng đến gần, biển dậy sóng và những thay đổi kỳ lạ xuất hiện khắp Trái Đất. Các chú thỏ phải lựa chọn: đưa quê hương về gần hay bảo vệ Trái Đất mà các bạn đã yêu?"
+  },
+  "얼음사과나무의 비밀과 과일토끼가 달에서 태어난 이유. 진짜 모험은 이제 시작됩니다.": {
+    "en": "The secret of the ice-apple tree, and why Fruit Rabbits were born on the moon: the real adventure has only just begun.",
+    "ja": "氷りんごの木の秘密と、うさぎたちが月に生まれた理由。本当の冒険はここから始まります。",
+    "zh": "冰苹果树的秘密，以及水果兔为何诞生在月球。真正的冒险才刚刚开始。",
+    "vi": "Bí mật của cây táo băng và lý do Fruit Rabbit sinh ra trên Mặt Trăng. Cuộc phiêu lưu thật sự vừa bắt đầu."
+  },
+  "달을 그리워하는 토끼들,": {
+    "en": "Rabbits who miss the moon,",
+    "ja": "月を恋しく思ううさぎたち、",
+    "zh": "思念月球的兔子们，",
+    "vi": "Những chú thỏ nhớ Mặt Trăng,"
+  },
+  "지구에서 만난 친구들.": {
+    "en": "friends they met on Earth.",
+    "ja": "地球で出会った仲間たち。",
+    "zh": "在地球遇见的朋友。",
+    "vi": "những người bạn trên Trái Đất."
+  },
+  "채팅": {
+    "en": "Chat",
+    "ja": "チャット",
+    "zh": "聊天",
+    "vi": "Trò chuyện"
+  },
+  "실시간 채팅 열기": {
+    "en": "Open live chat",
+    "ja": "チャット相談を開く",
+    "zh": "打开在线聊天",
+    "vi": "Mở trò chuyện trực tiếp"
+  },
+  "오늘도,": {
+    "en": "A little sweetness,",
+    "ja": "今日も、",
+    "zh": "让每一天",
+    "vi": "Mỗi ngày,"
+  },
+  "상큼하게!": {
+    "en": "a lot of joy.",
+    "ja": "さわやかに！",
+    "zh": "都充满活力！",
+    "vi": "thêm tươi vui!"
+  },
+  "아트토이": {
+    "en": "Art Toys",
+    "ja": "アートトイ",
+    "zh": "艺术玩具",
+    "vi": "Đồ chơi nghệ thuật"
+  },
+  "꿈꾸는 과일 휴일 아트토이 4종": {
+    "en": "Dreamy Fruit Holiday · 4 Art Toys",
+    "ja": "夢見るフルーツホリデー アートトイ4種",
+    "zh": "梦幻水果假日艺术玩具4款",
+    "vi": "Kỳ nghỉ trái cây mộng mơ · 4 mẫu"
+  },
+  "꿈꾸는 과일 휴일 아트토이 4종 자세히 보기": {
+    "en": "Dreamy Fruit Holiday · 4 Art Toys — View details",
+    "ja": "夢見るフルーツホリデー アートトイ4種の詳細を見る",
+    "zh": "梦幻水果假日艺术玩具4款 — 查看详情",
+    "vi": "Kỳ nghỉ trái cây mộng mơ · 4 mẫu — Xem chi tiết"
+  },
+  "키위 망원경, 과일 돛단배, 블루베리 낮잠, 석류 공주로 펼치는 달콤한 휴일. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "A sweet holiday with a kiwi telescope, a fruit sailboat, a blueberry nap and a pomegranate princess. Contact us for production and collaborations.",
+    "ja": "キウイの望遠鏡、フルーツの帆船、ブルーベリーのお昼寝、ザクロのプリンセスが彩る甘い休日。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "奇异果望远镜、水果帆船、蓝莓午睡与石榴公主，共同开启甜蜜假日。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Kỳ nghỉ ngọt ngào với kính thiên văn kiwi, thuyền buồm trái cây, giấc ngủ bên việt quất và công chúa lựu. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "딸기토끼 액션 아트토이 4종": {
+    "en": "Strawberry Rabbit in Action · 4 Art Toys",
+    "ja": "ストロベリーラビットのわくわくアクション アートトイ4種",
+    "zh": "草莓兔活力造型艺术玩具4款",
+    "vi": "Thỏ Dâu năng động · 4 mẫu"
+  },
+  "딸기토끼 액션 아트토이 4종 자세히 보기": {
+    "en": "Strawberry Rabbit in Action · 4 Art Toys — View details",
+    "ja": "ストロベリーラビットのわくわくアクション アートトイ4種の詳細を見る",
+    "zh": "草莓兔活力造型艺术玩具4款 — 查看详情",
+    "vi": "Thỏ Dâu năng động · 4 mẫu — Xem chi tiết"
+  },
+  "딸기 슬라이드와 덩굴 놀이, 딸기 속 물구나무, 훌라후프로 만나는 발랄한 딸기토끼. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "Strawberry Rabbit plays on a strawberry slide and vine, does a handstand inside a strawberry, and twirls a hula hoop. Contact us for production and collaborations.",
+    "ja": "イチゴの滑り台やつるで遊び、イチゴの中で逆立ちしたり、フラフープを回したりする元気なストロベリーラビット。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "草莓兔滑下草莓滑梯、攀玩藤蔓、在草莓里倒立，还转起了呼啦圈。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Thỏ Dâu chơi cầu trượt dâu, đu dây leo, trồng cây chuối trong quả dâu và xoay vòng hula. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "딸기토끼 과일 어드벤처 4종": {
+    "en": "Strawberry Rabbit Fruit Adventures · 4 Designs",
+    "ja": "ストロベリーラビットのフルーツ冒険 4種",
+    "zh": "草莓兔水果冒险系列4款",
+    "vi": "Thỏ Dâu phiêu lưu cùng trái cây · 4 mẫu"
+  },
+  "딸기토끼 과일 어드벤처 4종 자세히 보기": {
+    "en": "Strawberry Rabbit Fruit Adventures · 4 Designs — View details",
+    "ja": "ストロベリーラビットのフルーツ冒険 4種の詳細を見る",
+    "zh": "草莓兔水果冒险系列4款 — 查看详情",
+    "vi": "Thỏ Dâu phiêu lưu cùng trái cây · 4 mẫu — Xem chi tiết"
+  },
+  "바나나 슬라이드, 오렌지 놀이, 파인애플 휴식, 체리 그네를 담은 과일 모험. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "A fruit adventure with a banana slide, orange playtime, a pineapple rest and a cherry swing. Contact us for production and collaborations.",
+    "ja": "バナナの滑り台、オレンジ遊び、パイナップルでひと休み、チェリーのブランコを楽しむフルーツ冒険。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "香蕉滑梯、香橙游戏、菠萝小憩与樱桃秋千，带来奇妙的水果冒险。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Cuộc phiêu lưu với cầu trượt chuối, trò chơi cùng cam, phút nghỉ trên dứa và xích đu anh đào. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "딸기토끼 과일 오브제 4종": {
+    "en": "Strawberry Rabbit Fruit Sculptures · 4 Designs",
+    "ja": "ストロベリーラビットのフルーツオブジェ 4種",
+    "zh": "草莓兔水果摆件4款",
+    "vi": "Tượng Thỏ Dâu và trái cây · 4 mẫu"
+  },
+  "딸기토끼 과일 오브제 4종 자세히 보기": {
+    "en": "Strawberry Rabbit Fruit Sculptures · 4 Designs — View details",
+    "ja": "ストロベリーラビットのフルーツオブジェ 4種の詳細を見る",
+    "zh": "草莓兔水果摆件4款 — 查看详情",
+    "vi": "Tượng Thỏ Dâu và trái cây · 4 mẫu — Xem chi tiết"
+  },
+  "배, 복숭아, 무화과, 레몬 오브제와 어우러진 딸기토끼의 네 가지 순간. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "Four moments with Strawberry Rabbit and pear, peach, fig and lemon sculptures. Contact us for production and collaborations.",
+    "ja": "洋ナシ、桃、イチジク、レモンのオブジェと楽しむ、ストロベリーラビットの4つのひととき。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "草莓兔与梨、桃子、无花果和柠檬造型，定格四个可爱瞬间。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Bốn khoảnh khắc của Thỏ Dâu cùng những tạo hình lê, đào, sung và chanh vàng. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "발렌타인 딸기토끼 아트토이 4종": {
+    "en": "Strawberry Rabbit's Valentine · 4 Art Toys",
+    "ja": "ストロベリーラビットのバレンタイン アートトイ4種",
+    "zh": "草莓兔情人节艺术玩具4款",
+    "vi": "Valentine của Thỏ Dâu · 4 mẫu"
+  },
+  "발렌타인 딸기토끼 아트토이 4종 자세히 보기": {
+    "en": "Strawberry Rabbit's Valentine · 4 Art Toys — View details",
+    "ja": "ストロベリーラビットのバレンタイン アートトイ4種の詳細を見る",
+    "zh": "草莓兔情人节艺术玩具4款 — 查看详情",
+    "vi": "Valentine của Thỏ Dâu · 4 mẫu — Xem chi tiết"
+  },
+  "체리 하트, 복숭아 선물상자, 사과 세레나데, 라즈베리 포옹으로 전하는 사랑. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "Love expressed through cherry hearts, a peach gift box, an apple serenade and a raspberry hug. Contact us for production and collaborations.",
+    "ja": "チェリーのハート、桃のギフトボックス、リンゴのセレナーデ、ラズベリーのハグで伝える愛。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "用樱桃爱心、桃子礼盒、苹果小夜曲和覆盆子拥抱传递爱意。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Gửi trao yêu thương qua trái tim anh đào, hộp quà đào, khúc tình ca táo và cái ôm mâm xôi. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "프리미엄 과일 디저트 아트토이 4종": {
+    "en": "Premium Fruit Desserts · 4 Art Toys",
+    "ja": "プレミアムフルーツデザート アートトイ4種",
+    "zh": "精品水果甜点艺术玩具4款",
+    "vi": "Tráng miệng trái cây cao cấp · 4 mẫu"
+  },
+  "프리미엄 과일 디저트 아트토이 4종 자세히 보기": {
+    "en": "Premium Fruit Desserts · 4 Art Toys — View details",
+    "ja": "プレミアムフルーツデザート アートトイ4種の詳細を見る",
+    "zh": "精品水果甜点艺术玩具4款 — 查看详情",
+    "vi": "Tráng miệng trái cây cao cấp · 4 mẫu — Xem chi tiết"
+  },
+  "무화과 디저트, 오렌지 주스, 체리 케이크, 망고 빙수로 꾸민 달콤한 컬렉션. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "A sweet collection featuring a fig dessert, orange juice, cherry cake and mango shaved ice. Contact us for production and collaborations.",
+    "ja": "イチジクのデザート、オレンジジュース、チェリーケーキ、マンゴーかき氷の甘いコレクション。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "以无花果甜点、橙汁、樱桃蛋糕和芒果刨冰打造的甜蜜收藏系列。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Bộ sưu tập ngọt ngào với món tráng miệng từ sung, nước cam, bánh anh đào và đá bào xoài. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "키위토끼 판타지 아트토이 4종": {
+    "en": "Kiwi Rabbit Fantasy · 4 Art Toys",
+    "ja": "キウイラビットのファンタジー アートトイ4種",
+    "zh": "奇异果兔奇幻艺术玩具4款",
+    "vi": "Thỏ Kiwi trong thế giới kỳ ảo · 4 mẫu"
+  },
+  "키위토끼 판타지 아트토이 4종 자세히 보기": {
+    "en": "Kiwi Rabbit Fantasy · 4 Art Toys — View details",
+    "ja": "キウイラビットのファンタジー アートトイ4種の詳細を見る",
+    "zh": "奇异果兔奇幻艺术玩具4款 — 查看详情",
+    "vi": "Thỏ Kiwi trong thế giới kỳ ảo · 4 mẫu — Xem chi tiết"
+  },
+  "자몽 캡슐, 용과 포털, 스타프루트 비행, 포도 정원으로 펼치는 키위토끼의 판타지. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "Kiwi Rabbit explores a grapefruit pod, a dragon fruit portal, a star fruit ride and a grape garden. Contact us for production and collaborations.",
+    "ja": "グレープフルーツのカプセル、ドラゴンフルーツのゲート、スターフルーツの乗り物、ブドウの庭を巡るキウイラビット。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "奇异果兔探索西柚座舱、火龙果传送门、杨桃飞行器与葡萄花园。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Thỏ Kiwi khám phá khoang bưởi, cổng thanh long, phi thuyền khế và khu vườn nho. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "키위토끼 과일 아트토이 4종": {
+    "en": "Kiwi Rabbit Fruit Collection · 4 Art Toys",
+    "ja": "キウイラビットのフルーツコレクション アートトイ4種",
+    "zh": "奇异果兔水果艺术玩具4款",
+    "vi": "Thỏ Kiwi và trái cây · 4 mẫu"
+  },
+  "키위토끼 과일 아트토이 4종 자세히 보기": {
+    "en": "Kiwi Rabbit Fruit Collection · 4 Art Toys — View details",
+    "ja": "キウイラビットのフルーツコレクション アートトイ4種の詳細を見る",
+    "zh": "奇异果兔水果艺术玩具4款 — 查看详情",
+    "vi": "Thỏ Kiwi và trái cây · 4 mẫu — Xem chi tiết"
+  },
+  "오렌지 껍질 리본, 석류, 바나나 의자, 사과 오브제와 함께하는 키위토끼. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "Playful Kiwi Rabbit poses with an orange peel ribbon, a pomegranate, a banana seat and an apple sculpture. Contact us for production and collaborations.",
+    "ja": "オレンジの皮のリボン、ザクロ、バナナの椅子、リンゴのオブジェと遊ぶキウイラビット。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "奇异果兔与橙皮丝带、石榴、香蕉座椅和苹果摆件一起，展现俏皮姿态。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Thỏ Kiwi tinh nghịch bên dải vỏ cam, quả lựu, ghế chuối và tượng táo. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "키위토끼 미니 피규어 4종": {
+    "en": "Kiwi Rabbit Mini Figures · 4 Designs",
+    "ja": "キウイラビットのミニフィギュア 4種",
+    "zh": "奇异果兔迷你手办4款",
+    "vi": "Mô hình mini Thỏ Kiwi · 4 mẫu"
+  },
+  "키위토끼 미니 피규어 4종 자세히 보기": {
+    "en": "Kiwi Rabbit Mini Figures · 4 Designs — View details",
+    "ja": "キウイラビットのミニフィギュア 4種の詳細を見る",
+    "zh": "奇异果兔迷你手办4款 — 查看详情",
+    "vi": "Mô hình mini Thỏ Kiwi · 4 mẫu — Xem chi tiết"
+  },
+  "포도, 용과, 스타프루트, 감 수레와 함께하는 키위토끼의 작은 순간. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "Little fruit-filled moments with grapes, dragon fruit, star fruit and a persimmon cart. Contact us for production and collaborations.",
+    "ja": "ブドウ、ドラゴンフルーツ、スターフルーツ、柿のカートと過ごす小さなひととき。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "与葡萄、火龙果、杨桃和柿子小推车共度的可爱时光。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Những khoảnh khắc nhỏ xinh cùng nho, thanh long, khế và xe kéo quả hồng. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "키위토끼 과일 음악 아트토이 4종": {
+    "en": "Kiwi Rabbit Fruit Music · 4 Art Toys",
+    "ja": "キウイラビットのフルーツ音楽会 アートトイ4種",
+    "zh": "奇异果兔水果音乐艺术玩具4款",
+    "vi": "Âm nhạc trái cây của Thỏ Kiwi · 4 mẫu"
+  },
+  "키위토끼 과일 음악 아트토이 4종 자세히 보기": {
+    "en": "Kiwi Rabbit Fruit Music · 4 Art Toys — View details",
+    "ja": "キウイラビットのフルーツ音楽会 アートトイ4種の詳細を見る",
+    "zh": "奇异果兔水果音乐艺术玩具4款 — 查看详情",
+    "vi": "Âm nhạc trái cây của Thỏ Kiwi · 4 mẫu — Xem chi tiết"
+  },
+  "수박 하프, 배 드럼, 리치 타악기, 살구 흔들의자로 꾸민 과일 음악 컬렉션. 상품 제작 및 협업은 문의해 주세요.": {
+    "en": "A fruit orchestra with a watermelon harp, pear drums, lychee percussion and an apricot rocking seat. Contact us for production and collaborations.",
+    "ja": "スイカのハープ、洋ナシのドラム、ライチのパーカッション、アンズのロッキングチェアが彩るフルーツ音楽会。 商品制作・コラボレーションについてはお問い合わせください。",
+    "zh": "西瓜竖琴、梨子鼓、荔枝打击乐与杏子摇椅，共同奏响水果乐章。 商品制作及合作事宜，欢迎联系我们。",
+    "vi": "Dàn nhạc trái cây với đàn hạc dưa hấu, trống lê, nhạc cụ gõ vải và ghế bập bênh quả mơ. Vui lòng liên hệ để sản xuất sản phẩm hoặc hợp tác."
+  },
+  "달에서 시작된 조금 특별한 인연.": {
+    "en": "From the moon, a very special bond.",
+    "ja": "月から始まった、ちょっと特別な出会い。",
+    "zh": "从月球开始的，一段特别缘分。",
+    "vi": "Khởi đầu từ Mặt Trăng, một tình bạn đặc biệt."
+  },
+  "너의 마음에 쏙,어떤 토끼가 들어올까?": {
+    "en": "Straight into your heart, which rabbit is yours?",
+    "ja": "心にすっと、うさぎはどの子？",
+    "zh": "悄悄走进心里，你喜欢哪只兔子？",
+    "vi": "Đi thẳng vào trái tim, bạn sẽ thích chú thỏ nào?"
+  },
+  "너의 마음에 쏙, 어떤 토끼가 들어올까?": {
+    "en": "Straight into your heart, which rabbit is yours?",
+    "ja": "心にすっと、うさぎはどの子？",
+    "zh": "悄悄走进心里，你喜欢哪只兔子？",
+    "vi": "Đi thẳng vào trái tim, bạn sẽ thích chú thỏ nào?"
+  },
+  "좋아하는 마음을,일상 곳곳에.": {
+    "en": "A sweet feeling, in every little moment.",
+    "ja": "大好きな気持ちを、日常のあちこちに。",
+    "zh": "喜欢的心情，带进日常。",
+    "vi": "Tình cảm ngọt ngào, vào từng ngày."
+  },
+  "좋아하는 마음을, 일상 곳곳에.": {
+    "en": "A sweet feeling, in every little moment.",
+    "ja": "大好きな気持ちを、日常のあちこちに。",
+    "zh": "喜欢的心情，带进日常。",
+    "vi": "Tình cảm ngọt ngào, vào từng ngày."
+  },
+  "짧아서 더 즐거운,과일토끼의 하루.": {
+    "en": "Short and sweet, big smiles.",
+    "ja": "短くて楽しい、フルーツラビットの一日。",
+    "zh": "短暂而快乐，快乐日常。",
+    "vi": "Ngắn và vui, một ngày của Fruit Rabbit."
+  },
+  "짧아서 더 즐거운, 과일토끼의 하루.": {
+    "en": "Short and sweet, big smiles.",
+    "ja": "短くて楽しい、フルーツラビットの一日。",
+    "zh": "短暂而快乐，快乐日常。",
+    "vi": "Ngắn 및 vui, một ngày của Fruit Rabbit."
+  },
+  "귀여움은함께할수록 커지니까.": {
+    "en": "More sweetness, more joy.",
+    "ja": "いっしょなら、かわいさも広がる。",
+    "zh": "在一起，因陪伴而加倍。",
+    "vi": "Thêm ngọt ngào, lớn lên khi cùng chia sẻ."
+  },
+  "귀여움은 함께할수록 커지니까.": {
+    "en": "More sweetness, more joy.",
+    "ja": "いっしょなら、かわいさも広がる。",
+    "zh": "在一起，因陪伴而加倍。",
+    "vi": "Thêm ngọt ngào, lớn lên khi cùng chia sẻ."
+  },
+  "우리 함께,더 다채롭게.": {
+    "en": "Let's make it, sweeter together.",
+    "ja": "一緒に、もっとカラフルに。",
+    "zh": "让我们一起，更丰富多彩。",
+    "vi": "Cùng nhau, ngọt ngào hơn cùng nhau."
+  },
+  "우리 함께, 더 다채롭게.": {
+    "en": "Let's make it, sweeter together.",
+    "ja": "一緒に、もっとカラフルに。",
+    "zh": "让我们一起，更丰富多彩。",
+    "vi": "Cùng nhau, ngọt ngào hơn cùng nhau."
+  },
+  "과일처럼 다채롭게, 토끼처럼 사랑스럽게.과일토끼와 함께하는 작고 달콤한 순간들.": {
+    "en": "As colorful as fruit, as lovely as rabbits. Sweet little moments with Fruit Rabbit.",
+    "ja": "フルーツのようにカラフルで、うさぎのように愛らしく。フルーツラビットと過ごす小さくて甘い時間。",
+    "zh": "像水果般多彩，像兔子般可爱。与水果兔相伴的甜蜜微小时刻。",
+    "vi": "Đa sắc như hoa quả, đáng yêu như chú thỏ. Những khoảnh khắc nhỏ ngọt ngào cùng Fruit Rabbit."
+  },
+  "귀마다 다른 과일, 저마다 다른 매력.네 친구를 눌러 조금 더 가까이 만나보세요.": {
+    "en": "A different fruit for every ear, a charm all their own. Select each of the four friends to get to know them.",
+    "ja": "耳ごとに違うフルーツ、それぞれの魅力。4人の友だちを選んで、もっと近づいてみて。",
+    "zh": "耳朵是不同的水果，各自拥有独特魅力。点击四位小伙伴，更近一步认识它们。",
+    "vi": "Mỗi tai là một loại quả, mỗi bạn một nét duyên. Chọn từng người bạn trong bốn người bạn để tìm hiểu thêm."
+  },
+  "가방 속 작은 소품부터 달콤한 간식까지.과일토끼의 색으로 채우는 나의 하루.": {
+    "en": "From little everyday accessories to sweet treats. Fill your day with the colors of Fruit Rabbit.",
+    "ja": "バッグの中の小物から甘いおやつまで。フルーツラビットの色で満たす毎日。",
+    "zh": "从包包里的小物件到甜蜜零食。用水果兔的色彩点亮一天。",
+    "vi": "Từ phụ kiện hằng ngày đến những món ngọt ngào. Tô điểm ngày của bạn bằng sắc màu Fruit Rabbit."
+  },
+  "과일 귀를 가진 강아지, 고양이, 곰 친구들까지.더 넓어지는 과일토끼의 세계를 만나보세요.": {
+    "en": "Puppies, cats, and bear friends with fruity ears. Step into the growing world of Fruit Rabbit.",
+    "ja": "フルーツの耳をもつ子犬、猫、くまの友だちまで。広がるフルーツラビットの世界をお楽しみに。",
+    "zh": "还有拥有水果耳朵的小狗、小猫和小熊伙伴。探索越来越大的水果兔世界。",
+    "vi": "Cả những người bạn cún, mèo và gấu có đôi tai hoa quả. Bước vào thế giới Fruit Rabbit đang ngày một rộng mở."
+  },
+  "상품 제작 · 브랜드 협업 · 캐릭터 라이선싱과일토끼와 함께할 새로운 이야기를 기다립니다.": {
+    "en": "Product development · Brand collaborations · Licensing. We're looking forward to new stories with Fruit Rabbit.",
+    "ja": "商品化・ブランドコラボ・ライセンス。フルーツラビットと一緒に紡ぐ新しいストーリーをお待ちしています。",
+    "zh": "商品制作 · 品牌合作 · 角色授权。期待与水果兔一起开启新的故事。",
+    "vi": "Sản xuất sản phẩm · Hợp tác thương hiệu · Cấp phép nhân vật. Chúng tôi chào đón những câu chuyện mới cùng Fruit Rabbit."
+  },
+  "레몬토끼의 상큼한 순간": {
+    "en": "Lemon Rabbit's fresh moments",
+    "ja": "レモンうさぎの爽やかな時間",
+    "zh": "柠檬兔的清爽瞬间",
+    "vi": "Khoảnh khắc tươi mát của Thỏ Chanh"
+  },
+  "키위토끼의 포근한 하루": {
+    "en": "Kiwi Rabbit's cozy day",
+    "ja": "キウイうさぎのあたたかな一日",
+    "zh": "猕猴桃兔的温馨一天",
+    "vi": "Một ngày ấm áp của Thỏ Kiwi"
+  },
+  "딸기토끼의 디저트 시간": {
+    "en": "Strawberry Rabbit's dessert time",
+    "ja": "いちごうさぎのデザートタイム",
+    "zh": "草莓兔的甜点时光",
+    "vi": "Giờ ăn tráng miệng của Thỏ Dâu"
+  },
+  "수박토끼의 달콤한 한 입": {
+    "en": "Watermelon Rabbit's sweet bite",
+    "ja": "すいかうさぎの甘いひとくち",
+    "zh": "西瓜兔的甜蜜一口",
+    "vi": "Miếng cắn ngọt ngào của Thỏ Dưa Hấu"
+  },
+  "수박토끼의 기차 여행": {
+    "en": "Watermelon Rabbit's train trip",
+    "ja": "すいかうさぎの列車旅行",
+    "zh": "西瓜兔的火车旅行",
+    "vi": "Chuyến tàu du lịch của Thỏ Dưa Hấu"
+  },
+  "수박토끼의 티타임": {
+    "en": "Watermelon Rabbit's tea time",
+    "ja": "すいかうさぎのティータイム",
+    "zh": "西瓜兔的下午茶",
+    "vi": "Giờ uống trà của Thỏ Dưa Hấu"
+  },
+  "키위토끼의 즐거운 놀이": {
+    "en": "Kiwi Rabbit's playful time",
+    "ja": "キウイうさぎの楽しい遊び",
+    "zh": "猕猴桃兔的欢乐游玩",
+    "vi": "Giờ vui chơi của Thỏ Kiwi"
+  },
+  "블루베리토끼의 포근한 하루": {
+    "en": "Blueberry Rabbit's cozy day",
+    "ja": "ブルーベリーうさぎのあたたかな一日",
+    "zh": "蓝莓兔的温馨一天",
+    "vi": "Một ngày ấm áp của Thỏ Việt Quất"
+  },
+  "수박토끼의 수박 간식": {
+    "en": "Watermelon Rabbit's watermelon snack",
+    "ja": "すいかうさぎのスイカおやつ",
+    "zh": "西瓜兔的西瓜点心",
+    "vi": "Món dưa hấu ăn nhẹ của Thỏ Dưa Hấu"
+  },
+  "키위토끼의 바쁜 하루": {
+    "en": "Kiwi Rabbit's busy day",
+    "ja": "キウイうさぎの忙しい一日",
+    "zh": "猕猴桃兔的忙碌一天",
+    "vi": "Một ngày bận rộn của Thỏ Kiwi"
+  },
+  "수박토끼의 해변 휴가": {
+    "en": "Watermelon Rabbit's beach vacation",
+    "ja": "すいかうさぎのビーチバカンス",
+    "zh": "西瓜兔的海滩假期",
+    "vi": "Kỳ nghỉ bãi biển của Thỏ Dưa Hấu"
+  },
+  "두리안토끼의 포근한 하루": {
+    "en": "Durian Rabbit's cozy day",
+    "ja": "ドリアンうさぎのあたたかな一日",
+    "zh": "榴莲兔的温馨一天",
+    "vi": "Một ngày ấm áp của Thỏ Sầu Riêng"
+  },
+  "과일토끼의 과일나라 나들이": {
+    "en": "Fruit Rabbit's fruit land outing",
+    "ja": "フルーツラビットのくだもの王国おでかけ",
+    "zh": "水果兔的水果乐园郊游",
+    "vi": "Chuyến dạo chơi xứ hoa quả của Fruit Rabbit"
+  },
+  "키위토끼 과일파티 키링": {
+    "en": "Kiwi Rabbit Fruit Party Keychain",
+    "ja": "キウイうさぎ フルーツパーティーキーホルダー",
+    "zh": "猕猴桃兔水果派对钥匙扣",
+    "vi": "Móc khóa Thỏ Kiwi Tiệc Hoa Quả"
+  },
+  "키위토끼 슬라이스 키링": {
+    "en": "Kiwi Rabbit Slice Keychain",
+    "ja": "キウイうさぎ スライスキーホルダー",
+    "zh": "猕猴桃兔切片钥匙扣",
+    "vi": "Móc khóa Thỏ Kiwi Lát Cắt"
+  },
+  "키위토끼 바캉스 키링": {
+    "en": "Kiwi Rabbit Vacance Keychain",
+    "ja": "キウイうさぎ バカンスキーホルダー",
+    "zh": "猕猴桃兔度假钥匙扣",
+    "vi": "Móc khóa Thỏ Kiwi Kỳ Nghỉ"
+  },
+  "키위토끼 달리기 키링": {
+    "en": "Kiwi Rabbit Running Keychain",
+    "ja": "キウイうさぎ ランニングキーホルダー",
+    "zh": "猕猴桃兔跑步钥匙扣",
+    "vi": "Móc khóa Thỏ Kiwi Chạy Bộ"
+  },
+  "과일토끼 실시간 문의": {
+    "en": "Fruit Rabbit Live Chat",
+    "ja": "フルーツラビット リアルタイム相談",
+    "zh": "水果兔实时咨询",
+    "vi": "Tư vấn trực tiếp Fruit Rabbit"
+  },
+  "전송": {
+    "en": "Send",
+    "ja": "送信",
+    "zh": "发送",
+    "vi": "Gửi"
+  }
+}
